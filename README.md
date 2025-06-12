@@ -11,3 +11,4 @@
 - Easily applicable with @ExtendWith or with a service loader activation for the entire test suite
 - Work with JReleaser to release the extension to Maven Central
 - CI/CD with GitHub Actions
+- in `demo` add real Spring Boot project to test the extension
