@@ -6,18 +6,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>digital.pragmatech</groupId>
-    <artifactId>spring-test-insight-demo-spring-boot-3.4-maven</artifactId>
+    <artifactId>spring-test-insight-demo-spring-boot-3.5-gradle</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Spring Test Insight Demo</name>
-    <description>Demo project for Spring Test Insight Extension</description>
+    <name>Spring Test Insight Demo (Gradle-like structure)</name>
+    <description>Demo project for Spring Test Insight Extension with Gradle-like structure</description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>3.4.1</spring-boot.version>
+        <spring-boot.version>3.5.0</spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -76,6 +76,14 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <parameters>true</parameters>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
