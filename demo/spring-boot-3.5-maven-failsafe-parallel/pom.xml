@@ -89,7 +89,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.2.5</version>
+        <version>3.5.3</version>
         <configuration>
           <includes>
             <include>**/*Test.java</include>
@@ -103,23 +103,15 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>3.2.5</version>
+        <version>3.5.3</version>
         <configuration>
           <includes>
             <include>**/*IT.java</include>
           </includes>
-          <!-- Enable parallel execution -->
           <parallel>classes</parallel>
           <threadCount>4</threadCount>
           <forkCount>2</forkCount>
           <reuseForks>true</reuseForks>
-          <!-- System properties for parallel execution -->
-          <systemPropertyVariables>
-            <junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
-            <junit.jupiter.execution.parallel.mode.default>concurrent</junit.jupiter.execution.parallel.mode.default>
-            <junit.jupiter.execution.parallel.mode.classes.default>concurrent
-            </junit.jupiter.execution.parallel.mode.classes.default>
-          </systemPropertyVariables>
         </configuration>
         <executions>
           <execution>
