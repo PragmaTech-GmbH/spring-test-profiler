@@ -36,6 +36,7 @@ target/
 !**/src/test/**/target/
 
 ### Gradle ###
+.gradle/
 !gradle/wrapper/gradle-wrapper.jar
 pom.xml.tag
 pom.xml.releaseBackup
