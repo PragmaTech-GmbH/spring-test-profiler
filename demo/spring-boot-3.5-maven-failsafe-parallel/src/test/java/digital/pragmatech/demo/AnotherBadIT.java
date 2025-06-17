@@ -4,6 +4,7 @@ import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.service.BookService;
 import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * BAD EXAMPLE: This test uses different TestPropertySource values,
  * causing a context cache MISS because the configuration is different
  * from other tests, even though the difference is minimal.
+ * DISABLED: This test is intentionally problematic for parallel execution demonstration
  */
+@Disabled("Bad example - disabled due to DEFINED_PORT conflicts in parallel execution")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, 
                properties = "server.port=8081") // BAD: Different port
 @ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})

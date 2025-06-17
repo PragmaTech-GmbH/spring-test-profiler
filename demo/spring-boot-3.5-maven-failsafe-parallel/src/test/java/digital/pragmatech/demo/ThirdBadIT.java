@@ -3,6 +3,7 @@ package digital.pragmatech.demo;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * BAD EXAMPLE: This test uses @AutoConfigureWebMvc annotation unnecessarily,
  * and has yet another different configuration, causing another context cache MISS.
  * Also uses webEnvironment.RANDOM_PORT but different from other tests.
+ * DISABLED: This test is intentionally problematic for parallel execution demonstration
  */
+@Disabled("Bad example - disabled due to context configuration conflicts in parallel execution")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc // BAD: Unnecessary annotation that changes context
 @ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})

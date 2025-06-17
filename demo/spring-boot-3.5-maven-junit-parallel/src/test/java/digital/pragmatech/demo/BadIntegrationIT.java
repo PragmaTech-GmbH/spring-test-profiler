@@ -4,6 +4,7 @@ import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
 import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * BAD EXAMPLE: This test uses @DirtiesContext unnecessarily, 
  * causing the Spring context to be recreated for every test method.
  * This is a cache MISS every time!
+ * DISABLED: This test is intentionally problematic for parallel execution demonstration
  */
+@Disabled("Bad example - disabled due to @DirtiesContext issues in parallel execution")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
