@@ -1,5 +1,7 @@
 package digital.pragmatech.demo;
 
+import java.math.BigDecimal;
+
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
@@ -13,9 +15,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * GOOD EXAMPLE: This test class uses consistent configuration that can be
@@ -26,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @Transactional // GOOD: Rolls back after each test, no context recreation needed
-public class GoodIntegrationTest {
+public class GoodIT {
 
   @Autowired
   private BookRepository bookRepository;

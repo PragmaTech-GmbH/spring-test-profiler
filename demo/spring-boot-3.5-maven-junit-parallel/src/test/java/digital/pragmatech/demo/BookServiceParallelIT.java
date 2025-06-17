@@ -30,69 +30,69 @@ import static org.junit.jupiter.api.Assertions.*;
 @Execution(ExecutionMode.CONCURRENT)
 public class BookServiceParallelIT {
 
-    @Autowired
-    private BookService bookService;
+  @Autowired
+  private BookService bookService;
 
-    @Test
-    void testCreateBookParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(95);
-        
-        Book book = new Book("Domain-Driven Design", "Eric Evans", "978-0321125215", 
-                           new BigDecimal("56.99"), BookCategory.TECHNOLOGY);
-        
-        Book createdBook = bookService.createBook(book);
-        
-        assertNotNull(createdBook.getId());
-        assertEquals("Domain-Driven Design", createdBook.getTitle());
-    }
+  @Test
+  void testCreateBookParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(95);
 
-    @Test
-    void testUpdateBookParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(85);
-        
-        Book book = new Book("Original Title", "Author", "978-4444444444", 
-                           new BigDecimal("30.00"), BookCategory.TECHNOLOGY);
-        Book savedBook = bookService.createBook(book);
-        
-        savedBook.setTitle("Updated Title");
-        savedBook.setPrice(new BigDecimal("35.00"));
-        
-        Book updatedBook = bookService.updateBook(savedBook.getId(), savedBook);
-        
-        assertEquals("Updated Title", updatedBook.getTitle());
-        assertEquals(new BigDecimal("35.00"), updatedBook.getPrice());
-    }
+    Book book = new Book("Domain-Driven Design", "Eric Evans", "978-0321125215",
+      new BigDecimal("56.99"), BookCategory.TECHNOLOGY);
 
-    @Test
-    void testFindByTitleParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(105);
-        
-        Book book = new Book("Refactoring: Improving Design", "Martin Fowler", "978-0134757599", 
-                           new BigDecimal("47.99"), BookCategory.TECHNOLOGY);
-        bookService.createBook(book);
-        
-        List<Book> books = bookService.findByTitle("Refactoring");
-        
-        assertEquals(1, books.size());
-        assertEquals("Refactoring: Improving Design", books.get(0).getTitle());
-    }
+    Book createdBook = bookService.createBook(book);
 
-    @Test
-    void testDeleteBookParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(75);
-        
-        Book book = new Book("Temporary Book", "Author", "978-5555555555", 
-                           new BigDecimal("25.00"), BookCategory.TECHNOLOGY);
-        Book savedBook = bookService.createBook(book);
-        
-        assertNotNull(bookService.findById(savedBook.getId()).orElse(null));
-        
-        bookService.deleteBook(savedBook.getId());
-        
-        assertTrue(bookService.findById(savedBook.getId()).isEmpty());
-    }
+    assertNotNull(createdBook.getId());
+    assertEquals("Domain-Driven Design", createdBook.getTitle());
+  }
+
+  @Test
+  void testUpdateBookParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(85);
+
+    Book book = new Book("Original Title", "Author", "978-4444444444",
+      new BigDecimal("30.00"), BookCategory.TECHNOLOGY);
+    Book savedBook = bookService.createBook(book);
+
+    savedBook.setTitle("Updated Title");
+    savedBook.setPrice(new BigDecimal("35.00"));
+
+    Book updatedBook = bookService.updateBook(savedBook.getId(), savedBook);
+
+    assertEquals("Updated Title", updatedBook.getTitle());
+    assertEquals(new BigDecimal("35.00"), updatedBook.getPrice());
+  }
+
+  @Test
+  void testFindByTitleParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(105);
+
+    Book book = new Book("Refactoring: Improving Design", "Martin Fowler", "978-0134757599",
+      new BigDecimal("47.99"), BookCategory.TECHNOLOGY);
+    bookService.createBook(book);
+
+    List<Book> books = bookService.findByTitle("Refactoring");
+
+    assertEquals(1, books.size());
+    assertEquals("Refactoring: Improving Design", books.get(0).getTitle());
+  }
+
+  @Test
+  void testDeleteBookParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(75);
+
+    Book book = new Book("Temporary Book", "Author", "978-5555555555",
+      new BigDecimal("25.00"), BookCategory.TECHNOLOGY);
+    Book savedBook = bookService.createBook(book);
+
+    assertNotNull(bookService.findById(savedBook.getId()).orElse(null));
+
+    bookService.deleteBook(savedBook.getId());
+
+    assertTrue(bookService.findById(savedBook.getId()).isEmpty());
+  }
 }

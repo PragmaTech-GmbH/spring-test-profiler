@@ -32,77 +32,77 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:mvctest;DB_CLOSE_DELAY=-1",
-    "server.servlet.context-path=/api/v2"  // Different context path
+  "spring.datasource.url=jdbc:h2:mem:mvctest;DB_CLOSE_DELAY=-1",
+  "server.servlet.context-path=/api/v2"  // Different context path
 })
 @Execution(ExecutionMode.CONCURRENT)
 public class WebMvcParallelIT {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+  @Autowired
+  private WebApplicationContext webApplicationContext;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Test
-    void testCreateBookMvcParallel() throws Exception {
-        // Simulate some processing time
-        Thread.sleep(88);
-        
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        
-        String bookJson = """
-            {
-                "title": "Building Microservices",
-                "author": "Sam Newman",
-                "isbn": "978-1491950357",
-                "price": 52.99,
-                "category": "TECHNOLOGY"
-            }
-            """;
-        
-        mockMvc.perform(post("/api/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(bookJson))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("Building Microservices"));
-    }
+  @Test
+  void testCreateBookMvcParallel() throws Exception {
+    // Simulate some processing time
+    Thread.sleep(88);
 
-    @Test
-    void testGetAllBooksMvcParallel() throws Exception {
-        // Simulate some processing time
-        Thread.sleep(115);
-        
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        
-        mockMvc.perform(get("/api/books")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
+    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-    @Test
-    void testGetBookCountMvcParallel() throws Exception {
-        // Simulate some processing time
-        Thread.sleep(65);
-        
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        
-        mockMvc.perform(get("/api/books/count")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
+    String bookJson = """
+      {
+          "title": "Building Microservices",
+          "author": "Sam Newman",
+          "isbn": "978-1491950357",
+          "price": 52.99,
+          "category": "TECHNOLOGY"
+      }
+      """;
 
-    @Test
-    void testSearchBooksMvcParallel() throws Exception {
-        // Simulate some processing time
-        Thread.sleep(125);
-        
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        
-        mockMvc.perform(get("/api/books/search")
-                .param("category", "TECHNOLOGY")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
+    mockMvc.perform(post("/api/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(bookJson))
+      .andExpect(status().isCreated())
+      .andExpect(jsonPath("$.title").value("Building Microservices"));
+  }
+
+  @Test
+  void testGetAllBooksMvcParallel() throws Exception {
+    // Simulate some processing time
+    Thread.sleep(115);
+
+    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+
+    mockMvc.perform(get("/api/books")
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+  }
+
+  @Test
+  void testGetBookCountMvcParallel() throws Exception {
+    // Simulate some processing time
+    Thread.sleep(65);
+
+    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+
+    mockMvc.perform(get("/api/books/count")
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk());
+  }
+
+  @Test
+  void testSearchBooksMvcParallel() throws Exception {
+    // Simulate some processing time
+    Thread.sleep(125);
+
+    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+
+    mockMvc.perform(get("/api/books/search")
+        .param("category", "TECHNOLOGY")
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+  }
 }

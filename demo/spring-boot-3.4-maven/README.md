@@ -5,6 +5,7 @@ This demo project showcases the Spring Test Insight Extension in action.
 ## Overview
 
 This is a simple Spring Boot application with:
+
 - REST API for user management
 - JPA/Hibernate with H2 in-memory database
 - Comprehensive test suite demonstrating Spring Test context caching
@@ -28,9 +29,11 @@ mvn clean test
 ## Viewing the Test Report
 
 After running the tests, the Spring Test Insight report will be generated at:
+
 - `target/spring-test-insight/latest.html`
 
 Open this file in a web browser to see:
+
 - Test execution summary
 - Spring context caching statistics
 - Cache hit/miss rates
@@ -40,12 +43,14 @@ Open this file in a web browser to see:
 ## Test Structure
 
 The demo includes various types of tests:
+
 - `UserRepositoryTest` - @DataJpaTest for repository layer
 - `UserServiceTest` - Unit tests with mocks
 - `UserControllerTest` - @WebMvcTest for REST controllers
 - `UserIntegrationTest` - Full @SpringBootTest integration tests
 
-Each test class uses different Spring configurations, demonstrating how the extension tracks context caching across different test types.
+Each test class uses different Spring configurations, demonstrating how the extension tracks context caching across
+different test types.
 
 ## Key Features Demonstrated
 
@@ -57,6 +62,7 @@ Each test class uses different Spring configurations, demonstrating how the exte
 ## Tips for Optimization
 
 Based on the report, you can:
+
 - Identify tests that create new contexts unnecessarily
 - Group tests with similar configurations to improve cache reuse
 - Find slow context initialization that impacts test performance

@@ -30,76 +30,76 @@ import static org.junit.jupiter.api.Assertions.*;
 @Execution(ExecutionMode.CONCURRENT)
 public class BookRepositoryParallelIT {
 
-    @Autowired
-    private BookRepository bookRepository;
+  @Autowired
+  private BookRepository bookRepository;
 
-    @Test
-    void testSaveAndFindBookParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(120);
-        
-        Book book = new Book("Clean Architecture", "Robert C. Martin", "978-0134494166", 
-                           new BigDecimal("48.99"), BookCategory.TECHNOLOGY);
-        
-        Book savedBook = bookRepository.save(book);
-        
-        assertNotNull(savedBook.getId());
-        assertEquals("Clean Architecture", savedBook.getTitle());
-        assertEquals("Robert C. Martin", savedBook.getAuthor());
-    }
+  @Test
+  void testSaveAndFindBookParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(120);
 
-    @Test
-    void testFindByIsbnParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(100);
-        
-        Book book = new Book("Java: The Complete Reference", "Herbert Schildt", "978-1260440232", 
-                           new BigDecimal("59.99"), BookCategory.TECHNOLOGY);
-        bookRepository.save(book);
-        
-        Book foundBook = bookRepository.findByIsbn("978-1260440232").orElse(null);
-        
-        assertNotNull(foundBook);
-        assertEquals("Java: The Complete Reference", foundBook.getTitle());
-    }
+    Book book = new Book("Clean Architecture", "Robert C. Martin", "978-0134494166",
+      new BigDecimal("48.99"), BookCategory.TECHNOLOGY);
 
-    @Test
-    void testFindByAuthorParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(90);
-        
-        Book book1 = new Book("Spring Security in Action", "Laurentiu Spilca", "978-1617297731", 
-                             new BigDecimal("49.99"), BookCategory.TECHNOLOGY);
-        Book book2 = new Book("Spring Microservices", "Laurentiu Spilca", "978-1234567890", 
-                             new BigDecimal("54.99"), BookCategory.TECHNOLOGY);
-        
-        bookRepository.save(book1);
-        bookRepository.save(book2);
-        
-        List<Book> books = bookRepository.findByAuthorContainingIgnoreCase("Laurentiu");
-        
-        assertEquals(2, books.size());
-    }
+    Book savedBook = bookRepository.save(book);
 
-    @Test
-    void testFindByPriceBetweenParallel() throws InterruptedException {
-        // Simulate some processing time
-        Thread.sleep(110);
-        
-        Book book1 = new Book("Budget Book", "Author", "978-1111111111", 
-                             new BigDecimal("15.00"), BookCategory.FICTION);
-        Book book2 = new Book("Mid-range Book", "Author", "978-2222222222", 
-                             new BigDecimal("35.00"), BookCategory.FICTION);
-        Book book3 = new Book("Premium Book", "Author", "978-3333333333", 
-                             new BigDecimal("80.00"), BookCategory.FICTION);
-        
-        bookRepository.save(book1);
-        bookRepository.save(book2);
-        bookRepository.save(book3);
-        
-        List<Book> books = bookRepository.findByPriceBetween(new BigDecimal("20.00"), new BigDecimal("50.00"));
-        
-        assertEquals(1, books.size());
-        assertEquals("Mid-range Book", books.get(0).getTitle());
-    }
+    assertNotNull(savedBook.getId());
+    assertEquals("Clean Architecture", savedBook.getTitle());
+    assertEquals("Robert C. Martin", savedBook.getAuthor());
+  }
+
+  @Test
+  void testFindByIsbnParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(100);
+
+    Book book = new Book("Java: The Complete Reference", "Herbert Schildt", "978-1260440232",
+      new BigDecimal("59.99"), BookCategory.TECHNOLOGY);
+    bookRepository.save(book);
+
+    Book foundBook = bookRepository.findByIsbn("978-1260440232").orElse(null);
+
+    assertNotNull(foundBook);
+    assertEquals("Java: The Complete Reference", foundBook.getTitle());
+  }
+
+  @Test
+  void testFindByAuthorParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(90);
+
+    Book book1 = new Book("Spring Security in Action", "Laurentiu Spilca", "978-1617297731",
+      new BigDecimal("49.99"), BookCategory.TECHNOLOGY);
+    Book book2 = new Book("Spring Microservices", "Laurentiu Spilca", "978-1234567890",
+      new BigDecimal("54.99"), BookCategory.TECHNOLOGY);
+
+    bookRepository.save(book1);
+    bookRepository.save(book2);
+
+    List<Book> books = bookRepository.findByAuthorContainingIgnoreCase("Laurentiu");
+
+    assertEquals(2, books.size());
+  }
+
+  @Test
+  void testFindByPriceBetweenParallel() throws InterruptedException {
+    // Simulate some processing time
+    Thread.sleep(110);
+
+    Book book1 = new Book("Budget Book", "Author", "978-1111111111",
+      new BigDecimal("15.00"), BookCategory.FICTION);
+    Book book2 = new Book("Mid-range Book", "Author", "978-2222222222",
+      new BigDecimal("35.00"), BookCategory.FICTION);
+    Book book3 = new Book("Premium Book", "Author", "978-3333333333",
+      new BigDecimal("80.00"), BookCategory.FICTION);
+
+    bookRepository.save(book1);
+    bookRepository.save(book2);
+    bookRepository.save(book3);
+
+    List<Book> books = bookRepository.findByPriceBetween(new BigDecimal("20.00"), new BigDecimal("50.00"));
+
+    assertEquals(1, books.size());
+    assertEquals("Mid-range Book", books.get(0).getTitle());
+  }
 }

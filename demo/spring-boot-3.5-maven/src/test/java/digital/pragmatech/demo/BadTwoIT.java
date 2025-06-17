@@ -1,5 +1,7 @@
 package digital.pragmatech.demo;
 
+import java.math.BigDecimal;
+
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.service.BookService;
@@ -12,9 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * BAD EXAMPLE: This test uses different TestPropertySource values,
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
   "spring.jpa.show-sql=true", // Different JPA setting
   "management.endpoints.web.exposure.include=health,info" // Additional property
 })
-public class BadIntegrationTest2 {
+public class BadTwoIT {
 
   @Autowired
   private BookService bookService;

@@ -1,5 +1,7 @@
 package digital.pragmatech.demo;
 
+import java.math.BigDecimal;
+
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
@@ -15,9 +17,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * BAD EXAMPLE: This test uses @AutoConfigureWebMvc annotation unnecessarily,
@@ -34,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
   "server.servlet.context-path=/api/v1", // BAD: Different context path
   "spring.jackson.property-naming-strategy=SNAKE_CASE" // BAD: Different Jackson config
 })
-public class BadIntegrationTest3 {
+public class BadThreeIT {
 
   @Autowired
   private TestRestTemplate testRestTemplate;

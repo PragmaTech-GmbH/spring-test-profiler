@@ -1,43 +1,43 @@
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.5.0'
-    id 'io.spring.dependency-management' version '1.1.6'
+  id 'java'
+  id 'org.springframework.boot' version '3.5.0'
+  id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'digital.pragmatech'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
+  mavenLocal()
+  mavenCentral()
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    
-    runtimeOnly 'com.h2database:h2'
-    
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'digital.pragmatech:spring-test-insight-extension:0.0.1-SNAPSHOT'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  implementation 'org.springframework.boot:spring-boot-starter'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+  runtimeOnly 'com.h2database:h2'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'digital.pragmatech:spring-test-insight-extension:0.0.1-SNAPSHOT'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
 
 compileJava {
-    options.compilerArgs << '-parameters'
+  options.compilerArgs << '-parameters'
 }
 
 compileTestJava {
-    options.compilerArgs << '-parameters'
+  options.compilerArgs << '-parameters'
 }

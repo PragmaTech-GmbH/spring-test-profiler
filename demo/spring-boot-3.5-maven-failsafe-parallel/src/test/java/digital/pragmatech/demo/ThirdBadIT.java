@@ -32,48 +32,48 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test") // Same as first test, but other config differs
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:badtest3;DB_CLOSE_DELAY=-1", // Different DB name again
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "server.servlet.context-path=/api/v1", // BAD: Different context path
-    "spring.jackson.property-naming-strategy=SNAKE_CASE" // BAD: Different Jackson config
+  "spring.datasource.url=jdbc:h2:mem:badtest3;DB_CLOSE_DELAY=-1", // Different DB name again
+  "spring.jpa.hibernate.ddl-auto=create-drop",
+  "server.servlet.context-path=/api/v1", // BAD: Different context path
+  "spring.jackson.property-naming-strategy=SNAKE_CASE" // BAD: Different Jackson config
 })
 public class ThirdBadIT {
 
-    @Autowired
-    private TestRestTemplate testRestTemplate;
+  @Autowired
+  private TestRestTemplate testRestTemplate;
 
-    @Test
-    void testCreateBookViaRestApi() {
-        Book book = new Book("Java: The Complete Reference", "Herbert Schildt", 
-                           "978-1260440232", new BigDecimal("59.99"), BookCategory.TECHNOLOGY);
-        
-        ResponseEntity<Book> response = testRestTemplate.postForEntity("/api/books", book, Book.class);
-        
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Java: The Complete Reference", response.getBody().getTitle());
-    }
+  @Test
+  void testCreateBookViaRestApi() {
+    Book book = new Book("Java: The Complete Reference", "Herbert Schildt",
+      "978-1260440232", new BigDecimal("59.99"), BookCategory.TECHNOLOGY);
 
-    @Test
-    void testGetAllBooksViaRestApi() {
-        // First create a book
-        Book book = new Book("Spring Boot in Action", "Craig Walls", "978-1617292545", 
-                           new BigDecimal("44.99"), BookCategory.TECHNOLOGY);
-        testRestTemplate.postForEntity("/api/books", book, Book.class);
-        
-        ResponseEntity<Book[]> response = testRestTemplate.getForEntity("/api/books", Book[].class);
-        
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().length > 0);
-    }
+    ResponseEntity<Book> response = testRestTemplate.postForEntity("/api/books", book, Book.class);
 
-    @Test
-    void testGetBookCountViaRestApi() {
-        ResponseEntity<Long> response = testRestTemplate.getForEntity("/api/books/count", Long.class);
-        
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody() >= 0);
-    }
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals("Java: The Complete Reference", response.getBody().getTitle());
+  }
+
+  @Test
+  void testGetAllBooksViaRestApi() {
+    // First create a book
+    Book book = new Book("Spring Boot in Action", "Craig Walls", "978-1617292545",
+      new BigDecimal("44.99"), BookCategory.TECHNOLOGY);
+    testRestTemplate.postForEntity("/api/books", book, Book.class);
+
+    ResponseEntity<Book[]> response = testRestTemplate.getForEntity("/api/books", Book[].class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertTrue(response.getBody().length > 0);
+  }
+
+  @Test
+  void testGetBookCountViaRestApi() {
+    ResponseEntity<Long> response = testRestTemplate.getForEntity("/api/books/count", Long.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertTrue(response.getBody() >= 0);
+  }
 }
