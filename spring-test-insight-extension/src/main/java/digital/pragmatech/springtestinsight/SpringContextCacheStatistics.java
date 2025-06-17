@@ -54,10 +54,11 @@ public class SpringContextCacheStatistics extends AbstractTestExecutionListener 
             Duration loadTime = Duration.between(startTime, Instant.now());
             
             // Check if this was a cache hit or miss by inspecting the context cache
+            String testClassName = testContext.getTestClass().getName();
             if (isContextCached(testContext)) {
-                statistics.recordCacheHit(contextKey);
+                statistics.recordCacheHit(contextKey, testClassName);
             } else {
-                statistics.recordContextLoad(contextKey, loadTime);
+                statistics.recordContextLoad(contextKey, loadTime, testClassName);
             }
             
             contextLoadStartTimes.remove(contextKey);
