@@ -6,10 +6,10 @@ import java.time.Instant;
 public class TestExecutionData {
     private final String testId;
     private final Instant startTime;
-    private Instant endTime;
-    private TestStatus status = TestStatus.RUNNING;
-    private Throwable throwable;
-    private String reason;
+    private volatile Instant endTime;
+    private volatile TestStatus status = TestStatus.RUNNING;
+    private volatile Throwable throwable;
+    private volatile String reason;
     
     public TestExecutionData(String testId, Instant startTime) {
         this.testId = testId;
@@ -28,7 +28,7 @@ public class TestExecutionData {
         return endTime;
     }
     
-    public void setEndTime(Instant endTime) {
+    public synchronized void setEndTime(Instant endTime) {
         this.endTime = endTime;
     }
     
@@ -43,7 +43,7 @@ public class TestExecutionData {
         return status;
     }
     
-    public void setStatus(TestStatus status) {
+    public synchronized void setStatus(TestStatus status) {
         this.status = status;
     }
     
@@ -51,7 +51,7 @@ public class TestExecutionData {
         return throwable;
     }
     
-    public void setThrowable(Throwable throwable) {
+    public synchronized void setThrowable(Throwable throwable) {
         this.throwable = throwable;
     }
     
@@ -59,7 +59,7 @@ public class TestExecutionData {
         return reason;
     }
     
-    public void setReason(String reason) {
+    public synchronized void setReason(String reason) {
         this.reason = reason;
     }
     

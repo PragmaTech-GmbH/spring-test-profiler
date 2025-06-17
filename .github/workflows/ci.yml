@@ -57,6 +57,8 @@ jobs:
           - spring-boot-3.4-maven
           - spring-boot-3.5-maven
           - spring-boot-3.5-gradle
+          - spring-boot-3.5-maven-failsafe-parallel
+          - spring-boot-3.5-maven-junit-parallel
     
     steps:
       - name: Checkout repository
@@ -95,7 +97,12 @@ jobs:
         if: contains(matrix.demo, 'maven')
         continue-on-error: true
         working-directory: demo/${{ matrix.demo }}
-        run: mvn clean test
+        run: |
+          if [[ "${{ matrix.demo }}" == "spring-boot-3.5-maven-failsafe-parallel" ]]; then
+            mvn clean verify
+          else
+            mvn clean test
+          fi
         
       - name: Test Gradle demo
         id: gradle-test

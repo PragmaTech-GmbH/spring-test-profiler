@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class TestExecutionReporter {
@@ -25,9 +26,9 @@ public class TestExecutionReporter {
     private static final String REPORT_DIR = "target/spring-test-insight";
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     
-    private final List<TestClassExecutionData> testClassData = new ArrayList<>();
+    private final List<TestClassExecutionData> testClassData = new CopyOnWriteArrayList<>();
     
-    public void addTestClassData(TestClassExecutionData data) {
+    public synchronized void addTestClassData(TestClassExecutionData data) {
         testClassData.add(data);
     }
     

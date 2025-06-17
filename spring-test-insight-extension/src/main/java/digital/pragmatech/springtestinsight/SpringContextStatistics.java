@@ -8,22 +8,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SpringContextStatistics {
-    private int contextLoads = 0;
-    private int cacheHits = 0;
-    private int cacheMisses = 0;
-    private final List<ContextLoadEvent> contextLoadEvents = new ArrayList<>();
-    private final Map<String, Set<String>> cacheKeyToTestClasses = new HashMap<>();
-    private final Map<String, CacheKeyInfo> cacheKeyInfoMap = new HashMap<>();
+    private final AtomicInteger contextLoads = new AtomicInteger(0);
+    private final AtomicInteger cacheHits = new AtomicInteger(0);
+    private final AtomicInteger cacheMisses = new AtomicInteger(0);
+    private final List<ContextLoadEvent> contextLoadEvents = new CopyOnWriteArrayList<>();
+    private final Map<String, Set<String>> cacheKeyToTestClasses = new ConcurrentHashMap<>();
+    private final Map<String, CacheKeyInfo> cacheKeyInfoMap = new ConcurrentHashMap<>();
     
     public void recordContextLoad(String contextKey, Duration loadTime) {
         recordContextLoad(contextKey, loadTime, null);
     }
     
     public void recordContextLoad(String contextKey, Duration loadTime, String testClassName) {
-        contextLoads++;
-        cacheMisses++;
+        contextLoads.incrementAndGet();
+        cacheMisses.incrementAndGet();
         contextLoadEvents.add(new ContextLoadEvent(contextKey, loadTime, Instant.now()));
         recordCacheKeyUsage(contextKey, testClassName, false);
     }
@@ -33,14 +36,14 @@ public class SpringContextStatistics {
     }
     
     public void recordCacheHit(String contextKey, String testClassName) {
-        cacheHits++;
+        cacheHits.incrementAndGet();
         recordCacheKeyUsage(contextKey, testClassName, true);
     }
     
-    private void recordCacheKeyUsage(String contextKey, String testClassName, boolean wasHit) {
+    private synchronized void recordCacheKeyUsage(String contextKey, String testClassName, boolean wasHit) {
         if (contextKey == null) return;
         
-        cacheKeyToTestClasses.computeIfAbsent(contextKey, k -> new HashSet<>());
+        cacheKeyToTestClasses.computeIfAbsent(contextKey, k -> ConcurrentHashMap.newKeySet());
         if (testClassName != null) {
             cacheKeyToTestClasses.get(contextKey).add(testClassName);
         }
@@ -54,20 +57,22 @@ public class SpringContextStatistics {
     }
     
     public int getContextLoads() {
-        return contextLoads;
+        return contextLoads.get();
     }
     
     public int getCacheHits() {
-        return cacheHits;
+        return cacheHits.get();
     }
     
     public int getCacheMisses() {
-        return cacheMisses;
+        return cacheMisses.get();
     }
     
     public double getCacheHitRate() {
-        int totalAccesses = cacheHits + cacheMisses;
-        return totalAccesses > 0 ? (double) cacheHits / totalAccesses * 100 : 0;
+        int hits = cacheHits.get();
+        int misses = cacheMisses.get();
+        int totalAccesses = hits + misses;
+        return totalAccesses > 0 ? (double) hits / totalAccesses * 100 : 0;
     }
     
     public List<ContextLoadEvent> getContextLoadEvents() {
@@ -114,19 +119,19 @@ public class SpringContextStatistics {
     
     public static class CacheKeyInfo {
         private final String cacheKey;
-        private int hits = 0;
-        private int misses = 0;
+        private final AtomicInteger hits = new AtomicInteger(0);
+        private final AtomicInteger misses = new AtomicInteger(0);
         
         public CacheKeyInfo(String cacheKey) {
             this.cacheKey = cacheKey;
         }
         
         public void incrementHits() {
-            hits++;
+            hits.incrementAndGet();
         }
         
         public void incrementMisses() {
-            misses++;
+            misses.incrementAndGet();
         }
         
         public String getCacheKey() {
@@ -134,20 +139,22 @@ public class SpringContextStatistics {
         }
         
         public int getHits() {
-            return hits;
+            return hits.get();
         }
         
         public int getMisses() {
-            return misses;
+            return misses.get();
         }
         
         public int getTotalAccesses() {
-            return hits + misses;
+            return hits.get() + misses.get();
         }
         
         public double getHitRate() {
-            int total = getTotalAccesses();
-            return total > 0 ? (double) hits / total * 100 : 0;
+            int h = hits.get();
+            int m = misses.get();
+            int total = h + m;
+            return total > 0 ? (double) h / total * 100 : 0;
         }
     }
 }
