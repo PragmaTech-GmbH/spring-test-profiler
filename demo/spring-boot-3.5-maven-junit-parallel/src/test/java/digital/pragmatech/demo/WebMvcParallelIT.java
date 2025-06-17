@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "server.servlet.context-path=/api/v2"  // Different context path
 })
 @Execution(ExecutionMode.CONCURRENT)
-public class WebMvcParallelTest {
+public class WebMvcParallelIT {
 
     @Autowired
     private WebApplicationContext webApplicationContext;

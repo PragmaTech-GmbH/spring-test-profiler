@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @Transactional // GOOD: Rolls back after each test, no context recreation needed
-public class GoodIntegrationTest {
+public class GoodIntegrationIT {
 
     @Autowired
     private BookRepository bookRepository;

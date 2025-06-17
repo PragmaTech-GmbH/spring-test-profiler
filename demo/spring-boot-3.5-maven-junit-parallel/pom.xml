@@ -85,7 +85,7 @@
                     <parameters>true</parameters>
                 </configuration>
             </plugin>
-            <!-- Surefire with JUnit Jupiter parallel execution -->
+            <!-- Surefire for unit tests with JUnit Jupiter parallel execution -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -93,6 +93,35 @@
                 <configuration>
                     <includes>
                         <include>**/*Test.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*IT.java</exclude>
+                    </excludes>
+                    <!-- Enable JUnit Jupiter parallel execution -->
+                    <properties>
+                        <configurationParameters>
+                            junit.jupiter.execution.parallel.enabled=true
+                            junit.jupiter.execution.parallel.mode.default=concurrent
+                            junit.jupiter.execution.parallel.mode.classes.default=concurrent
+                            junit.jupiter.execution.parallel.config.strategy=dynamic
+                            junit.jupiter.execution.parallel.config.dynamic.factor=2
+                        </configurationParameters>
+                    </properties>
+                    <!-- Fork configuration for additional parallelism -->
+                    <forkCount>2</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <parallel>classes</parallel>
+                    <threadCount>4</threadCount>
+                </configuration>
+            </plugin>
+            <!-- Failsafe for integration tests with JUnit Jupiter parallel execution -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
                     </includes>
                     <!-- Enable JUnit Jupiter parallel execution -->
                     <properties>
@@ -110,6 +139,14 @@
                     <parallel>classes</parallel>
                     <threadCount>4</threadCount>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

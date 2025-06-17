@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
     "spring.jpa.show-sql=true"  // Different configuration
 })
 @Execution(ExecutionMode.CONCURRENT)
-public class DatabaseParallelTest {
+public class DatabaseParallelIT {
 
     @Autowired
     private TestEntityManager entityManager;
