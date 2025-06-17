@@ -13,19 +13,25 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SpringContextCacheStatistics extends AbstractTestExecutionListener {
     
-    private final SpringContextStatistics statistics = new SpringContextStatistics();
-    private final Map<String, Instant> contextLoadStartTimes = new ConcurrentHashMap<>();
-    private boolean tracking = false;
+    // Use static fields to share data across all instances
+    private static final SpringContextStatistics statistics = new SpringContextStatistics();
+    private static final Map<String, Instant> contextLoadStartTimes = new ConcurrentHashMap<>();
+    private static boolean tracking = true; // Start tracking by default since Spring listeners run before JUnit extensions
     
-    public void startTracking() {
+    public SpringContextCacheStatistics() {
+        // Constructor - instance created by Spring
+    }
+    
+    public static void startTracking() {
         tracking = true;
     }
     
-    public void stopTracking() {
-        tracking = false;
+    public static void stopTracking() {
+        // Don't actually stop tracking - we want to track across all test classes
+        // This method is called at the end to generate the final report
     }
     
-    public SpringContextStatistics getStatistics() {
+    public static SpringContextStatistics getStatistics() {
         return statistics;
     }
     
@@ -63,26 +69,20 @@ public class SpringContextCacheStatistics extends AbstractTestExecutionListener 
                testContext.getApplicationContext().getId();
     }
     
+    private static final Map<String, String> seenContexts = new ConcurrentHashMap<>();
+    
     private boolean isContextCached(TestContext testContext) {
-        // This is a simplified check - in a real implementation, we'd need to
-        // integrate more deeply with Spring's context caching mechanism
-        try {
-            // Try to check if the context was already in the cache
-            Field contextCacheField = testContext.getClass().getDeclaredField("contextCache");
-            contextCacheField.setAccessible(true);
-            Object contextCache = contextCacheField.get(testContext);
-            
-            if (contextCache != null) {
-                // Check if the context was already present
-                return true;
-            }
-        } catch (Exception e) {
-            // Fallback to checking application context start time
-            return testContext.getApplicationContext().getStartupDate() < 
-                   System.currentTimeMillis() - 1000;
-        }
+        String contextId = testContext.getApplicationContext().getId();
+        String contextKey = generateContextKey(testContext);
         
-        return false;
+        // If we've seen this context ID before, it's likely a cache hit
+        if (seenContexts.containsKey(contextId)) {
+            return true;
+        } else {
+            // First time seeing this context, mark it as seen
+            seenContexts.put(contextId, contextKey);
+            return false;
+        }
     }
     
     @Override

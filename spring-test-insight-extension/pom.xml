@@ -100,6 +100,14 @@
       <version>${spring.version}</version>
       <scope>provided</scope>
     </dependency>
+    
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.14</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

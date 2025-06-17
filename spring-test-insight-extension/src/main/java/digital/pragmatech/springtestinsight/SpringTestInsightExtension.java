@@ -16,30 +16,29 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     private static final String STORE_KEY = "spring-test-insight";
     
     private final Map<String, TestExecutionData> testExecutions = new ConcurrentHashMap<>();
-    private final SpringContextCacheStatistics cacheStatistics = new SpringContextCacheStatistics();
     private final TestExecutionReporter reporter = new TestExecutionReporter();
     
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         logger.debug("Starting Spring Test Insight for test class: {}", context.getRequiredTestClass().getName());
         getStore(context).put(STORE_KEY, this);
-        cacheStatistics.startTracking();
+        SpringContextCacheStatistics.startTracking();
     }
     
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
         logger.debug("Completing Spring Test Insight for test class: {}", context.getRequiredTestClass().getName());
-        cacheStatistics.stopTracking();
         
         TestClassExecutionData classData = new TestClassExecutionData(
             context.getRequiredTestClass().getName(),
             testExecutions,
-            cacheStatistics.getStatistics()
+            SpringContextCacheStatistics.getStatistics()
         );
         
         reporter.addTestClassData(classData);
         
         if (isLastTestClass(context)) {
+            SpringContextCacheStatistics.stopTracking();
             reporter.generateReport();
         }
     }
