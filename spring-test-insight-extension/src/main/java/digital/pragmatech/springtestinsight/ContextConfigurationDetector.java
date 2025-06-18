@@ -34,7 +34,7 @@ public class ContextConfigurationDetector {
             testClassToConfig.put(className, mergedConfig);
             configToTestClasses.computeIfAbsent(mergedConfig, k -> ConcurrentHashMap.newKeySet()).add(className);
             
-            logger.debug("Analyzed test class {} with configuration: {}", className, getConfigurationSummary(mergedConfig));
+            logger.info("Analyzed test class {} with configuration: {}", className, getConfigurationSummary(mergedConfig));
         } catch (Exception e) {
             logger.warn("Failed to analyze test class {}: {}", testClass.getName(), e.getMessage());
         }
