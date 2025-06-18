@@ -100,12 +100,12 @@
       <version>${spring.version}</version>
       <scope>provided</scope>
     </dependency>
-    
+
     <!-- Test dependencies -->
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.4.14</version>
+      <version>1.5.13</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -159,9 +159,9 @@
               <name>spring-test-insight-extension</name>
               <description>JUnit Jupiter extension for Spring Test insights and context caching visualization</description>
               <longDescription>
-                Spring Test Insight is a JUnit Jupiter extension that provides detailed insights 
+                Spring Test Insight is a JUnit Jupiter extension that provides detailed insights
                 into Spring Test execution, focusing on context caching statistics and performance optimization.
-                It generates beautiful HTML reports showing cache hit rates, test execution times, and 
+                It generates beautiful HTML reports showing cache hit rates, test execution times, and
                 optimization recommendations.
               </longDescription>
               <website>https://github.com/rieckpil/spring-test-insight</website>

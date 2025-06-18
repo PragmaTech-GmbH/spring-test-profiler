@@ -80,6 +80,9 @@ public class TestExecutionReporter {
         // Context caching statistics
         html.append(generateContextCachingSection());
         
+        // Context configurations section
+        html.append(generateContextConfigurationsSection());
+        
         // Cache keys section
         html.append(generateCacheKeysSection());
         
@@ -487,6 +490,87 @@ public class TestExecutionReporter {
                     margin: 2px 4px 2px 0;
                     border: 1px solid #bbdefb;
                 }
+                
+                .context-configs-section {
+                    background: white;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    margin-bottom: 30px;
+                }
+                
+                .context-config-item {
+                    border: 1px solid #ecf0f1;
+                    border-radius: 6px;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                    background: #f8f9fa;
+                }
+                
+                .context-config-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+                
+                .context-config-id {
+                    font-weight: bold;
+                    color: #2c3e50;
+                    font-size: 16px;
+                }
+                
+                .context-config-test-count {
+                    background: #3498db;
+                    color: white;
+                    padding: 4px 10px;
+                    border-radius: 15px;
+                    font-size: 14px;
+                }
+                
+                .config-details {
+                    background: white;
+                    border-radius: 4px;
+                    padding: 10px;
+                    margin: 10px 0;
+                    font-family: monospace;
+                    font-size: 12px;
+                    overflow-x: auto;
+                }
+                
+                .config-detail-item {
+                    margin: 5px 0;
+                    display: flex;
+                    align-items: flex-start;
+                }
+                
+                .config-detail-key {
+                    font-weight: bold;
+                    color: #7f8c8d;
+                    min-width: 150px;
+                    margin-right: 10px;
+                }
+                
+                .config-detail-value {
+                    color: #2c3e50;
+                    word-break: break-word;
+                }
+                
+                .context-test-classes {
+                    margin-top: 10px;
+                }
+                
+                .context-test-class {
+                    display: inline-block;
+                    background: #e8f4f8;
+                    color: #2c3e50;
+                    padding: 4px 8px;
+                    border-radius: 3px;
+                    font-size: 12px;
+                    margin-right: 5px;
+                    margin-bottom: 5px;
+                    font-family: monospace;
+                }
             </style>
             """;
     }
@@ -643,6 +727,72 @@ public class TestExecutionReporter {
         html.append("            </div>\n");
         html.append("        </div>\n");
         
+        return html.toString();
+    }
+    
+    private String generateContextConfigurationsSection() {
+        StringBuilder html = new StringBuilder();
+        html.append("        <h2>Spring Context Configurations</h2>\n");
+        html.append("        <div class=\"context-configs-section\">\n");
+        html.append("            <p>This section shows all unique Spring context configurations detected during test execution, grouped by their MergedContextConfiguration.</p>\n");
+        
+        Map<String, ContextConfigurationDetector.ContextConfigurationInfo> configurations = 
+            ContextConfigurationDetector.getContextConfigurations();
+        
+        if (configurations.isEmpty()) {
+            html.append("            <div class=\"no-context-configs\">\n");
+            html.append("                <p>No context configurations were detected. This might happen if tests don't use Spring contexts.</p>\n");
+            html.append("            </div>\n");
+        } else {
+            for (ContextConfigurationDetector.ContextConfigurationInfo configInfo : configurations.values()) {
+                html.append("            <div class=\"context-config-item\">\n");
+                html.append("                <div class=\"context-config-header\">\n");
+                html.append("                    <div class=\"context-config-id\">🔧 ").append(escapeHtml(configInfo.getId())).append("</div>\n");
+                html.append("                    <div class=\"context-config-test-count\">").append(configInfo.getTestClasses().size()).append(" test class").append(configInfo.getTestClasses().size() > 1 ? "es" : "").append("</div>\n");
+                html.append("                </div>\n");
+                
+                // Configuration details
+                html.append("                <div class=\"config-details\">\n");
+                Map<String, Object> config = configInfo.getConfiguration();
+                
+                // Display configuration properties
+                for (Map.Entry<String, Object> entry : config.entrySet()) {
+                    html.append("                    <div class=\"config-detail-item\">\n");
+                    html.append("                        <div class=\"config-detail-key\">").append(escapeHtml(entry.getKey())).append(":</div>\n");
+                    html.append("                        <div class=\"config-detail-value\">");
+                    
+                    Object value = entry.getValue();
+                    if (value instanceof List<?> list) {
+                        if (list.isEmpty()) {
+                            html.append("[]");
+                        } else {
+                            html.append("[<br>");
+                            for (Object item : list) {
+                                html.append("                            &nbsp;&nbsp;").append(escapeHtml(String.valueOf(item))).append("<br>");
+                            }
+                            html.append("                        ]");
+                        }
+                    } else {
+                        html.append(escapeHtml(String.valueOf(value)));
+                    }
+                    
+                    html.append("</div>\n");
+                    html.append("                    </div>\n");
+                }
+                html.append("                </div>\n");
+                
+                // Test classes using this configuration
+                html.append("                <div class=\"context-test-classes\">\n");
+                html.append("                    <strong>Test classes using this configuration:</strong><br>\n");
+                for (String testClass : configInfo.getTestClasses()) {
+                    html.append("                    <span class=\"context-test-class\">").append(escapeHtml(testClass)).append("</span>\n");
+                }
+                html.append("                </div>\n");
+                html.append("            </div>\n");
+            }
+        }
+        
+        html.append("        </div>\n");
         return html.toString();
     }
     

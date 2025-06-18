@@ -20,9 +20,13 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        logger.debug("Starting Spring Test Insight for test class: {}", context.getRequiredTestClass().getName());
+        Class<?> testClass = context.getRequiredTestClass();
+        logger.debug("Starting Spring Test Insight for test class: {}", testClass.getName());
         getStore(context).put(STORE_KEY, this);
         SpringContextCacheStatistics.startTracking();
+        
+        // Analyze the test class to determine its context configuration
+        ContextConfigurationDetector.analyzeTestClass(testClass);
     }
     
     @Override
@@ -40,6 +44,7 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
         if (isLastTestClass(context)) {
             SpringContextCacheStatistics.stopTracking();
             reporter.generateReport();
+            ContextConfigurationDetector.clear();
         }
     }
     
