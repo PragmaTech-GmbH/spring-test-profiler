@@ -20,11 +20,26 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     private final Map<String, TestExecutionData> testExecutions = new ConcurrentHashMap<>();
     private final TestExecutionReporter reporter = new TestExecutionReporter();
     private static volatile boolean reportGenerated = false;
+    private static String currentPhase = null;
     
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         Class<?> testClass = context.getRequiredTestClass();
         logger.debug("Starting Spring Test Insight for test class: {}", testClass.getName());
+        
+        // Detect which Maven phase we're in based on test naming conventions
+        String detectedPhase = detectMavenPhase(testClass);
+        
+        // Reset report generation flag if we've moved to a different phase
+        synchronized (SpringTestInsightExtension.class) {
+            if (currentPhase == null) {
+                currentPhase = detectedPhase;
+            } else if (!currentPhase.equals(detectedPhase)) {
+                logger.info("Phase change detected: {} -> {}. Resetting report generation.", currentPhase, detectedPhase);
+                reportGenerated = false;
+                currentPhase = detectedPhase;
+            }
+        }
         
         // Register this extension as a closeable resource in the root store
         // This ensures close() is called after all tests complete
@@ -118,17 +133,35 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     @Override
     public void close() throws Throwable {
         // This method is called after all tests have completed
-        // Use synchronization to ensure the report is only generated once
+        // Use synchronization to ensure the report is only generated once per phase
         synchronized (SpringTestInsightExtension.class) {
             if (!reportGenerated) {
-                logger.info("All tests completed. Generating Spring Test Insight report...");
+                String phase = currentPhase != null ? currentPhase : "unknown";
+                logger.info("All tests completed for {} phase. Generating Spring Test Insight report...", phase);
                 SpringContextCacheStatistics.stopTracking();
-                reporter.generateReport();
+                reporter.generateReport(phase);
                 ContextConfigurationDetector.clear();
                 reportGenerated = true;
             } else {
-                logger.debug("Report already generated, skipping...");
+                logger.debug("Report already generated for current phase, skipping...");
             }
         }
+    }
+    
+    /**
+     * Detects which Maven phase we're in based on test class naming conventions.
+     * Integration tests typically end with 'IT' and are run by failsafe plugin.
+     * Unit tests are run by surefire plugin.
+     */
+    private String detectMavenPhase(Class<?> testClass) {
+        String className = testClass.getSimpleName();
+        
+        // Maven failsafe plugin runs integration tests (typically named *IT)
+        if (className.endsWith("IT") || className.contains("Integration")) {
+            return "failsafe";
+        }
+        
+        // Maven surefire plugin runs unit tests
+        return "surefire";
     }
 }

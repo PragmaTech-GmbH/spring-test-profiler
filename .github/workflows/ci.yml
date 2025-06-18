@@ -97,12 +97,7 @@ jobs:
         if: contains(matrix.demo, 'maven')
         continue-on-error: true
         working-directory: demo/${{ matrix.demo }}
-        run: |
-          if [[ "${{ matrix.demo }}" == "spring-boot-3.5-maven-failsafe-parallel" ]]; then
-            mvn clean verify
-          else
-            mvn clean test
-          fi
+        run: ./mvnw clean verify
         
       - name: Test Gradle demo
         id: gradle-test
@@ -136,6 +131,7 @@ jobs:
           name: demo-test-results-${{ matrix.demo }}
           path: |
             demo/${{ matrix.demo }}/target/surefire-reports/
+            demo/${{ matrix.demo }}/target/failsafe-reports/
             demo/${{ matrix.demo }}/target/spring-test-insight/
             demo/${{ matrix.demo }}/build/reports/tests/
             demo/${{ matrix.demo }}/build/test-results/

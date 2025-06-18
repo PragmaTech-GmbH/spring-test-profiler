@@ -33,20 +33,28 @@ public class TestExecutionReporter {
     }
     
     public void generateReport() {
+        generateReport("default");
+    }
+    
+    public void generateReport(String phase) {
         try {
             Path reportDir = Paths.get(REPORT_DIR);
             Files.createDirectories(reportDir);
             
             String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-            Path reportFile = reportDir.resolve("test-insight-report-" + timestamp + ".html");
+            String reportFileName = phase.equals("default") ? 
+                "test-insight-report-" + timestamp + ".html" :
+                "test-insight-report-" + phase + "-" + timestamp + ".html";
+            Path reportFile = reportDir.resolve(reportFileName);
             
-            String htmlContent = generateHtml();
+            String htmlContent = generateHtml(phase);
             Files.write(reportFile, htmlContent.getBytes());
             
-            logger.info("Spring Test Insight report generated: {}", reportFile.toAbsolutePath());
+            logger.info("Spring Test Insight report generated for {} phase: {}", phase, reportFile.toAbsolutePath());
             
             // Also create a latest.html symlink for easy access
-            Path latestLink = reportDir.resolve("latest.html");
+            String latestFileName = phase.equals("default") ? "latest.html" : "latest-" + phase + ".html";
+            Path latestLink = reportDir.resolve(latestFileName);
             Files.deleteIfExists(latestLink);
             Files.write(latestLink, htmlContent.getBytes());
             
@@ -56,19 +64,24 @@ public class TestExecutionReporter {
     }
     
     private String generateHtml() {
+        return generateHtml("default");
+    }
+    
+    private String generateHtml(String phase) {
         StringBuilder html = new StringBuilder();
         html.append("<!DOCTYPE html>\n");
         html.append("<html lang=\"en\">\n");
         html.append("<head>\n");
         html.append("    <meta charset=\"UTF-8\">\n");
         html.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-        html.append("    <title>Spring Test Insight Report</title>\n");
+        String titleSuffix = phase.equals("default") ? "" : " (" + phase.toUpperCase() + " Phase)";
+        html.append("    <title>Spring Test Insight Report").append(titleSuffix).append("</title>\n");
         html.append("    <link rel=\"icon\" href=\"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>\">\n");
         html.append(generateStyles());
         html.append("</head>\n");
         html.append("<body>\n");
         html.append("    <div class=\"container\">\n");
-        html.append("        <h1>Spring Test Insight Report</h1>\n");
+        html.append("        <h1>Spring Test Insight Report").append(titleSuffix).append("</h1>\n");
         html.append("        <div class=\"timestamp\">Generated at: ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("</div>\n");
         
         // Theoretical background section
