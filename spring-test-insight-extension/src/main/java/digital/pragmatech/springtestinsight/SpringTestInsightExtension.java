@@ -1,6 +1,8 @@
 package digital.pragmatech.springtestinsight;
 
 import org.junit.jupiter.api.extension.*;
+import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.engine.TestExecutionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,18 +12,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback {
+public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback, ExtensionContext.Store.CloseableResource {
     
     private static final Logger logger = LoggerFactory.getLogger(SpringTestInsightExtension.class);
     private static final String STORE_KEY = "spring-test-insight";
     
     private final Map<String, TestExecutionData> testExecutions = new ConcurrentHashMap<>();
     private final TestExecutionReporter reporter = new TestExecutionReporter();
+    private static volatile boolean reportGenerated = false;
     
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         Class<?> testClass = context.getRequiredTestClass();
         logger.debug("Starting Spring Test Insight for test class: {}", testClass.getName());
+        
+        // Register this extension as a closeable resource in the root store
+        // This ensures close() is called after all tests complete
+        context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL)
+            .getOrComputeIfAbsent("spring-test-insight-closeable", k -> this, ExtensionContext.Store.CloseableResource.class);
+        
         getStore(context).put(STORE_KEY, this);
         SpringContextCacheStatistics.startTracking();
         
@@ -41,11 +50,7 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
         
         reporter.addTestClassData(classData);
         
-        if (isLastTestClass(context)) {
-            SpringContextCacheStatistics.stopTracking();
-            reporter.generateReport();
-            ContextConfigurationDetector.clear();
-        }
+        // Report generation is now handled in the close() method
     }
     
     @Override
@@ -110,8 +115,20 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
         return context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL);
     }
     
-    private boolean isLastTestClass(ExtensionContext context) {
-        // This is a simplified check - in production, we'd need more sophisticated logic
-        return context.getRoot().equals(context.getParent().orElse(null));
+    @Override
+    public void close() throws Throwable {
+        // This method is called after all tests have completed
+        // Use synchronization to ensure the report is only generated once
+        synchronized (SpringTestInsightExtension.class) {
+            if (!reportGenerated) {
+                logger.info("All tests completed. Generating Spring Test Insight report...");
+                SpringContextCacheStatistics.stopTracking();
+                reporter.generateReport();
+                ContextConfigurationDetector.clear();
+                reportGenerated = true;
+            } else {
+                logger.debug("Report already generated, skipping...");
+            }
+        }
     }
 }

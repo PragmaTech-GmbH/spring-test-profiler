@@ -44,6 +44,8 @@ public class ContextConfigurationDetector {
      * Returns all discovered context configurations with their associated test classes.
      */
     public static Map<String, ContextConfigurationInfo> getContextConfigurations() {
+        logger.info("Getting context configurations. Total configs detected: {}, Test class mappings: {}", 
+            configToTestClasses.size(), testClassToConfig.size());
         Map<String, ContextConfigurationInfo> result = new LinkedHashMap<>();
         
         int configId = 1;
@@ -75,6 +77,8 @@ public class ContextConfigurationDetector {
      * Clears all stored configuration data.
      */
     public static void clear() {
+        logger.info("Clearing context configuration data. Had {} configs and {} test class mappings", 
+            configToTestClasses.size(), testClassToConfig.size());
         configToTestClasses.clear();
         testClassToConfig.clear();
     }
