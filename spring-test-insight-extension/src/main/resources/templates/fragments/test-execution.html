@@ -7,20 +7,20 @@
             <p>Click on any test class below to expand and see detailed information about individual test methods, including execution times and failure details.</p>
         </div>
         
-        <div th:each="classData : ${@testClassSorter.sortTestClasses(testClassData)}"
-             th:with="classExecutionTimeMs=${@summaryCalculator.getClassExecutionTime(classData)},
-                      classStatusColor=${@statusColorHelper.getClassStatusColor(classData)}"
+        <div th:each="classData : ${testClassSorter.sortTestClasses(testClassData)}"
+             th:with="classExecutionTimeMs=${summaryCalculator.getClassExecutionTime(classData)},
+                      classStatusColor=${statusColorHelper.getClassStatusColor(classData)}"
              class="test-class">
             
             <div class="test-class-header" 
                  onclick="toggleClass(this)" 
                  th:style="${'border-left: 4px solid ' + classStatusColor + ';'}">
                 <div>
-                    <div class="test-class-name" th:text="${@classNameHelper.getSimpleClassName(classData.className)}">TestClass</div>
-                    <div class="test-class-package" th:text="${@classNameHelper.getPackageName(classData.className)}">com.example.test</div>
+                    <div class="test-class-name" th:text="${classNameHelper.getSimpleClassName(classData.className)}">TestClass</div>
+                    <div class="test-class-package" th:text="${classNameHelper.getPackageName(classData.className)}">com.example.test</div>
                 </div>
                 <div class="test-class-stats">
-                    <span>⏱️ <span th:text="${@durationFormatter.format(classExecutionTimeMs)}">0ms</span></span>
+                    <span>⏱️ <span th:text="${durationFormatter.format(classExecutionTimeMs)}">0ms</span></span>
                     <span>📊 <span th:text="${classData.totalTests + ' tests'}">0 tests</span></span>
                     
                     <span th:if="${classData.passedTests > 0}" style="color: #27ae60;">
@@ -54,15 +54,15 @@
                         </span>
                         <span th:if="${classData.contextStatistics.totalContextLoadTime.toMillis() > 0}" 
                               class="context-metric">
-                            ⏱️ Load Time: <span th:text="${@durationFormatter.format(classData.contextStatistics.totalContextLoadTime.toMillis())}">0ms</span>
+                            ⏱️ Load Time: <span th:text="${durationFormatter.format(classData.contextStatistics.totalContextLoadTime.toMillis())}">0ms</span>
                         </span>
                     </div>
                 </div>
                 
                 <!-- Test methods sorted by status (failed first, then by name) -->
-                <div th:each="testData : ${@testMethodSorter.sortTestMethods(classData.testExecutions.values())}"
+                <div th:each="testData : ${testMethodSorter.sortTestMethods(classData.testExecutions.values())}"
                      th:with="statusClass=${#strings.toLowerCase(testData.status)},
-                              statusIcon=${@statusIconHelper.getStatusIcon(testData.status)}"
+                              statusIcon=${statusIconHelper.getStatusIcon(testData.status)}"
                      th:class="${'test-method ' + statusClass}">
                     
                     <div class="test-method-header">
@@ -73,14 +73,14 @@
                         <div class="test-method-info">
                             <span th:if="${testData.duration != null}" 
                                   class="test-duration" 
-                                  th:text="${@durationFormatter.format(testData.duration.toMillis())}">0ms</span>
+                                  th:text="${durationFormatter.format(testData.duration.toMillis())}">0ms</span>
                             <span class="test-status" th:text="${testData.status}">PASSED</span>
                         </div>
                     </div>
                     
                     <div th:if="${testData.throwable != null}" class="error-details">
                         <h5>Error Details:</h5>
-                        <pre th:text="${@errorFormatter.formatError(testData.throwable)}">Error message</pre>
+                        <pre th:text="${errorFormatter.formatError(testData.throwable)}">Error message</pre>
                     </div>
                     
                     <div th:if="${testData.reason != null and !#strings.isEmpty(#strings.trim(testData.reason))}" 

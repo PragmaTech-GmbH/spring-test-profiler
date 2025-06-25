@@ -21,7 +21,7 @@
         </div>
         <div class="cache-metric">
             <span class="label">Total Context Load Time:</span>
-            <span class="value" th:text="${@durationFormatter.format(aggregatedStats.totalContextLoadTime.toMillis())}">0ms</span>
+            <span class="value" th:text="${durationFormatter.format(aggregatedStats.totalContextLoadTime.toMillis())}">0ms</span>
         </div>
     </div>
 </body>

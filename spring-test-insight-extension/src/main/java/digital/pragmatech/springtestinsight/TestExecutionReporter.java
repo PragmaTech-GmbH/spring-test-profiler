@@ -170,9 +170,12 @@ public class TestExecutionReporter {
             // Register helper beans for templates
             registerHelperBeans(context);
             
-            return templateEngine.process("report", context);
+            String result = templateEngine.process("report", context);
+            logger.info("Successfully generated HTML with Thymeleaf templates");
+            return result;
         } catch (Exception e) {
-            logger.warn("Failed to generate HTML with Thymeleaf, falling back to simple HTML generation", e);
+            logger.error("Failed to generate HTML with Thymeleaf, falling back to simple HTML generation. Error: " + e.getMessage(), e);
+            
             return generateSimpleHtml(phase);
         }
     }

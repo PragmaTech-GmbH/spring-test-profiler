@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <div th:fragment="summary-section(testClassData)" th:with="
-        totalTests=${@summaryCalculator.getTotalTests(testClassData)},
-        passedTests=${@summaryCalculator.getPassedTests(testClassData)},
-        failedTests=${@summaryCalculator.getFailedTests(testClassData)},
-        disabledTests=${@summaryCalculator.getDisabledTests(testClassData)},
-        abortedTests=${@summaryCalculator.getAbortedTests(testClassData)},
+        totalTests=${summaryCalculator.getTotalTests(testClassData)},
+        passedTests=${summaryCalculator.getPassedTests(testClassData)},
+        failedTests=${summaryCalculator.getFailedTests(testClassData)},
+        disabledTests=${summaryCalculator.getDisabledTests(testClassData)},
+        abortedTests=${summaryCalculator.getAbortedTests(testClassData)},
         totalTestClasses=${#lists.size(testClassData)},
-        totalExecutionTimeMs=${@summaryCalculator.getTotalExecutionTime(testClassData)},
+        totalExecutionTimeMs=${summaryCalculator.getTotalExecutionTime(testClassData)},
         successRate=${totalTests > 0 ? (passedTests * 100.0) / totalTests : 0}">
         
         <h2>Test Execution Summary</h2>
@@ -39,7 +39,7 @@
             </div>
             <div class="summary-card">
                 <h3>Total Runtime</h3>
-                <div class="value" style="font-size: 24px;" th:text="${@durationFormatter.format(totalExecutionTimeMs)}">0ms</div>
+                <div class="value" style="font-size: 24px;" th:text="${durationFormatter.format(totalExecutionTimeMs)}">0ms</div>
             </div>
             <div class="summary-card">
                 <h3>Success Rate</h3>
