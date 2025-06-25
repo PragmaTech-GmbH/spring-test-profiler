@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="cache-keys-section(testClassData)" 
+         th:with="allCacheKeys=${@cacheKeyProcessor.aggregateCacheKeys(testClassData)},
+                  allCacheKeyInfo=${@cacheKeyProcessor.aggregateCacheKeyInfo(testClassData)}"
+         class="cache-keys-section">
+        
+        <h2>Spring Context Cache Keys</h2>
+        <p>This section shows all Spring context cache keys that were used during test execution, along with which test classes utilized each cache key.</p>
+        
+        <div th:if="${allCacheKeys.isEmpty()}" class="no-cache-keys">
+            <p>No cache keys were recorded during test execution.</p>
+        </div>
+        
+        <div th:unless="${allCacheKeys.isEmpty()}">
+            <div th:each="entry : ${#maps.toSortedMap(allCacheKeys).entrySet()}" 
+                 th:with="cacheKey=${entry.key}, testClasses=${entry.value}, keyInfo=${allCacheKeyInfo[cacheKey]}"
+                 class="cache-key-item">
+                
+                <div class="cache-key-name">🔑 <span th:text="${cacheKey}">Cache Key</span></div>
+                
+                <div th:if="${keyInfo != null}" class="cache-key-usage">
+                    <span class="cache-key-stat">📊 Total Accesses: <span th:text="${keyInfo.totalAccesses}">0</span></span>
+                    <span class="cache-key-stat">🎯 Hits: <span th:text="${keyInfo.hits}">0</span></span>
+                    <span class="cache-key-stat">❌ Misses: <span th:text="${keyInfo.misses}">0</span></span>
+                    <span th:if="${keyInfo.totalAccesses > 0}" class="cache-key-stat">
+                        📈 Hit Rate: <span th:text="${#numbers.formatDecimal(keyInfo.hitRate, 1, 1) + '%'}">0.0%</span>
+                    </span>
+                </div>
+                
+                <div class="test-classes-list">
+                    <strong>Used by test classes:</strong><br>
+                    <span th:each="testClass : ${#lists.sort(testClasses)}" 
+                          class="test-class-tag" 
+                          th:text="${@classNameHelper.getSimpleClassName(testClass)}">TestClass</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="caching-section(aggregatedStats)" class="cache-stats">
+        <h2>Spring Context Caching Statistics</h2>
+        <div class="cache-metric">
+            <span class="label">Total Context Loads:</span>
+            <span class="value" th:text="${aggregatedStats.contextLoads}">0</span>
+        </div>
+        <div class="cache-metric">
+            <span class="label">Cache Hits:</span>
+            <span class="value" th:text="${aggregatedStats.cacheHits}">0</span>
+        </div>
+        <div class="cache-metric">
+            <span class="label">Cache Misses:</span>
+            <span class="value" th:text="${aggregatedStats.cacheMisses}">0</span>
+        </div>
+        <div class="cache-metric">
+            <span class="label">Cache Hit Rate:</span>
+            <span class="value hit-rate" th:text="${#numbers.formatDecimal(aggregatedStats.cacheHitRate, 1, 1) + '%'}">0.0%</span>
+        </div>
+        <div class="cache-metric">
+            <span class="label">Total Context Load Time:</span>
+            <span class="value" th:text="${@durationFormatter.format(aggregatedStats.totalContextLoadTime.toMillis())}">0ms</span>
+        </div>
+    </div>
+</body>
+</html>

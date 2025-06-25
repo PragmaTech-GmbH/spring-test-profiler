@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + #strings.toUpperCase(phase) + ' Phase)' : '')}">Spring Test Insight Report</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
+    <style th:utext="${cssContent}"></style>
+</head>
+<body>
+    <div class="container">
+        <h1 th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + #strings.toUpperCase(phase) + ' Phase)' : '')}">Spring Test Insight Report</h1>
+        <div class="timestamp" th:text="${'Generated at: ' + generatedAt}">Generated at: 2025-01-01 12:00:00</div>
+        
+        <!-- Theory Section Fragment -->
+        <div th:replace="~{fragments/theory :: theory-section}"></div>
+        
+        <!-- Summary Section Fragment -->
+        <div th:replace="~{fragments/summary :: summary-section(${testClassData})}"></div>
+        
+        <!-- Context Caching Statistics Fragment -->
+        <div th:replace="~{fragments/caching :: caching-section(${aggregatedStats})}"></div>
+        
+        <!-- Context Configurations Fragment -->
+        <div th:replace="~{fragments/configurations :: configurations-section}"></div>
+        
+        <!-- Cache Keys Fragment -->
+        <div th:replace="~{fragments/cache-keys :: cache-keys-section(${testClassData})}"></div>
+        
+        <!-- Test Execution Details Fragment -->
+        <div th:replace="~{fragments/test-execution :: test-execution-section(${testClassData})}"></div>
+        
+    </div>
+    
+    <script>
+        function toggleClass(element) {
+            const methods = element.nextElementSibling;
+            methods.classList.toggle('show');
+        }
+    </script>
+</body>
+</html>

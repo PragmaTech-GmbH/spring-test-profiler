@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="theory-section" class="theory-section">
+        <h2>Understanding Spring Test Context Caching</h2>
+        <div class="theory-content">
+            <p>Spring Test Framework provides <strong>context caching</strong> to improve test performance by reusing ApplicationContext instances across multiple test classes when they share the same configuration.</p>
+            
+            <h3>How Context Caching Works</h3>
+            <p>Spring generates a <strong>cache key</strong> based on:</p>
+            <ul>
+                <li><strong>Context Loader</strong> - The class responsible for loading the context</li>
+                <li><strong>Locations & Classes</strong> - Configuration files/classes specified in @ContextConfiguration</li>
+                <li><strong>Active Profiles</strong> - Profiles activated via @ActiveProfiles</li>
+                <li><strong>Property Sources</strong> - Test property sources from @TestPropertySource</li>
+                <li><strong>Context Initializers</strong> - Custom context initializers</li>
+                <li><strong>Context Customizers</strong> - Customizers from test slices like @WebMvcTest</li>
+            </ul>
+            
+            <div class="cache-behavior">
+                <div class="cache-hit">
+                    <h4>🎯 Cache Hit</h4>
+                    <p>When a test class has the <em>same exact configuration</em> as a previous test, Spring reuses the existing ApplicationContext. This results in faster test execution.</p>
+                </div>
+                <div class="cache-miss">
+                    <h4>🔄 Cache Miss</h4>
+                    <p>When a test class has a <em>different configuration</em>, Spring creates a new ApplicationContext. This takes more time but ensures test isolation.</p>
+                </div>
+            </div>
+            
+            <h3>Optimization Tips</h3>
+            <ul>
+                <li><strong>Group similar tests:</strong> Use the same @ContextConfiguration across related test classes</li>
+                <li><strong>Minimize @DirtiesContext:</strong> Avoid marking contexts as dirty unless absolutely necessary</li>
+                <li><strong>Use test slices:</strong> @WebMvcTest, @DataJpaTest create focused, cacheable contexts</li>
+                <li><strong>Consolidate profiles:</strong> Use consistent @ActiveProfiles across test classes</li>
+            </ul>
+            
+            <div class="docs-links">
+                <h3>📚 Learn More</h3>
+                <p>For detailed information about Spring Test context caching:</p>
+                <ul>
+                    <li><a href="https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/ctx-management/caching.html" target="_blank">Context Caching - Spring Framework Reference</a></li>
+                    <li><a href="https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/support-classes.html" target="_blank">TestContext Framework Support Classes</a></li>
+                    <li><a href="https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html" target="_blank">Testing Spring Boot Applications</a></li>
+                    <li><a href="https://docs.spring.io/spring-framework/reference/testing/annotations/integration-spring/annotation-dirtiescontext.html" target="_blank">@DirtiesContext Annotation</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

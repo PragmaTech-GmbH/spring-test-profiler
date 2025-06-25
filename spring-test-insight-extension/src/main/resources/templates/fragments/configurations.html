@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="configurations-section" class="context-configs-section">
+        <h2>Spring Context Configurations</h2>
+        <p>This section shows all unique Spring context configurations detected during test execution, grouped by their MergedContextConfiguration.</p>
+        
+        <div th:with="configurations=${@configurationHelper.getConfigurations()}">
+            <div th:if="${configurations.isEmpty()}" class="no-context-configs">
+                <p>No context configurations were detected. This might happen if tests don't use Spring contexts.</p>
+            </div>
+            
+            <div th:unless="${configurations.isEmpty()}">
+                <div th:each="configInfo : ${configurations.values()}" class="context-config-item">
+                <div class="context-config-header">
+                    <div class="context-config-id">🔧 <span th:text="${configInfo.id}">Config ID</span></div>
+                    <div class="context-config-test-count" 
+                         th:text="${configInfo.testClasses.size() + ' test class' + (configInfo.testClasses.size() > 1 ? 'es' : '')}">1 test class</div>
+                </div>
+                
+                <!-- Configuration details -->
+                <div class="config-details">
+                    <div th:each="entry : ${configInfo.configuration.entrySet()}" class="config-detail-item">
+                        <div class="config-detail-key" th:text="${entry.key + ':'}">Key:</div>
+                        <div class="config-detail-value">
+                            <span th:if="${#lists.contains(T(java.util.Arrays).asList('java.util.List', 'java.util.ArrayList'), entry.value.class.name)}">
+                                <span th:if="${entry.value.isEmpty()}">[]</span>
+                                <span th:unless="${entry.value.isEmpty()}">
+                                    [<br>
+                                    <span th:each="item : ${entry.value}" th:text="${'  ' + item}">Item</span><br>
+                                    ]
+                                </span>
+                            </span>
+                            <span th:unless="${#lists.contains(T(java.util.Arrays).asList('java.util.List', 'java.util.ArrayList'), entry.value.class.name)}" 
+                                  th:text="${entry.value}">Value</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Test classes using this configuration -->
+                <div class="context-test-classes">
+                    <strong>Test classes using this configuration:</strong><br>
+                    <span th:each="testClass : ${configInfo.testClasses}" 
+                          class="context-test-class" 
+                          th:text="${testClass}">TestClass</span>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</body>
+</html>
