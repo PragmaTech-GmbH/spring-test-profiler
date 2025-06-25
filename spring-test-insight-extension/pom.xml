@@ -28,7 +28,6 @@
   </scm>
 
   <properties>
-    <slf4j.version>1.7.36</slf4j.version>
     <spring.version>6.1.16</spring.version>
     <junit-platform.version>1.11.3</junit-platform.version>
     <junit-jupiter.version>5.11.3</junit-jupiter.version>
@@ -56,11 +55,6 @@
 
 
   <dependencies>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
@@ -101,12 +95,10 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Test dependencies -->
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.13</version>
-      <scope>test</scope>
+      <version>1.5.18</version>
     </dependency>
   </dependencies>
 

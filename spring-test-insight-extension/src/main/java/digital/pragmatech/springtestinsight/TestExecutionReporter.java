@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class TestExecutionReporter {
     
     private static final Logger logger = LoggerFactory.getLogger(TestExecutionReporter.class);
-    private static final String REPORT_DIR = "target/spring-test-insight";
+    private static final String REPORT_DIR_NAME = "spring-test-insight";
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     
     private final List<TestClassExecutionData> testClassData = new CopyOnWriteArrayList<>();
@@ -38,7 +38,7 @@ public class TestExecutionReporter {
     
     public void generateReport(String phase) {
         try {
-            Path reportDir = Paths.get(REPORT_DIR);
+            Path reportDir = determineReportDirectory();
             Files.createDirectories(reportDir);
             
             String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
@@ -61,6 +61,78 @@ public class TestExecutionReporter {
         } catch (IOException e) {
             logger.error("Failed to generate Spring Test Insight report", e);
         }
+    }
+    
+    /**
+     * Determines the report directory based on the build tool and system properties.
+     * Supports custom directory via system property, or defaults to build tool conventions.
+     */
+    private Path determineReportDirectory() {
+        // First check if user specified a custom directory
+        String customDir = System.getProperty("spring.test.insight.report.dir");
+        if (customDir != null && !customDir.trim().isEmpty()) {
+            return Paths.get(customDir);
+        }
+        
+        // Otherwise, detect build tool and use appropriate directory
+        String buildTool = detectBuildTool();
+        String baseDir;
+        
+        switch (buildTool) {
+            case "maven":
+                baseDir = "target";
+                break;
+            case "gradle":
+                baseDir = "build";
+                break;
+            default:
+                // For unknown build tools, try to detect from current directory structure
+                if (Files.exists(Paths.get("target"))) {
+                    baseDir = "target";
+                } else if (Files.exists(Paths.get("build"))) {
+                    baseDir = "build";
+                } else {
+                    // Fallback to creating in current directory
+                    baseDir = ".";
+                }
+        }
+        
+        return Paths.get(baseDir, REPORT_DIR_NAME);
+    }
+    
+    /**
+     * Detects the build tool being used based on system properties and classpath indicators.
+     * This method is duplicated from SpringTestInsightExtension for independence.
+     */
+    private String detectBuildTool() {
+        // Check for Maven-specific system properties
+        if (System.getProperty("maven.home") != null || 
+            System.getProperty("maven.version") != null ||
+            System.getProperty("surefire.test.class.path") != null ||
+            System.getProperty("basedir") != null && System.getProperty("basedir").contains("target")) {
+            return "maven";
+        }
+        
+        // Check for Gradle-specific system properties
+        if (System.getProperty("gradle.home") != null ||
+            System.getProperty("gradle.version") != null ||
+            System.getProperty("org.gradle.test.worker") != null ||
+            System.getProperty("gradle.user.home") != null) {
+            return "gradle";
+        }
+        
+        // Check classpath for build tool indicators
+        String classpath = System.getProperty("java.class.path", "");
+        if (classpath.contains("/target/") || classpath.contains("\\target\\") || 
+            classpath.contains("maven")) {
+            return "maven";
+        } else if (classpath.contains("/build/") || classpath.contains("\\build\\") || 
+                   classpath.contains("gradle")) {
+            return "gradle";
+        }
+        
+        // Default to unknown
+        return "unknown";
     }
     
     private String generateHtml() {

@@ -27,8 +27,8 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
         Class<?> testClass = context.getRequiredTestClass();
         logger.debug("Starting Spring Test Insight for test class: {}", testClass.getName());
         
-        // Detect which Maven phase we're in based on test naming conventions
-        String detectedPhase = detectMavenPhase(testClass);
+        // Detect build tool and phase based on system properties and test naming conventions
+        String detectedPhase = detectBuildToolPhase(testClass);
         
         // Reset report generation flag if we've moved to a different phase
         synchronized (SpringTestInsightExtension.class) {
@@ -149,19 +149,62 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     }
     
     /**
-     * Detects which Maven phase we're in based on test class naming conventions.
-     * Integration tests typically end with 'IT' and are run by failsafe plugin.
-     * Unit tests are run by surefire plugin.
+     * Detects the build tool and test phase based on system properties and test class naming conventions.
+     * For Maven: distinguishes between surefire (unit tests) and failsafe (integration tests).
+     * For Gradle: distinguishes between test and integrationTest tasks.
      */
-    private String detectMavenPhase(Class<?> testClass) {
-        String className = testClass.getSimpleName();
+    private String detectBuildToolPhase(Class<?> testClass) {
+        // First, detect the build tool
+        String buildTool = detectBuildTool();
         
-        // Maven failsafe plugin runs integration tests (typically named *IT)
-        if (className.endsWith("IT") || className.contains("Integration")) {
-            return "failsafe";
+        // Then, detect the test phase based on naming conventions
+        String className = testClass.getSimpleName();
+        boolean isIntegrationTest = className.endsWith("IT") || 
+                                   className.endsWith("IntegrationTest") || 
+                                   className.contains("Integration");
+        
+        // Return phase based on build tool
+        if ("maven".equals(buildTool)) {
+            return isIntegrationTest ? "failsafe" : "surefire";
+        } else if ("gradle".equals(buildTool)) {
+            return isIntegrationTest ? "integrationTest" : "test";
+        } else {
+            // Unknown build tool, use generic phase names
+            return isIntegrationTest ? "integration" : "unit";
+        }
+    }
+    
+    /**
+     * Detects the build tool being used based on system properties and classpath indicators.
+     */
+    private String detectBuildTool() {
+        // Check for Maven-specific system properties
+        if (System.getProperty("maven.home") != null || 
+            System.getProperty("maven.version") != null ||
+            System.getProperty("surefire.test.class.path") != null ||
+            System.getProperty("basedir") != null && System.getProperty("basedir").contains("target")) {
+            return "maven";
         }
         
-        // Maven surefire plugin runs unit tests
-        return "surefire";
+        // Check for Gradle-specific system properties
+        if (System.getProperty("gradle.home") != null ||
+            System.getProperty("gradle.version") != null ||
+            System.getProperty("org.gradle.test.worker") != null ||
+            System.getProperty("gradle.user.home") != null) {
+            return "gradle";
+        }
+        
+        // Check classpath for build tool indicators
+        String classpath = System.getProperty("java.class.path", "");
+        if (classpath.contains("/target/") || classpath.contains("\\target\\") || 
+            classpath.contains("maven")) {
+            return "maven";
+        } else if (classpath.contains("/build/") || classpath.contains("\\build\\") || 
+                   classpath.contains("gradle")) {
+            return "gradle";
+        }
+        
+        // Default to unknown
+        return "unknown";
     }
 }

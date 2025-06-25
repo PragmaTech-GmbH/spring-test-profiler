@@ -92,36 +92,30 @@ jobs:
         working-directory: spring-test-insight-extension
         run: ./mvnw clean install -DskipTests
         
-      - name: Test Maven demo
-        id: maven-test
-        if: contains(matrix.demo, 'maven')
+      - name: Build demo project
+        id: build-demo
         continue-on-error: true
         working-directory: demo/${{ matrix.demo }}
-        run: ./mvnw clean verify
-        
-      - name: Test Gradle demo
-        id: gradle-test
-        if: contains(matrix.demo, 'gradle')
-        continue-on-error: true
+        run: |
+          chmod +x build.sh
+          ./build.sh
+          
+      - name: Load build environment
+        if: always()
         working-directory: demo/${{ matrix.demo }}
-        run: ./gradlew clean test
-        
+        run: |
+          if [ -f build-env.properties ]; then
+            cat build-env.properties >> $GITHUB_ENV
+          fi
+          
       - name: Report demo status
         if: always()
         run: |
           echo "### Test results for ${{ matrix.demo }}"
-          if [[ "${{ matrix.demo }}" == *"maven"* ]]; then
-            if [ "${{ steps.maven-test.outcome }}" == "success" ]; then
-              echo "✅ Tests passed"
-            else
-              echo "❌ Tests failed"
-            fi
+          if [ "${{ steps.build-demo.outcome }}" == "success" ]; then
+            echo "✅ Tests passed"
           else
-            if [ "${{ steps.gradle-test.outcome }}" == "success" ]; then
-              echo "✅ Tests passed"
-            else
-              echo "❌ Tests failed"
-            fi
+            echo "❌ Tests failed"
           fi
         
       - name: Upload demo test results
@@ -130,11 +124,11 @@ jobs:
         with:
           name: demo-test-results-${{ matrix.demo }}
           path: |
-            demo/${{ matrix.demo }}/target/surefire-reports/
-            demo/${{ matrix.demo }}/target/failsafe-reports/
-            demo/${{ matrix.demo }}/target/spring-test-insight/
-            demo/${{ matrix.demo }}/build/reports/tests/
-            demo/${{ matrix.demo }}/build/test-results/
+            demo/${{ matrix.demo }}/${{ env.SPRING_TEST_INSIGHT_REPORTS }}/
+            demo/${{ matrix.demo }}/${{ env.SUREFIRE_REPORTS }}/
+            demo/${{ matrix.demo }}/${{ env.FAILSAFE_REPORTS }}/
+            demo/${{ matrix.demo }}/${{ env.TEST_REPORTS }}/
+            demo/${{ matrix.demo }}/${{ env.TEST_RESULTS }}/
             
   summary:
     name: Test Summary

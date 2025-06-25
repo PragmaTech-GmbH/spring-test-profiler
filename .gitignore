@@ -116,3 +116,5 @@ $RECYCLE.BIN/
 
 ### H2 Database files ###
 *.db
+
+PROMPTS.md
