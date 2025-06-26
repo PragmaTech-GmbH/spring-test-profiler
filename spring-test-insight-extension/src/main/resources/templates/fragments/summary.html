@@ -4,13 +4,7 @@
     <div th:fragment="summary-section(executionTracker, cacheStats)" th:with="
         totalTestClasses=${executionTracker.getTotalTestClasses()},
         totalTestMethods=${executionTracker.getTotalTestMethods()},
-        totalDurationMs=${executionTracker.getOverallDuration().toMillis()},
-        classMetrics=${executionTracker.getClassMetrics()},
-        passedTests=${testStatusCounter.countTestsByStatus(classMetrics, 'PASSED')},
-        failedTests=${testStatusCounter.countTestsByStatus(classMetrics, 'FAILED')},
-        disabledTests=${testStatusCounter.countTestsByStatus(classMetrics, 'DISABLED')},
-        abortedTests=${testStatusCounter.countTestsByStatus(classMetrics, 'ABORTED')},
-        successRate=${totalTestMethods > 0 ? (passedTests * 100.0) / totalTestMethods : 0}">
+        totalDurationMs=${executionTracker.getOverallDuration().toMillis()}">
         
         <h2>Test Execution Summary</h2>
         <div class="summary-grid">

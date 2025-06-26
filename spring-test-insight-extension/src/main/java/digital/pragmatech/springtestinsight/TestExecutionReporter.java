@@ -1,5 +1,7 @@
 package digital.pragmatech.springtestinsight;
 
+import digital.pragmatech.springtestinsight.pdf.PdfConfiguration;
+import digital.pragmatech.springtestinsight.pdf.PdfReportGenerator;
 import digital.pragmatech.springtestinsight.reporting.TemplateHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +28,11 @@ public class TestExecutionReporter {
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     
     private final TemplateEngine templateEngine;
+    private final PdfReportGenerator pdfGenerator;
     
     public TestExecutionReporter() {
         this.templateEngine = createTemplateEngine();
+        this.pdfGenerator = new PdfReportGenerator();
     }
     
     public void generateReport(String phase, TestExecutionTracker executionTracker, SpringContextCacheAccessor.CacheStatistics cacheStats) {
@@ -53,6 +57,9 @@ public class TestExecutionReporter {
             Files.deleteIfExists(latestLink);
             Files.write(latestLink, htmlContent.getBytes());
             
+            // Generate PDF report if enabled
+            generatePdfReportIfEnabled(phase, htmlContent, reportDir, timestamp);
+            
         } catch (IOException e) {
             logger.error("Failed to generate Spring Test Insight report", e);
         }
@@ -64,7 +71,7 @@ public class TestExecutionReporter {
      */
     private Path determineReportDirectory() {
         // First check if user specified a custom directory
-        String customDir = System.getProperty("spring.test.insight.report.dir");
+        String customDir = System.getProperty("pragmatech.spring.test.insight.report.dir");
         if (customDir != null && !customDir.trim().isEmpty()) {
             return Paths.get(customDir);
         }
@@ -154,6 +161,23 @@ public class TestExecutionReporter {
             context.setVariable("executionTracker", executionTracker);
             context.setVariable("cacheStats", cacheStats);
             
+            // Pre-compute test status counts to avoid complex template expressions
+            Map<String, TestExecutionTracker.TestClassMetrics> classMetrics = executionTracker.getClassMetrics();
+            long passedTests = TemplateHelpers.countTestsByStatus(classMetrics, "PASSED");
+            long failedTests = TemplateHelpers.countTestsByStatus(classMetrics, "FAILED");
+            long disabledTests = TemplateHelpers.countTestsByStatus(classMetrics, "DISABLED");
+            long abortedTests = TemplateHelpers.countTestsByStatus(classMetrics, "ABORTED");
+            
+            context.setVariable("passedTests", passedTests);
+            context.setVariable("failedTests", failedTests);
+            context.setVariable("disabledTests", disabledTests);
+            context.setVariable("abortedTests", abortedTests);
+            
+            // Pre-compute success rate
+            int totalTestMethods = executionTracker.getTotalTestMethods();
+            double successRate = totalTestMethods > 0 ? (passedTests * 100.0) / totalTestMethods : 0.0;
+            context.setVariable("successRate", successRate);
+            
             // Load CSS content
             String cssContent = loadCssContent();
             context.setVariable("cssContent", cssContent);
@@ -198,5 +222,61 @@ public class TestExecutionReporter {
         }
     }
     
+    /**
+     * Generates PDF report if PDF generation is enabled in configuration.
+     */
+    private void generatePdfReportIfEnabled(String phase, String htmlContent, Path reportDir, String timestamp) {
+        if (!pdfGenerator.getConfiguration().isPdfEnabled()) {
+            logger.debug("PDF generation is disabled, skipping PDF report");
+            return;
+        }
+        
+        try {
+            // Create PDF filename
+            String pdfFileName = phase.equals("default") ? 
+                "test-insight-report-" + timestamp + ".pdf" :
+                "test-insight-report-" + phase + "-" + timestamp + ".pdf";
+            Path pdfFile = reportDir.resolve(pdfFileName);
+            
+            // Generate PDF with enhanced HTML for print
+            String pdfHtmlContent = enhanceHtmlForPdf(htmlContent);
+            pdfGenerator.generatePdfReport(pdfHtmlContent, pdfFile);
+            
+            // Also create a latest PDF file for easy access
+            String latestPdfFileName = phase.equals("default") ? "latest.pdf" : "latest-" + phase + ".pdf";
+            Path latestPdfLink = reportDir.resolve(latestPdfFileName);
+            Files.deleteIfExists(latestPdfLink);
+            pdfGenerator.generatePdfReport(pdfHtmlContent, latestPdfLink);
+            
+            logger.info("PDF report generated for {} phase: {}", phase, pdfFile.toAbsolutePath());
+            
+        } catch (Exception e) {
+            logger.warn("Failed to generate PDF report for {} phase: {}", phase, e.getMessage());
+            logger.debug("PDF generation error details", e);
+        }
+    }
+    
+    /**
+     * Enhances HTML content for PDF generation by replacing the CSS with PDF-specific styling.
+     */
+    private String enhanceHtmlForPdf(String htmlContent) {
+        try {
+            // Load PDF-specific CSS
+            String pdfCss = Files.readString(Paths.get(getClass().getClassLoader()
+                .getResource("static/css/spring-test-insight-pdf.css").toURI()));
+            
+            // Replace the existing CSS with PDF CSS
+            String enhancedHtml = htmlContent.replaceFirst(
+                "<style[^>]*>.*?</style>", 
+                "<style type=\"text/css\">\n" + pdfCss + "\n</style>"
+            );
+            
+            return enhancedHtml;
+            
+        } catch (Exception e) {
+            logger.warn("Could not load PDF CSS, using original HTML content", e);
+            return htmlContent;
+        }
+    }
     
 }
