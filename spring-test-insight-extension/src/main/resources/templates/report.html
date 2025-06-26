@@ -16,19 +16,16 @@
         <div th:replace="~{fragments/theory :: theory-section}"></div>
         
         <!-- Summary Section Fragment -->
-        <div th:replace="~{fragments/summary :: summary-section(${testClassData})}"></div>
+        <div th:replace="~{fragments/summary :: summary-section(${executionTracker}, ${cacheStats})}"></div>
         
         <!-- Context Caching Statistics Fragment -->
-        <div th:replace="~{fragments/caching :: caching-section(${aggregatedStats})}"></div>
+        <div th:replace="~{fragments/caching :: caching-section(${cacheStats})}"></div>
         
         <!-- Context Configurations Fragment -->
         <div th:replace="~{fragments/configurations :: configurations-section}"></div>
         
-        <!-- Cache Keys Fragment -->
-        <div th:replace="~{fragments/cache-keys :: cache-keys-section(${testClassData})}"></div>
-        
         <!-- Test Execution Details Fragment -->
-        <div th:replace="~{fragments/test-execution :: test-execution-section(${testClassData})}"></div>
+        <div th:replace="~{fragments/test-execution :: test-execution-section(${executionTracker})}"></div>
         
     </div>
     

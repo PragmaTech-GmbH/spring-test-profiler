@@ -30,7 +30,7 @@
   <properties>
     <spring.version>6.1.16</spring.version>
     <junit-platform.version>1.11.3</junit-platform.version>
-    <junit-jupiter.version>5.11.3</junit-jupiter.version>
+    <junit-jupiter.version>5.13.2</junit-jupiter.version>
 
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
@@ -53,6 +53,18 @@
     </developer>
   </developers>
 
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>org.junit</groupId>
+          <artifactId>junit-bom</artifactId>
+          <version>${junit-jupiter.version}</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+      </dependencies>
+    </dependencyManagement>
+
 
   <dependencies>
     <dependency>
@@ -64,21 +76,7 @@
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit.platform</groupId>
-      <artifactId>junit-platform-launcher</artifactId>
-      <version>${junit-platform.version}</version>
+      <artifactId>junit-jupiter</artifactId>
       <scope>provided</scope>
     </dependency>
 

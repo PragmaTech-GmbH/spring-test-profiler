@@ -5,6 +5,7 @@ import digital.pragmatech.springtestinsight.TestExecutionData;
 import digital.pragmatech.springtestinsight.TestStatus;
 import digital.pragmatech.springtestinsight.SpringContextStatistics;
 import digital.pragmatech.springtestinsight.ContextConfigurationDetector;
+import digital.pragmatech.springtestinsight.TestExecutionTracker;
 
 import java.time.Duration;
 import java.util.*;
@@ -14,6 +15,26 @@ import java.util.stream.Collectors;
  * Helper classes for Thymeleaf templates to format data and provide utility methods.
  */
 public class TemplateHelpers {
+
+    /**
+     * Static helper method to count tests by status from the execution tracker.
+     */
+    public static long countTestsByStatus(Map<String, TestExecutionTracker.TestClassMetrics> classMetrics, String statusName) {
+        TestStatus status = TestStatus.valueOf(statusName);
+        return classMetrics.values().stream()
+            .flatMap(classMetric -> classMetric.getMethodMetrics().values().stream())
+            .filter(methodMetric -> methodMetric.getStatus() == status)
+            .count();
+    }
+
+    /**
+     * Instance helper class for counting test statuses (to be used in templates).
+     */
+    public static class TestStatusCounter {
+        public long countTestsByStatus(Map<String, TestExecutionTracker.TestClassMetrics> classMetrics, String statusName) {
+            return TemplateHelpers.countTestsByStatus(classMetrics, statusName);
+        }
+    }
     
     public static class DurationFormatter {
         public String format(long millis) {
@@ -55,6 +76,9 @@ public class TemplateHelpers {
     
     public static class StatusIconHelper {
         public String getStatusIcon(TestStatus status) {
+            if (status == null) {
+                return "❓"; // Unknown status icon
+            }
             return switch (status) {
                 case PASSED -> "✅";
                 case FAILED -> "❌";

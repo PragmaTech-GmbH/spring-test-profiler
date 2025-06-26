@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="summary-section(testClassData)" th:with="
-        totalTests=${summaryCalculator.getTotalTests(testClassData)},
-        passedTests=${summaryCalculator.getPassedTests(testClassData)},
-        failedTests=${summaryCalculator.getFailedTests(testClassData)},
-        disabledTests=${summaryCalculator.getDisabledTests(testClassData)},
-        abortedTests=${summaryCalculator.getAbortedTests(testClassData)},
-        totalTestClasses=${#lists.size(testClassData)},
-        totalExecutionTimeMs=${summaryCalculator.getTotalExecutionTime(testClassData)},
-        successRate=${totalTests > 0 ? (passedTests * 100.0) / totalTests : 0}">
+    <div th:fragment="summary-section(executionTracker, cacheStats)" th:with="
+        totalTestClasses=${executionTracker.getTotalTestClasses()},
+        totalTestMethods=${executionTracker.getTotalTestMethods()},
+        totalDurationMs=${executionTracker.getOverallDuration().toMillis()},
+        classMetrics=${executionTracker.getClassMetrics()},
+        passedTests=${testStatusCounter.countTestsByStatus(classMetrics, 'PASSED')},
+        failedTests=${testStatusCounter.countTestsByStatus(classMetrics, 'FAILED')},
+        disabledTests=${testStatusCounter.countTestsByStatus(classMetrics, 'DISABLED')},
+        abortedTests=${testStatusCounter.countTestsByStatus(classMetrics, 'ABORTED')},
+        successRate=${totalTestMethods > 0 ? (passedTests * 100.0) / totalTestMethods : 0}">
         
         <h2>Test Execution Summary</h2>
         <div class="summary-grid">
@@ -19,7 +20,7 @@
             </div>
             <div class="summary-card">
                 <h3>Total Tests</h3>
-                <div class="value" th:text="${totalTests}">0</div>
+                <div class="value" th:text="${totalTestMethods}">0</div>
             </div>
             <div class="summary-card passed">
                 <h3>Passed</h3>
@@ -39,12 +40,12 @@
             </div>
             <div class="summary-card">
                 <h3>Total Runtime</h3>
-                <div class="value" style="font-size: 24px;" th:text="${durationFormatter.format(totalExecutionTimeMs)}">0ms</div>
+                <div class="value" style="font-size: 24px;" th:text="${durationFormatter.format(totalDurationMs)}">0ms</div>
             </div>
             <div class="summary-card">
                 <h3>Success Rate</h3>
                 <div class="value" style="font-size: 24px;" 
-                     th:style="${'font-size: 24px; color: ' + (passedTests == totalTests ? '#27ae60' : '#e74c3c') + ';'}"
+                     th:style="${'font-size: 24px; color: ' + (passedTests == totalTestMethods ? '#27ae60' : '#e74c3c') + ';}"
                      th:text="${#numbers.formatDecimal(successRate, 1, 1) + '%'}">0%</div>
             </div>
         </div>

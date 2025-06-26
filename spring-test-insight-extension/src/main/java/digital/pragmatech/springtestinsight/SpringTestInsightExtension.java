@@ -1,9 +1,6 @@
 package digital.pragmatech.springtestinsight;
 
 import org.junit.jupiter.api.extension.*;
-import org.junit.platform.launcher.TestExecutionListener;
-import org.junit.platform.launcher.TestPlan;
-import org.junit.platform.engine.TestExecutionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,10 +14,11 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     private static final Logger logger = LoggerFactory.getLogger(SpringTestInsightExtension.class);
     private static final String STORE_KEY = "spring-test-insight";
     
-    private final Map<String, TestExecutionData> testExecutions = new ConcurrentHashMap<>();
+    private static final TestExecutionTracker executionTracker = new TestExecutionTracker();
     private final TestExecutionReporter reporter = new TestExecutionReporter();
     private static volatile boolean reportGenerated = false;
     private static String currentPhase = null;
+    private String currentTestClass;
     
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
@@ -47,7 +45,14 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
             .getOrComputeIfAbsent("spring-test-insight-closeable", k -> this, ExtensionContext.Store.CloseableResource.class);
         
         getStore(context).put(STORE_KEY, this);
-        SpringContextCacheStatistics.startTracking();
+        
+        // Start tracking if this is the first test class
+        if (executionTracker.getTotalTestClasses() == 0) {
+            executionTracker.startTracking();
+        }
+        
+        currentTestClass = testClass.getName();
+        executionTracker.recordTestClassStart(currentTestClass);
         
         // Analyze the test class to determine its context configuration
         ContextConfigurationDetector.analyzeTestClass(testClass);
@@ -57,39 +62,27 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     public void afterAll(ExtensionContext context) throws Exception {
         logger.debug("Completing Spring Test Insight for test class: {}", context.getRequiredTestClass().getName());
         
-        TestClassExecutionData classData = new TestClassExecutionData(
-            context.getRequiredTestClass().getName(),
-            testExecutions,
-            SpringContextCacheStatistics.getStatistics()
-        );
-        
-        reporter.addTestClassData(classData);
+        String className = context.getRequiredTestClass().getName();
+        executionTracker.recordTestClassEnd(className);
         
         // Report generation is now handled in the close() method
     }
     
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        String testId = getTestId(context);
-        testExecutions.put(testId, new TestExecutionData(testId, Instant.now()));
+        String methodName = context.getRequiredTestMethod().getName();
+        executionTracker.recordTestMethodStart(currentTestClass, methodName);
     }
     
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        String testId = getTestId(context);
-        TestExecutionData data = testExecutions.get(testId);
-        if (data != null) {
-            data.setEndTime(Instant.now());
-        }
+        // Status will be updated by the TestWatcher methods
     }
     
     @Override
     public void testDisabled(ExtensionContext context, Optional<String> reason) {
-        String testId = getTestId(context);
-        TestExecutionData data = new TestExecutionData(testId, Instant.now());
-        data.setStatus(TestStatus.DISABLED);
-        reason.ifPresent(data::setReason);
-        testExecutions.put(testId, data);
+        String methodName = context.getRequiredTestMethod().getName();
+        executionTracker.recordTestMethodEnd(currentTestClass, methodName, TestStatus.DISABLED);
     }
     
     @Override
@@ -112,14 +105,8 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
     }
     
     private void updateTestStatus(ExtensionContext context, TestStatus status, Throwable cause) {
-        String testId = getTestId(context);
-        TestExecutionData data = testExecutions.get(testId);
-        if (data != null) {
-            data.setStatus(status);
-            if (cause != null) {
-                data.setThrowable(cause);
-            }
-        }
+        String methodName = context.getRequiredTestMethod().getName();
+        executionTracker.recordTestMethodEnd(currentTestClass, methodName, status);
     }
     
     private String getTestId(ExtensionContext context) {
@@ -138,8 +125,8 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
             if (!reportGenerated) {
                 String phase = currentPhase != null ? currentPhase : "unknown";
                 logger.info("All tests completed for {} phase. Generating Spring Test Insight report...", phase);
-                SpringContextCacheStatistics.stopTracking();
-                reporter.generateReport(phase);
+                executionTracker.stopTracking();
+                reporter.generateReport(phase, executionTracker, SpringContextCacheStatistics.getCacheStatistics());
                 ContextConfigurationDetector.clear();
                 reportGenerated = true;
             } else {

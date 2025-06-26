@@ -25,22 +25,13 @@ public class TestExecutionReporter {
     private static final String REPORT_DIR_NAME = "spring-test-insight";
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     
-    private final List<TestClassExecutionData> testClassData = new CopyOnWriteArrayList<>();
     private final TemplateEngine templateEngine;
     
     public TestExecutionReporter() {
         this.templateEngine = createTemplateEngine();
     }
     
-    public synchronized void addTestClassData(TestClassExecutionData data) {
-        testClassData.add(data);
-    }
-    
-    public void generateReport() {
-        generateReport("default");
-    }
-    
-    public void generateReport(String phase) {
+    public void generateReport(String phase, TestExecutionTracker executionTracker, SpringContextCacheAccessor.CacheStatistics cacheStats) {
         try {
             Path reportDir = determineReportDirectory();
             Files.createDirectories(reportDir);
@@ -51,7 +42,7 @@ public class TestExecutionReporter {
                 "test-insight-report-" + phase + "-" + timestamp + ".html";
             Path reportFile = reportDir.resolve(reportFileName);
             
-            String htmlContent = generateHtmlWithThymeleaf(phase);
+            String htmlContent = generateHtmlWithThymeleaf(phase, executionTracker, cacheStats);
             Files.write(reportFile, htmlContent.getBytes());
             
             logger.info("Spring Test Insight report generated for {} phase: {}", phase, reportFile.toAbsolutePath());
@@ -153,15 +144,15 @@ public class TestExecutionReporter {
         return engine;
     }
     
-    private String generateHtmlWithThymeleaf(String phase) {
+    private String generateHtmlWithThymeleaf(String phase, TestExecutionTracker executionTracker, SpringContextCacheAccessor.CacheStatistics cacheStats) {
         try {
             Context context = new Context();
             
             // Basic template variables
             context.setVariable("phase", phase);
             context.setVariable("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-            context.setVariable("testClassData", testClassData);
-            context.setVariable("aggregatedStats", aggregateContextStatistics());
+            context.setVariable("executionTracker", executionTracker);
+            context.setVariable("cacheStats", cacheStats);
             
             // Load CSS content
             String cssContent = loadCssContent();
@@ -174,48 +165,11 @@ public class TestExecutionReporter {
             logger.info("Successfully generated HTML with Thymeleaf templates");
             return result;
         } catch (Exception e) {
-            logger.error("Failed to generate HTML with Thymeleaf, falling back to simple HTML generation. Error: " + e.getMessage(), e);
-            
-            return generateSimpleHtml(phase);
+            logger.error("Failed to generate HTML with Thymeleaf. Error: " + e.getMessage(), e);
+            throw new RuntimeException("Report generation failed", e);
         }
     }
     
-    private String generateSimpleHtml(String phase) {
-        StringBuilder html = new StringBuilder();
-        String titleSuffix = phase.equals("default") ? "" : " (" + phase.toUpperCase() + " Phase)";
-        
-        html.append("<!DOCTYPE html>\n");
-        html.append("<html lang=\"en\">\n");
-        html.append("<head>\n");
-        html.append("    <meta charset=\"UTF-8\">\n");
-        html.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-        html.append("    <title>Spring Test Insight Report").append(titleSuffix).append("</title>\n");
-        html.append("    <style>").append(generateFallbackStyles()).append("</style>\n");
-        html.append("</head>\n");
-        html.append("<body>\n");
-        html.append("    <div class=\"container\">\n");
-        html.append("        <h1>Spring Test Insight Report").append(titleSuffix).append("</h1>\n");
-        html.append("        <div class=\"timestamp\">Generated at: ").append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))).append("</div>\n");
-        html.append("        <p><em>Note: Using simplified HTML generation due to template processing issues.</em></p>\n");
-        
-        // Simple summary
-        TemplateHelpers.SummaryCalculator summaryCalc = new TemplateHelpers.SummaryCalculator();
-        long totalTests = summaryCalc.getTotalTests(testClassData);
-        long passedTests = summaryCalc.getPassedTests(testClassData);
-        long failedTests = summaryCalc.getFailedTests(testClassData);
-        
-        html.append("        <h2>Test Summary</h2>\n");
-        html.append("        <p>Total Tests: ").append(totalTests).append("</p>\n");
-        html.append("        <p>Passed: ").append(passedTests).append("</p>\n");
-        html.append("        <p>Failed: ").append(failedTests).append("</p>\n");
-        html.append("        <p>Test Classes: ").append(testClassData.size()).append("</p>\n");
-        
-        html.append("    </div>\n");
-        html.append("</body>\n");
-        html.append("</html>");
-        
-        return html.toString();
-    }
     
     private void registerHelperBeans(Context context) {
         // Register all helper beans that templates can use
@@ -231,6 +185,7 @@ public class TestExecutionReporter {
         context.setVariable("summaryCalculator", new TemplateHelpers.SummaryCalculator());
         context.setVariable("configurationHelper", new TemplateHelpers.ConfigurationHelper());
         context.setVariable("contextConfigurationDetector", ContextConfigurationDetector.class);
+        context.setVariable("testStatusCounter", new TemplateHelpers.TestStatusCounter());
     }
     
     private String loadCssContent() {
@@ -238,41 +193,10 @@ public class TestExecutionReporter {
             return Files.readString(Paths.get(getClass().getClassLoader()
                 .getResource("static/css/spring-test-insight.css").toURI()));
         } catch (Exception e) {
-            logger.warn("Could not load CSS file, using fallback styles", e);
-            return generateFallbackStyles();
+            logger.error("Could not load CSS file. Report generation will fail.", e);
+            throw new RuntimeException("CSS file not found", e);
         }
     }
     
-    private String generateFallbackStyles() {
-        return """
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .container { max-width: 1200px; margin: 0 auto; }
-            h1, h2 { color: #333; }
-            .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-            .summary-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
-            .test-class { background: white; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .test-class-header { padding: 15px 20px; background: #34495e; color: white; cursor: pointer; }
-            .test-methods { padding: 20px; display: none; }
-            .test-methods.show { display: block; }
-            """;
-    }
     
-    private SpringContextStatistics aggregateContextStatistics() {
-        SpringContextStatistics aggregated = new SpringContextStatistics();
-        
-        for (TestClassExecutionData classData : testClassData) {
-            SpringContextStatistics stats = classData.getContextStatistics();
-            if (stats != null) {
-                // Aggregate the statistics
-                for (int i = 0; i < stats.getContextLoads(); i++) {
-                    aggregated.recordContextLoad("aggregated", java.time.Duration.ZERO);
-                }
-                for (int i = 0; i < stats.getCacheHits(); i++) {
-                    aggregated.recordCacheHit("aggregated");
-                }
-            }
-        }
-        
-        return aggregated;
-    }
 }

@@ -1,91 +1,63 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="test-execution-section(testClassData)">
+    <div th:fragment="test-execution-section(executionTracker)">
         <h2>Test Execution Details</h2>
         <div class="execution-overview">
             <p>Click on any test class below to expand and see detailed information about individual test methods, including execution times and failure details.</p>
         </div>
         
-        <div th:each="classData : ${testClassSorter.sortTestClasses(testClassData)}"
-             th:with="classExecutionTimeMs=${summaryCalculator.getClassExecutionTime(classData)},
-                      classStatusColor=${statusColorHelper.getClassStatusColor(classData)}"
+        <div th:each="classEntry : ${executionTracker.getClassMetrics()}"
+             th:with="className=${classEntry.key},
+                      classMetrics=${classEntry.value},
+                      classExecutionTimeMs=${classMetrics.getDuration().toMillis()},
+                      passedMethods=${classMetrics.getPassedMethods()},
+                      failedMethods=${classMetrics.getFailedMethods()},
+                      totalMethods=${classMetrics.getTotalMethods()}"
              class="test-class">
             
             <div class="test-class-header" 
                  onclick="toggleClass(this)" 
-                 th:style="${'border-left: 4px solid ' + classStatusColor + ';'}">
+                 th:style="${'border-left: 4px solid ' + (failedMethods > 0 ? '#e74c3c' : '#27ae60') + ';'}">
                 <div>
-                    <div class="test-class-name" th:text="${classNameHelper.getSimpleClassName(classData.className)}">TestClass</div>
-                    <div class="test-class-package" th:text="${classNameHelper.getPackageName(classData.className)}">com.example.test</div>
+                    <div class="test-class-name" th:text="${classNameHelper.getSimpleClassName(className)}">TestClass</div>
+                    <div class="test-class-package" th:text="${classNameHelper.getPackageName(className)}">com.example.test</div>
                 </div>
                 <div class="test-class-stats">
                     <span>⏱️ <span th:text="${durationFormatter.format(classExecutionTimeMs)}">0ms</span></span>
-                    <span>📊 <span th:text="${classData.totalTests + ' tests'}">0 tests</span></span>
+                    <span>📊 <span th:text="${totalMethods + ' tests'}">0 tests</span></span>
                     
-                    <span th:if="${classData.passedTests > 0}" style="color: #27ae60;">
-                        ✅ <span th:text="${classData.passedTests}">0</span>
+                    <span th:if="${passedMethods > 0}" style="color: #27ae60;">
+                        ✅ <span th:text="${passedMethods}">0</span>
                     </span>
-                    <span th:if="${classData.failedTests > 0}" style="color: #e74c3c;">
-                        ❌ <span th:text="${classData.failedTests}">0</span>
+                    <span th:if="${failedMethods > 0}" style="color: #e74c3c;">
+                        ❌ <span th:text="${failedMethods}">0</span>
                     </span>
-                    <span th:if="${classData.disabledTests > 0}" style="color: #95a5a6;">
-                        ⏸️ <span th:text="${classData.disabledTests}">0</span>
-                    </span>
-                    <span th:if="${classData.abortedTests > 0}" style="color: #f39c12;">
-                        ⚠️ <span th:text="${classData.abortedTests}">0</span>
-                    </span>
+                    <!-- Disabled and aborted tests would require additional counting logic -->
                 </div>
             </div>
             
             <div class="test-methods">
-                <!-- Spring context info for this class -->
-                <div th:if="${classData.contextStatistics != null and (classData.contextStatistics.contextLoads > 0 or classData.contextStatistics.cacheHits > 0)}" 
-                     class="context-info">
-                    <h4>🏗️ Spring Context Information</h4>
-                    <div class="context-metrics">
-                        <span th:if="${classData.contextStatistics.contextLoads > 0}" 
-                              class="context-metric">
-                            🔄 Context Loads: <span th:text="${classData.contextStatistics.contextLoads}">0</span>
-                        </span>
-                        <span th:if="${classData.contextStatistics.cacheHits > 0}" 
-                              class="context-metric">
-                            🎯 Cache Hits: <span th:text="${classData.contextStatistics.cacheHits}">0</span>
-                        </span>
-                        <span th:if="${classData.contextStatistics.totalContextLoadTime.toMillis() > 0}" 
-                              class="context-metric">
-                            ⏱️ Load Time: <span th:text="${durationFormatter.format(classData.contextStatistics.totalContextLoadTime.toMillis())}">0ms</span>
-                        </span>
-                    </div>
-                </div>
+                <!-- Context info is now handled globally via cache statistics -->
                 
-                <!-- Test methods sorted by status (failed first, then by name) -->
-                <div th:each="testData : ${testMethodSorter.sortTestMethods(classData.testExecutions.values())}"
-                     th:with="statusClass=${#strings.toLowerCase(testData.status)},
-                              statusIcon=${statusIconHelper.getStatusIcon(testData.status)}"
+                <!-- Test methods -->
+                <div th:each="methodEntry : ${classMetrics.getMethodMetrics()}"
+                     th:with="methodName=${methodEntry.key},
+                              methodMetrics=${methodEntry.value},
+                              statusClass=${methodMetrics.getStatus() != null ? #strings.toLowerCase(methodMetrics.getStatus()) : 'unknown'},
+                              statusIcon=${statusIconHelper.getStatusIcon(methodMetrics.getStatus())}"
                      th:class="${'test-method ' + statusClass}">
                     
                     <div class="test-method-header">
                         <span class="test-method-name">
                             <span th:text="${statusIcon}">✅</span> 
-                            <span th:text="${testData.testMethodName}">testMethod</span>
+                            <span th:text="${methodName}">testMethod</span>
                         </span>
                         <div class="test-method-info">
-                            <span th:if="${testData.duration != null}" 
-                                  class="test-duration" 
-                                  th:text="${durationFormatter.format(testData.duration.toMillis())}">0ms</span>
-                            <span class="test-status" th:text="${testData.status}">PASSED</span>
+                            <span class="test-duration" 
+                                  th:text="${durationFormatter.format(methodMetrics.getDuration().toMillis())}">0ms</span>
+                            <span class="test-status" th:text="${methodMetrics.getStatus()}">PASSED</span>
                         </div>
-                    </div>
-                    
-                    <div th:if="${testData.throwable != null}" class="error-details">
-                        <h5>Error Details:</h5>
-                        <pre th:text="${errorFormatter.formatError(testData.throwable)}">Error message</pre>
-                    </div>
-                    
-                    <div th:if="${testData.reason != null and !#strings.isEmpty(#strings.trim(testData.reason))}" 
-                         class="test-reason">
-                        <strong>Reason:</strong> <span th:text="${testData.reason}">Reason text</span>
                     </div>
                 </div>
             </div>
