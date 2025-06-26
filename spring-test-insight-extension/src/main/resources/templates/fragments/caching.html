@@ -6,7 +6,11 @@
         <div th:if="${cacheStats != null}">
             <div class="cache-metric">
                 <span class="label">Cache Size:</span>
-                <span class="value" th:text="${cacheStats.size}">0</span>
+                <span class="value" th:text="${cacheStats.size + ' / ' + cacheStats.maxSize}">0 / 32</span>
+            </div>
+            <div class="cache-metric">
+                <span class="label">Max Cache Size:</span>
+                <span class="value" th:text="${cacheStats.maxSize}">32</span>
             </div>
             <div class="cache-metric">
                 <span class="label">Cache Hits:</span>

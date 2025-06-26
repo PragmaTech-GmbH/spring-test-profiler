@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.cache.ContextCache;
+import org.springframework.test.context.cache.ContextCacheUtils;
 import org.springframework.test.context.cache.DefaultContextCache;
 
 import java.lang.reflect.Field;
@@ -39,11 +40,23 @@ public class SpringContextCacheAccessor {
     }
     
     /**
+     * Gets the maximum cache size configured for Spring's context cache.
+     */
+    public static int getMaxCacheSize() {
+        try {
+            return ContextCacheUtils.retrieveMaxCacheSize();
+        } catch (Exception e) {
+            logger.debug("Could not retrieve max cache size", e);
+            return 32; // Default Spring cache size
+        }
+    }
+
+    /**
      * Gets cache statistics from the DefaultContextCache.
      */
     public static CacheStatistics getCacheStatistics(ContextCache contextCache) {
         if (contextCache == null) {
-            return new CacheStatistics(0, 0, 0, Collections.emptyList());
+            return new CacheStatistics(0, 0, 0, getMaxCacheSize(), Collections.emptyList());
         }
         
         try {
@@ -89,10 +102,10 @@ public class SpringContextCacheAccessor {
                 logger.debug("Could not access context keys from cache", e);
             }
             
-            return new CacheStatistics(size, hitCount, missCount, contextKeys);
+            return new CacheStatistics(size, hitCount, missCount, getMaxCacheSize(), contextKeys);
         } catch (Exception e) {
             logger.warn("Failed to get cache statistics via reflection", e);
-            return new CacheStatistics(0, 0, 0, Collections.emptyList());
+            return new CacheStatistics(0, 0, 0, getMaxCacheSize(), Collections.emptyList());
         }
     }
     
@@ -103,17 +116,23 @@ public class SpringContextCacheAccessor {
         private final int size;
         private final int hitCount;
         private final int missCount;
+        private final int maxSize;
         private final List<String> contextKeys;
         
-        public CacheStatistics(int size, int hitCount, int missCount, List<String> contextKeys) {
+        public CacheStatistics(int size, int hitCount, int missCount, int maxSize, List<String> contextKeys) {
             this.size = size;
             this.hitCount = hitCount;
             this.missCount = missCount;
+            this.maxSize = maxSize;
             this.contextKeys = new ArrayList<>(contextKeys);
         }
         
         public int getSize() {
             return size;
+        }
+        
+        public int getMaxSize() {
+            return maxSize;
         }
         
         public int getHitCount() {
@@ -135,8 +154,8 @@ public class SpringContextCacheAccessor {
         
         @Override
         public String toString() {
-            return String.format("CacheStatistics{size=%d, hitCount=%d, missCount=%d, hitRatio=%.2f%%}", 
-                size, hitCount, missCount, getHitRatio() * 100);
+            return String.format("CacheStatistics{size=%d, maxSize=%d, hitCount=%d, missCount=%d, hitRatio=%.2f%%}", 
+                size, maxSize, hitCount, missCount, getHitRatio() * 100);
         }
     }
 }

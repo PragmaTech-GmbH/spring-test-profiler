@@ -1,10 +1,9 @@
-package digital.pragmatech.springtestinsight;
+package digital.pragmatech.springtestinsight.experiment;
 
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 public class ToolDetectionExtension implements BeforeAllCallback {
 
