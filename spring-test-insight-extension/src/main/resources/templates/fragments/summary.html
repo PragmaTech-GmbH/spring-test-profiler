@@ -38,9 +38,7 @@
             </div>
             <div class="summary-card">
                 <h3>Success Rate</h3>
-                <div class="value" style="font-size: 24px;" 
-                     th:style="${'font-size: 24px; color: ' + (passedTests == totalTestMethods ? '#27ae60' : '#e74c3c') + ';}"
-                     th:text="${#numbers.formatDecimal(successRate, 1, 1) + '%'}">0%</div>
+                <div class="value" style="font-size: 24px;" th:text="${#numbers.formatDecimal(successRate, 1, 1) + '%'}">0%</div>
             </div>
         </div>
     </div>
