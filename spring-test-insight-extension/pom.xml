@@ -147,11 +147,21 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <pragmatech.spring.test.insight.pdf.enabled>true</pragmatech.spring.test.insight.pdf.enabled>
+          </systemPropertyVariables>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${maven-surefire.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <pragmatech.spring.test.insight.pdf.enabled>true</pragmatech.spring.test.insight.pdf.enabled>
+          </systemPropertyVariables>
+        </configuration>
         <executions>
           <execution>
             <phase>integration-test</phase>

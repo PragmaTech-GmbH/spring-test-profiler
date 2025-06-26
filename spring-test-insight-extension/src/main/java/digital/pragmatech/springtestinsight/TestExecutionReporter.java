@@ -240,6 +240,16 @@ public class TestExecutionReporter {
             
             // Generate PDF with enhanced HTML for print
             String pdfHtmlContent = enhanceHtmlForPdf(htmlContent);
+            
+            // Debug: Save the enhanced HTML to inspect issues
+            try {
+                Path debugHtmlFile = reportDir.resolve("debug-pdf-content.html");
+                Files.write(debugHtmlFile, pdfHtmlContent.getBytes());
+                logger.debug("Saved debug PDF HTML content to: {}", debugHtmlFile);
+            } catch (Exception debugEx) {
+                logger.debug("Could not save debug HTML file", debugEx);
+            }
+            
             pdfGenerator.generatePdfReport(pdfHtmlContent, pdfFile);
             
             // Also create a latest PDF file for easy access
@@ -265,18 +275,75 @@ public class TestExecutionReporter {
             String pdfCss = Files.readString(Paths.get(getClass().getClassLoader()
                 .getResource("static/css/spring-test-insight-pdf.css").toURI()));
             
-            // Replace the existing CSS with PDF CSS
-            String enhancedHtml = htmlContent.replaceFirst(
-                "<style[^>]*>.*?</style>", 
-                "<style type=\"text/css\">\n" + pdfCss + "\n</style>"
-            );
+            // Find the style tag using a more robust approach
+            int styleStart = htmlContent.indexOf("<style");
+            int styleEnd = htmlContent.indexOf("</style>") + "</style>".length();
             
-            return enhancedHtml;
+            if (styleStart != -1 && styleEnd > styleStart) {
+                // Replace the entire style block with PDF CSS
+                String enhancedHtml = htmlContent.substring(0, styleStart) +
+                    "<style type=\"text/css\">\n" + pdfCss + "\n</style>" +
+                    htmlContent.substring(styleEnd);
+                
+                // Ensure proper XHTML compliance for Flying Saucer
+                enhancedHtml = ensureXhtmlCompliance(enhancedHtml);
+                
+                return enhancedHtml;
+            } else {
+                logger.warn("Could not find style tag in HTML content for PDF generation");
+                return htmlContent;
+            }
             
         } catch (Exception e) {
             logger.warn("Could not load PDF CSS, using original HTML content", e);
             return htmlContent;
         }
+    }
+    
+    /**
+     * Ensures HTML is XHTML compliant for Flying Saucer PDF generation.
+     */
+    private String ensureXhtmlCompliance(String html) {
+        // Flying Saucer requires well-formed XHTML
+        String enhanced = html;
+        
+        // Ensure proper DOCTYPE for XHTML
+        if (enhanced.contains("<!DOCTYPE html>")) {
+            enhanced = enhanced.replace("<!DOCTYPE html>", 
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
+        }
+        
+        // Remove favicon link first as it contains characters that break XML parsing
+        // Remove entire lines containing favicon links to avoid XML parsing issues with data URLs
+        enhanced = enhanced.replaceAll("(?m)^.*<link[^>]*rel=[\"']icon[\"'].*$", "");
+        
+        // Ensure html tag has xmlns attribute - use a more robust approach
+        if (!enhanced.contains("xmlns=")) {
+            // Find the html tag and add xmlns attribute
+            int htmlTagStart = enhanced.indexOf("<html");
+            if (htmlTagStart != -1) {
+                int htmlTagEnd = enhanced.indexOf(">", htmlTagStart);
+                if (htmlTagEnd != -1) {
+                    // Replace the html tag completely with a properly formatted one
+                    String newHtmlTag = "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">";
+                    enhanced = enhanced.substring(0, htmlTagStart) + newHtmlTag + enhanced.substring(htmlTagEnd + 1);
+                }
+            }
+        }
+        
+        // Close self-closing tags properly for XHTML compliance
+        enhanced = enhanced.replace("<meta charset=\"UTF-8\">", "<meta charset=\"UTF-8\" />");
+        enhanced = enhanced.replaceAll("<meta ([^>]*[^/])>", "<meta $1 />");
+        enhanced = enhanced.replace("<br>", "<br />");
+        enhanced = enhanced.replaceAll("<br([^>]*[^/])>", "<br$1 />");
+        
+        // Remove any script tags as they're not needed for PDF and can cause issues
+        enhanced = enhanced.replaceAll("<script[^>]*>.*?</script>", "");
+        
+        // Escape any unescaped ampersands that aren't part of valid entities
+        enhanced = enhanced.replaceAll("&(?![a-zA-Z0-9#]+;)", "&amp;");
+        
+        return enhanced;
     }
     
 }

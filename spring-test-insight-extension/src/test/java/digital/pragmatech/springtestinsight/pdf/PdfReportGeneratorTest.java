@@ -33,6 +33,9 @@ class PdfReportGeneratorTest {
     
     @Test
     void shouldCreatePdfReportGeneratorWithDefaultConfiguration() {
+        // Given - Clear the system property to test default behavior
+        System.clearProperty("pragmatech.spring.test.insight.pdf.enabled");
+        
         // When
         PdfReportGenerator generator = new PdfReportGenerator();
         

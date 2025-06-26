@@ -59,9 +59,11 @@ public class PdfReportGenerator {
             logger.info("PDF report generated successfully: {}", outputPath.toAbsolutePath());
             
         } catch (IOException e) {
+            logger.error("Failed to write PDF file: {}", outputPath, e);
             throw new PdfGenerationException("Failed to write PDF file: " + outputPath, e);
         } catch (Exception e) {
-            throw new PdfGenerationException("Failed to generate PDF report", e);
+            logger.error("Failed to generate PDF report: {}", e.getMessage(), e);
+            throw new PdfGenerationException("Failed to generate PDF report: " + e.getMessage(), e);
         }
     }
     
