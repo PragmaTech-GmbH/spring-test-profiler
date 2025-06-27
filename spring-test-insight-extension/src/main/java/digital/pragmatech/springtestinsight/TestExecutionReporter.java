@@ -214,8 +214,14 @@ public class TestExecutionReporter {
     
     private String loadCssContent() {
         try {
-            return Files.readString(Paths.get(getClass().getClassLoader()
-                .getResource("static/css/spring-test-insight.css").toURI()));
+            // Use InputStream to read from classpath resource which works both in IDE and JAR
+            try (var inputStream = getClass().getClassLoader()
+                    .getResourceAsStream("static/css/spring-test-insight.css")) {
+                if (inputStream == null) {
+                    throw new RuntimeException("CSS file not found in classpath: static/css/spring-test-insight.css");
+                }
+                return new String(inputStream.readAllBytes());
+            }
         } catch (Exception e) {
             logger.error("Could not load CSS file. Report generation will fail.", e);
             throw new RuntimeException("CSS file not found", e);
@@ -271,9 +277,16 @@ public class TestExecutionReporter {
      */
     private String enhanceHtmlForPdf(String htmlContent) {
         try {
-            // Load PDF-specific CSS
-            String pdfCss = Files.readString(Paths.get(getClass().getClassLoader()
-                .getResource("static/css/spring-test-insight-pdf.css").toURI()));
+            // Load PDF-specific CSS using InputStream to work in JAR files
+            String pdfCss;
+            try (var inputStream = getClass().getClassLoader()
+                    .getResourceAsStream("static/css/spring-test-insight-pdf.css")) {
+                if (inputStream == null) {
+                    logger.warn("PDF CSS file not found in classpath");
+                    return htmlContent;
+                }
+                pdfCss = new String(inputStream.readAllBytes());
+            }
             
             // Find the style tag using a more robust approach
             int styleStart = htmlContent.indexOf("<style");

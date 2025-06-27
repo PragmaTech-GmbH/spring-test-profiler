@@ -4,12 +4,6 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.launcher.EngineDiscoveryResult;
 import org.junit.platform.launcher.LauncherDiscoveryListener;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.TestPlan;
-import org.junit.platform.engine.TestDescriptor;
-import org.junit.platform.engine.TestSource;
-import org.junit.platform.engine.support.descriptor.ClassSource;
-
-import java.util.Optional;
 
 public class MyDiscoveryListener implements LauncherDiscoveryListener {
 
