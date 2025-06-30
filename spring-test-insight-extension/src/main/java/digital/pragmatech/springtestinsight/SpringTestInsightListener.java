@@ -64,8 +64,8 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
             // The cache key is the hashCode of the MergedContextConfiguration
             int cacheKey = mergedConfig.hashCode();
             
-            // Track the association between cache key and test class
-            contextCacheTracker.recordTestClassForContext(cacheKey, className, mergedConfig);
+            // Track the association between context configuration and test class
+            contextCacheTracker.recordTestClassForContext(mergedConfig, className);
             
             logger.info("Test class {} uses context cache key {}", className, cacheKey);
             
@@ -88,12 +88,12 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
                 
                 // Now check if this was a cache hit or miss
                 // If the context was already tracked as created for another test, it's a hit
-                Optional<ContextCacheTracker.ContextCacheEntry> entry = contextCacheTracker.getCacheEntry(cacheKey);
+                Optional<ContextCacheTracker.ContextCacheEntry> entry = contextCacheTracker.getCacheEntry(mergedConfig);
                 if (entry.isPresent() && entry.get().isCreated()) {
-                    contextCacheTracker.recordContextCacheHit(cacheKey);
+                    contextCacheTracker.recordContextCacheHit(mergedConfig);
                     logger.debug("Context cache hit for test class {}", className);
                 } else {
-                    contextCacheTracker.recordContextCreation(cacheKey);
+                    contextCacheTracker.recordContextCreation(mergedConfig);
                     logger.debug("New context created for test class {}", className);
                 }
             } catch (Exception e) {
@@ -124,9 +124,9 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
             methodStartTimes.put(testContext, Instant.now());
             
             // Record which test method uses this context
-            Optional<Integer> cacheKey = contextCacheTracker.getCacheKeyForTestClass(className);
-            if (cacheKey.isPresent()) {
-                contextCacheTracker.recordTestMethodForContext(cacheKey.get(), className, methodName);
+            Optional<MergedContextConfiguration> config = contextCacheTracker.getContextForTestClass(className);
+            if (config.isPresent()) {
+                contextCacheTracker.recordTestMethodForContext(config.get(), className, methodName);
             }
         }
     }

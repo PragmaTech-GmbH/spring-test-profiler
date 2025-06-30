@@ -20,17 +20,17 @@ public class ContextCacheTracker {
     
     private static final Logger logger = LoggerFactory.getLogger(ContextCacheTracker.class);
     
-    // Map from cache key to list of test methods (format: "ClassName.methodName")
-    private final Map<Integer, List<String>> cacheKeyToTestMethods = new ConcurrentHashMap<>();
+    // Map from context configuration to list of test methods (format: "ClassName.methodName")
+    private final Map<MergedContextConfiguration, List<String>> contextToTestMethods = new ConcurrentHashMap<>();
     
-    // Map from cache key to context information
-    private final Map<Integer, ContextCacheEntry> cacheEntries = new ConcurrentHashMap<>();
+    // Map from context configuration to context information
+    private final Map<MergedContextConfiguration, ContextCacheEntry> cacheEntries = new ConcurrentHashMap<>();
     
-    // Map from test class name to cache key
-    private final Map<String, Integer> testClassToCacheKey = new ConcurrentHashMap<>();
+    // Map from test class name to context configuration
+    private final Map<String, MergedContextConfiguration> testClassToContext = new ConcurrentHashMap<>();
     
     // Track creation order for nearest context analysis
-    private final List<Integer> contextCreationOrder = new CopyOnWriteArrayList<>();
+    private final List<MergedContextConfiguration> contextCreationOrder = new CopyOnWriteArrayList<>();
     
     // Statistics
     private final AtomicInteger totalContextsCreated = new AtomicInteger(0);
@@ -40,12 +40,12 @@ public class ContextCacheTracker {
     /**
      * Records that a test class uses a specific context configuration.
      */
-    public void recordTestClassForContext(int cacheKey, String testClassName, MergedContextConfiguration config) {
-        testClassToCacheKey.put(testClassName, cacheKey);
+    public void recordTestClassForContext(MergedContextConfiguration config, String testClassName) {
+        testClassToContext.put(testClassName, config);
         
-        cacheEntries.computeIfAbsent(cacheKey, k -> {
-            ContextCacheEntry entry = new ContextCacheEntry(cacheKey, config);
-            logger.debug("Created new context cache entry for key: {}", cacheKey);
+        cacheEntries.computeIfAbsent(config, k -> {
+            ContextCacheEntry entry = new ContextCacheEntry(config);
+            logger.debug("Created new context cache entry for config: {}", config);
             return entry;
         }).addTestClass(testClassName);
     }
@@ -53,31 +53,31 @@ public class ContextCacheTracker {
     /**
      * Records that a test method uses a specific context.
      */
-    public void recordTestMethodForContext(int cacheKey, String testClassName, String methodName) {
+    public void recordTestMethodForContext(MergedContextConfiguration config, String testClassName, String methodName) {
         String testMethodIdentifier = testClassName + "." + methodName;
-        cacheKeyToTestMethods.computeIfAbsent(cacheKey, k -> new CopyOnWriteArrayList<>())
+        contextToTestMethods.computeIfAbsent(config, k -> new CopyOnWriteArrayList<>())
                             .add(testMethodIdentifier);
-        logger.debug("Recorded test method {} for context cache key: {}", testMethodIdentifier, cacheKey);
+        logger.debug("Recorded test method {} for context config: {}", testMethodIdentifier, config);
     }
     
     /**
      * Records that a new context was created (cache miss).
      */
-    public void recordContextCreation(int cacheKey) {
-        ContextCacheEntry entry = cacheEntries.get(cacheKey);
+    public void recordContextCreation(MergedContextConfiguration config) {
+        ContextCacheEntry entry = cacheEntries.get(config);
         if (entry != null) {
             entry.recordCreation();
-            contextCreationOrder.add(cacheKey);
+            contextCreationOrder.add(config);
             totalContextsCreated.incrementAndGet();
             cacheMisses.incrementAndGet();
             
             // Find nearest existing context if this is not the first one
             if (contextCreationOrder.size() > 1) {
-                Integer nearestKey = findNearestCacheKey(cacheKey);
-                if (nearestKey != null) {
-                    entry.setNearestCacheKey(nearestKey);
+                MergedContextConfiguration nearestConfig = findNearestContext(config);
+                if (nearestConfig != null) {
+                    entry.setNearestContext(nearestConfig);
                     logger.info("New context {} is most similar to existing context {}", 
-                        cacheKey, nearestKey);
+                        config, nearestConfig);
                 }
             }
         }
@@ -86,8 +86,8 @@ public class ContextCacheTracker {
     /**
      * Records that a context was retrieved from cache (cache hit).
      */
-    public void recordContextCacheHit(int cacheKey) {
-        ContextCacheEntry entry = cacheEntries.get(cacheKey);
+    public void recordContextCacheHit(MergedContextConfiguration config) {
+        ContextCacheEntry entry = cacheEntries.get(config);
         if (entry != null) {
             entry.recordCacheHit();
             cacheHits.incrementAndGet();
@@ -95,37 +95,35 @@ public class ContextCacheTracker {
     }
     
     /**
-     * Finds the most similar existing context to the given cache key.
+     * Finds the most similar existing context to the given context configuration.
      * This implementation uses configuration similarity scoring.
      */
-    private Integer findNearestCacheKey(int cacheKey) {
-        ContextCacheEntry targetEntry = cacheEntries.get(cacheKey);
-        if (targetEntry == null || targetEntry.getConfiguration() == null) {
+    private MergedContextConfiguration findNearestContext(MergedContextConfiguration targetConfig) {
+        if (targetConfig == null) {
             return null;
         }
         
-        MergedContextConfiguration targetConfig = targetEntry.getConfiguration();
-        Integer nearestKey = null;
+        MergedContextConfiguration nearestConfig = null;
         int highestScore = 0;
         
-        for (Map.Entry<Integer, ContextCacheEntry> entry : cacheEntries.entrySet()) {
-            if (entry.getKey() == cacheKey) {
+        for (Map.Entry<MergedContextConfiguration, ContextCacheEntry> entry : cacheEntries.entrySet()) {
+            if (entry.getKey().equals(targetConfig)) {
                 continue; // Skip self
             }
             
             ContextCacheEntry candidate = entry.getValue();
-            if (candidate.getConfiguration() == null || !candidate.isCreated()) {
-                continue; // Skip entries without config or not yet created
+            if (!candidate.isCreated()) {
+                continue; // Skip entries not yet created
             }
             
-            int score = calculateSimilarityScore(targetConfig, candidate.getConfiguration());
+            int score = calculateSimilarityScore(targetConfig, entry.getKey());
             if (score > highestScore) {
                 highestScore = score;
-                nearestKey = entry.getKey();
+                nearestConfig = entry.getKey();
             }
         }
         
-        return nearestKey;
+        return nearestConfig;
     }
     
     /**
@@ -178,34 +176,34 @@ public class ContextCacheTracker {
     }
     
     /**
-     * Gets the cache key for a specific test class.
+     * Gets the context configuration for a specific test class.
      */
-    public Optional<Integer> getCacheKeyForTestClass(String testClassName) {
-        return Optional.ofNullable(testClassToCacheKey.get(testClassName));
+    public Optional<MergedContextConfiguration> getContextForTestClass(String testClassName) {
+        return Optional.ofNullable(testClassToContext.get(testClassName));
     }
     
     /**
      * Gets a specific context cache entry.
      */
-    public Optional<ContextCacheEntry> getCacheEntry(int cacheKey) {
-        return Optional.ofNullable(cacheEntries.get(cacheKey));
+    public Optional<ContextCacheEntry> getCacheEntry(MergedContextConfiguration config) {
+        return Optional.ofNullable(cacheEntries.get(config));
     }
     
     /**
-     * Gets the list of test methods that used a specific context cache key.
+     * Gets the list of test methods that used a specific context configuration.
      */
-    public List<String> getTestMethodsForCacheKey(int cacheKey) {
+    public List<String> getTestMethodsForContext(MergedContextConfiguration config) {
         return Collections.unmodifiableList(
-            cacheKeyToTestMethods.getOrDefault(cacheKey, Collections.emptyList())
+            contextToTestMethods.getOrDefault(config, Collections.emptyList())
         );
     }
     
     /**
-     * Gets all cache keys and their associated test methods.
+     * Gets all context configurations and their associated test methods.
      */
-    public Map<Integer, List<String>> getAllCacheKeyToTestMethods() {
-        Map<Integer, List<String>> result = new LinkedHashMap<>();
-        for (Map.Entry<Integer, List<String>> entry : cacheKeyToTestMethods.entrySet()) {
+    public Map<MergedContextConfiguration, List<String>> getAllContextToTestMethods() {
+        Map<MergedContextConfiguration, List<String>> result = new LinkedHashMap<>();
+        for (Map.Entry<MergedContextConfiguration, List<String>> entry : contextToTestMethods.entrySet()) {
             result.put(entry.getKey(), Collections.unmodifiableList(entry.getValue()));
         }
         return result;
@@ -244,9 +242,9 @@ public class ContextCacheTracker {
      * Clears all tracking data.
      */
     public void clear() {
-        cacheKeyToTestMethods.clear();
+        contextToTestMethods.clear();
         cacheEntries.clear();
-        testClassToCacheKey.clear();
+        testClassToContext.clear();
         contextCreationOrder.clear();
         totalContextsCreated.set(0);
         cacheHits.set(0);
@@ -257,16 +255,14 @@ public class ContextCacheTracker {
      * Entry representing a cached context configuration.
      */
     public static class ContextCacheEntry {
-        private final int cacheKey;
         private final MergedContextConfiguration configuration;
         private final Set<String> testClasses = ConcurrentHashMap.newKeySet();
         private volatile boolean created = false;
         private volatile Instant creationTime;
         private final AtomicInteger hitCount = new AtomicInteger(0);
-        private volatile Integer nearestCacheKey;
+        private volatile MergedContextConfiguration nearestContext;
         
-        public ContextCacheEntry(int cacheKey, MergedContextConfiguration configuration) {
-            this.cacheKey = cacheKey;
+        public ContextCacheEntry(MergedContextConfiguration configuration) {
             this.configuration = configuration;
         }
         
@@ -283,12 +279,8 @@ public class ContextCacheTracker {
             hitCount.incrementAndGet();
         }
         
-        public void setNearestCacheKey(Integer nearestKey) {
-            this.nearestCacheKey = nearestKey;
-        }
-        
-        public int getCacheKey() {
-            return cacheKey;
+        public void setNearestContext(MergedContextConfiguration nearestContext) {
+            this.nearestContext = nearestContext;
         }
         
         public MergedContextConfiguration getConfiguration() {
@@ -311,8 +303,8 @@ public class ContextCacheTracker {
             return hitCount.get();
         }
         
-        public Optional<Integer> getNearestCacheKey() {
-            return Optional.ofNullable(nearestCacheKey);
+        public Optional<MergedContextConfiguration> getNearestContext() {
+            return Optional.ofNullable(nearestContext);
         }
         
         /**
