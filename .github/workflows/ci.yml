@@ -58,19 +58,8 @@ jobs:
 
       - name: Build demo project
         id: build-demo
-        continue-on-error: true
         working-directory: demo/${{ matrix.demo }}
         run: ./mvnw verify
-
-      - name: Report demo status
-        if: always()
-        run: |
-          echo "### Test results for ${{ matrix.demo }}"
-          if [ "${{ steps.build-demo.outcome }}" == "success" ]; then
-            echo "✅ Tests passed"
-          else
-            echo "❌ Tests failed"
-          fi
 
       - name: Upload demo test results
         uses: actions/upload-artifact@v4
@@ -107,19 +96,8 @@ jobs:
 
       - name: Build demo project
         id: build-demo
-        continue-on-error: true
         working-directory: demo/${{ matrix.demo }}
         run: ./gradlew build
-
-      - name: Report demo status
-        if: always()
-        run: |
-          echo "### Test results for ${{ matrix.demo }}"
-          if [ "${{ steps.build-demo.outcome }}" == "success" ]; then
-            echo "✅ Tests passed"
-          else
-            echo "❌ Tests failed"
-          fi
 
       - name: Upload demo test results
         uses: actions/upload-artifact@v4

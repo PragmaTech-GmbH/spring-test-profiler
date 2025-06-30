@@ -20,6 +20,9 @@ public class ContextCacheTracker {
     
     private static final Logger logger = LoggerFactory.getLogger(ContextCacheTracker.class);
     
+    // Map from cache key to list of test methods (format: "ClassName.methodName")
+    private final Map<Integer, List<String>> cacheKeyToTestMethods = new ConcurrentHashMap<>();
+    
     // Map from cache key to context information
     private final Map<Integer, ContextCacheEntry> cacheEntries = new ConcurrentHashMap<>();
     
@@ -45,6 +48,16 @@ public class ContextCacheTracker {
             logger.debug("Created new context cache entry for key: {}", cacheKey);
             return entry;
         }).addTestClass(testClassName);
+    }
+    
+    /**
+     * Records that a test method uses a specific context.
+     */
+    public void recordTestMethodForContext(int cacheKey, String testClassName, String methodName) {
+        String testMethodIdentifier = testClassName + "." + methodName;
+        cacheKeyToTestMethods.computeIfAbsent(cacheKey, k -> new CopyOnWriteArrayList<>())
+                            .add(testMethodIdentifier);
+        logger.debug("Recorded test method {} for context cache key: {}", testMethodIdentifier, cacheKey);
     }
     
     /**
@@ -179,6 +192,26 @@ public class ContextCacheTracker {
     }
     
     /**
+     * Gets the list of test methods that used a specific context cache key.
+     */
+    public List<String> getTestMethodsForCacheKey(int cacheKey) {
+        return Collections.unmodifiableList(
+            cacheKeyToTestMethods.getOrDefault(cacheKey, Collections.emptyList())
+        );
+    }
+    
+    /**
+     * Gets all cache keys and their associated test methods.
+     */
+    public Map<Integer, List<String>> getAllCacheKeyToTestMethods() {
+        Map<Integer, List<String>> result = new LinkedHashMap<>();
+        for (Map.Entry<Integer, List<String>> entry : cacheKeyToTestMethods.entrySet()) {
+            result.put(entry.getKey(), Collections.unmodifiableList(entry.getValue()));
+        }
+        return result;
+    }
+    
+    /**
      * Gets the total number of unique contexts created.
      */
     public int getTotalContextsCreated() {
@@ -211,6 +244,7 @@ public class ContextCacheTracker {
      * Clears all tracking data.
      */
     public void clear() {
+        cacheKeyToTestMethods.clear();
         cacheEntries.clear();
         testClassToCacheKey.clear();
         contextCreationOrder.clear();

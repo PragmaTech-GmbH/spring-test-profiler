@@ -122,6 +122,12 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
         if (className != null) {
             executionTracker.recordTestMethodStart(className, methodName);
             methodStartTimes.put(testContext, Instant.now());
+            
+            // Record which test method uses this context
+            Optional<Integer> cacheKey = contextCacheTracker.getCacheKeyForTestClass(className);
+            if (cacheKey.isPresent()) {
+                contextCacheTracker.recordTestMethodForContext(cacheKey.get(), className, methodName);
+            }
         }
     }
     
@@ -131,7 +137,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
         String methodName = testContext.getTestMethod().getName();
         
         if (className != null) {
-            // Determine test status
+            // Determine test status based on test exception
             TestStatus status = determineTestStatus(testContext);
             executionTracker.recordTestMethodEnd(className, methodName, status);
             
@@ -150,6 +156,14 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     
     private TestStatus determineTestStatus(TestContext testContext) {
         if (testContext.getTestException() != null) {
+            Throwable exception = testContext.getTestException();
+            
+            // Check for test abortion (AssumptionViolatedException or similar)
+            if (exception.getClass().getSimpleName().contains("AssumptionViolated") ||
+                exception.getClass().getSimpleName().contains("TestAborted")) {
+                return TestStatus.ABORTED;
+            }
+            
             return TestStatus.FAILED;
         }
         return TestStatus.PASSED;
