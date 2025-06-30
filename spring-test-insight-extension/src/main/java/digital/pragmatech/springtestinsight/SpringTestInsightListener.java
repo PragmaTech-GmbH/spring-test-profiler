@@ -94,7 +94,15 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
                     logger.debug("Context cache hit for test class {}", className);
                 } else {
                     contextCacheTracker.recordContextCreation(mergedConfig);
-                    logger.debug("New context created for test class {}", className);
+                    
+                    // Capture bean definitions for context complexity analysis
+                    try {
+                        String[] beanNames = testContext.getApplicationContext().getBeanDefinitionNames();
+                        contextCacheTracker.recordBeanDefinitions(mergedConfig, beanNames);
+                        logger.debug("New context created for test class {} with {} bean definitions", className, beanNames.length);
+                    } catch (Exception beanException) {
+                        logger.warn("Failed to capture bean definitions for test class {}: {}", className, beanException.getMessage());
+                    }
                 }
             } catch (Exception e) {
                 logger.warn("Failed to track context loading for test class {}: {}", className, e.getMessage());

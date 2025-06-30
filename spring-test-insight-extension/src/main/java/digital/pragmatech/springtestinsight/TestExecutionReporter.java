@@ -196,7 +196,7 @@ public class TestExecutionReporter {
             context.setVariable("cssContent", cssContent);
             
             // Register helper beans for templates
-            registerHelperBeans(context);
+            registerHelperBeans(context, contextCacheTracker);
             
             String result = templateEngine.process("report", context);
             logger.info("Successfully generated HTML with Thymeleaf templates");
@@ -208,7 +208,7 @@ public class TestExecutionReporter {
     }
     
     
-    private void registerHelperBeans(Context context) {
+    private void registerHelperBeans(Context context, ContextCacheTracker contextCacheTracker) {
         // Register all helper beans that templates can use
         context.setVariable("durationFormatter", new TemplateHelpers.DurationFormatter());
         context.setVariable("classNameHelper", new TemplateHelpers.ClassNameHelper());
@@ -220,7 +220,7 @@ public class TestExecutionReporter {
         context.setVariable("classNameComparator", new TemplateHelpers.ClassNameComparator());
         context.setVariable("cacheKeyProcessor", new TemplateHelpers.CacheKeyProcessor());
         context.setVariable("summaryCalculator", new TemplateHelpers.SummaryCalculator());
-        context.setVariable("configurationHelper", new TemplateHelpers.ConfigurationHelper());
+        context.setVariable("configurationHelper", new TemplateHelpers.ConfigurationHelper(contextCacheTracker));
         context.setVariable("contextConfigurationDetector", ContextConfigurationDetector.class);
         context.setVariable("testStatusCounter", new TemplateHelpers.TestStatusCounter());
     }

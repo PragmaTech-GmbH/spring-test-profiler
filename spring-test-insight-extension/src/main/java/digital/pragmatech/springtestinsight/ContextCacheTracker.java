@@ -84,6 +84,17 @@ public class ContextCacheTracker {
     }
     
     /**
+     * Records bean definitions for a context configuration.
+     */
+    public void recordBeanDefinitions(MergedContextConfiguration config, String[] beanNames) {
+        ContextCacheEntry entry = cacheEntries.get(config);
+        if (entry != null) {
+            entry.setBeanDefinitions(beanNames);
+            logger.debug("Recorded {} bean definitions for context: {}", beanNames.length, config);
+        }
+    }
+    
+    /**
      * Records that a context was retrieved from cache (cache hit).
      */
     public void recordContextCacheHit(MergedContextConfiguration config) {
@@ -261,6 +272,8 @@ public class ContextCacheTracker {
         private volatile Instant creationTime;
         private final AtomicInteger hitCount = new AtomicInteger(0);
         private volatile MergedContextConfiguration nearestContext;
+        private volatile int beanDefinitionCount = 0;
+        private volatile Set<String> beanDefinitionNames = ConcurrentHashMap.newKeySet();
         
         public ContextCacheEntry(MergedContextConfiguration configuration) {
             this.configuration = configuration;
@@ -281,6 +294,12 @@ public class ContextCacheTracker {
         
         public void setNearestContext(MergedContextConfiguration nearestContext) {
             this.nearestContext = nearestContext;
+        }
+        
+        public void setBeanDefinitions(String[] beanNames) {
+            this.beanDefinitionCount = beanNames.length;
+            this.beanDefinitionNames.clear();
+            this.beanDefinitionNames.addAll(Arrays.asList(beanNames));
         }
         
         public MergedContextConfiguration getConfiguration() {
@@ -305,6 +324,14 @@ public class ContextCacheTracker {
         
         public Optional<MergedContextConfiguration> getNearestContext() {
             return Optional.ofNullable(nearestContext);
+        }
+        
+        public int getBeanDefinitionCount() {
+            return beanDefinitionCount;
+        }
+        
+        public Set<String> getBeanDefinitionNames() {
+            return Collections.unmodifiableSet(beanDefinitionNames);
         }
         
         /**
@@ -344,6 +371,9 @@ public class ContextCacheTracker {
                         .collect(Collectors.toList());
                     summary.put("contextInitializers", initializers);
                 }
+                
+                // Bean definitions count
+                summary.put("beanDefinitionCount", beanDefinitionCount);
             }
             
             return summary;

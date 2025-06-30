@@ -410,6 +410,7 @@ h2 {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    gap: 10px;
 }
 
 .context-config-id {
@@ -420,6 +421,14 @@ h2 {
 
 .context-config-test-count {
     background: #3498db;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+}
+
+.context-bean-count {
+    background: #9b59b6;
     color: white;
     padding: 4px 10px;
     border-radius: 15px;
@@ -468,4 +477,44 @@ h2 {
     margin-right: 5px;
     margin-bottom: 5px;
     font-family: monospace;
+}
+
+/* Context complexity analysis styles */
+.context-complexity {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 4px solid #bdc3c7;
+}
+
+.complexity-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.complexity-low {
+    background-color: #d5f4e6;
+    border-left-color: #27ae60;
+}
+
+.complexity-medium {
+    background-color: #fff3cd;
+    border-left-color: #f39c12;
+}
+
+.complexity-high {
+    background-color: #f8d7da;
+    border-left-color: #e74c3c;
+}
+
+.complexity-ok {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.complexity-warning {
+    color: #e67e22;
+    font-weight: 600;
 }

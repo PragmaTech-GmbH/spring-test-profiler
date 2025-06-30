@@ -6,6 +6,7 @@ import digital.pragmatech.springtestinsight.TestStatus;
 import digital.pragmatech.springtestinsight.SpringContextStatistics;
 import digital.pragmatech.springtestinsight.ContextConfigurationDetector;
 import digital.pragmatech.springtestinsight.TestExecutionTracker;
+import digital.pragmatech.springtestinsight.ContextCacheTracker;
 
 import java.time.Duration;
 import java.util.*;
@@ -193,8 +194,51 @@ public class TemplateHelpers {
     }
     
     public static class ConfigurationHelper {
-        public Map<String, ContextConfigurationDetector.ContextConfigurationInfo> getConfigurations() {
-            return ContextConfigurationDetector.getContextConfigurations();
+        private final ContextCacheTracker contextCacheTracker;
+        
+        public ConfigurationHelper(ContextCacheTracker contextCacheTracker) {
+            this.contextCacheTracker = contextCacheTracker;
+        }
+        
+        public Map<String, ContextConfigurationInfo> getConfigurations() {
+            Map<String, ContextConfigurationInfo> configurations = new HashMap<>();
+            
+            if (contextCacheTracker != null) {
+                // Convert ContextCacheTracker entries to the format expected by the template
+                for (ContextCacheTracker.ContextCacheEntry entry : contextCacheTracker.getAllEntries()) {
+                    String configId = "config-" + Math.abs(entry.getConfiguration().hashCode());
+                    
+                    ContextConfigurationInfo configInfo = new ContextConfigurationInfo();
+                    configInfo.id = configId;
+                    configInfo.testClasses = new HashSet<>(entry.getTestClasses());
+                    configInfo.configuration = entry.getConfigurationSummary();
+                    
+                    configurations.put(configId, configInfo);
+                }
+            }
+            
+            // Fallback to old system if no ContextCacheTracker data
+            if (configurations.isEmpty()) {
+                // Convert the old format to the new format
+                Map<String, ContextConfigurationDetector.ContextConfigurationInfo> oldConfigs = 
+                    ContextConfigurationDetector.getContextConfigurations();
+                for (Map.Entry<String, ContextConfigurationDetector.ContextConfigurationInfo> entry : oldConfigs.entrySet()) {
+                    ContextConfigurationInfo configInfo = new ContextConfigurationInfo();
+                    configInfo.id = entry.getValue().getId();
+                    configInfo.testClasses = new HashSet<>(entry.getValue().getTestClasses());
+                    configInfo.configuration = entry.getValue().getConfiguration();
+                    configurations.put(entry.getKey(), configInfo);
+                }
+            }
+            
+            return configurations;
+        }
+        
+        // Helper class to match the structure expected by the template
+        public static class ContextConfigurationInfo {
+            public String id;
+            public Set<String> testClasses;
+            public Map<String, Object> configuration;
         }
     }
     
