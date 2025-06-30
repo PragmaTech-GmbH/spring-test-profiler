@@ -4,6 +4,8 @@ import org.junit.jupiter.api.extension.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 public class SpringTestInsightExtension implements BeforeAllCallback, AfterAllCallback, ExtensionContext.Store.CloseableResource {
     
     private static final Logger logger = LoggerFactory.getLogger(SpringTestInsightExtension.class);
@@ -12,13 +14,33 @@ public class SpringTestInsightExtension implements BeforeAllCallback, AfterAllCa
     private static volatile boolean reportGenerated = false;
     private static String currentPhase = null;
     
+    // Enum to represent the detected execution environment
+    public enum ExecutionEnvironment {
+        MAVEN_SUREFIRE,
+        MAVEN_FAILSAFE,
+        GRADLE_TEST,
+        GRADLE_INTEGRATION_TEST,
+        INTELLIJ,
+        ECLIPSE,
+        VSCODE,
+        NETBEANS,
+        UNKNOWN
+    }
+    
+    private static ExecutionEnvironment detectedEnvironment;
+    
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         Class<?> testClass = context.getRequiredTestClass();
         logger.debug("Starting Spring Test Insight for test class: {}", testClass.getName());
         
-        // Detect build tool and phase based on system properties and test naming conventions
-        String detectedPhase = detectBuildToolPhase(testClass);
+        // Detect execution environment using enhanced detection approach
+        if (detectedEnvironment == null) {
+            detectedEnvironment = detectExecutionEnvironment(testClass);
+            logger.info("Detected execution environment: {}", detectedEnvironment);
+        }
+        
+        String detectedPhase = getPhaseFromEnvironment(detectedEnvironment);
         
         // Reset report generation flag if we've moved to a different phase
         synchronized (SpringTestInsightExtension.class) {
@@ -69,11 +91,60 @@ public class SpringTestInsightExtension implements BeforeAllCallback, AfterAllCa
     }
     
     /**
+     * Detects the execution environment using stack trace analysis (inspired by ToolDetectionExtension)
+     * combined with system property and test naming convention detection.
+     */
+    private ExecutionEnvironment detectExecutionEnvironment(Class<?> testClass) {
+        // First try stack trace analysis for IDE detection
+        ExecutionEnvironment stackTraceResult = detectFromStackTrace();
+        if (stackTraceResult != ExecutionEnvironment.UNKNOWN) {
+            return stackTraceResult;
+        }
+        
+        // Fall back to build tool detection with test phase inference
+        return detectBuildToolPhase(testClass);
+    }
+    
+    /**
+     * Detects execution environment from stack trace analysis.
+     */
+    private ExecutionEnvironment detectFromStackTrace() {
+        try {
+            throw new RuntimeException("Environment Detection");
+        } catch (RuntimeException e) {
+            String stackTrace = Arrays.toString(e.getStackTrace());
+            
+            if (stackTrace.contains("com.intellij.rt.junit")) {
+                return ExecutionEnvironment.INTELLIJ;
+            }
+            if (stackTrace.contains("org.eclipse.jdt.internal.junit")) {
+                return ExecutionEnvironment.ECLIPSE;
+            }
+            if (stackTrace.contains("com.microsoft.java.test.runner")) {
+                return ExecutionEnvironment.VSCODE;
+            }
+            if (stackTrace.contains("org.netbeans.modules")) {
+                return ExecutionEnvironment.NETBEANS;
+            }
+            if (stackTrace.contains("org.apache.maven.surefire")) {
+                // Maven detected, but need to determine surefire vs failsafe
+                return ExecutionEnvironment.UNKNOWN; // Will be refined by detectBuildToolPhase
+            }
+            if (stackTrace.contains("org.gradle.api.internal.tasks.testing")) {
+                // Gradle detected, but need to determine test vs integrationTest
+                return ExecutionEnvironment.UNKNOWN; // Will be refined by detectBuildToolPhase
+            }
+            
+            return ExecutionEnvironment.UNKNOWN;
+        }
+    }
+    
+    /**
      * Detects the build tool and test phase based on system properties and test class naming conventions.
      * For Maven: distinguishes between surefire (unit tests) and failsafe (integration tests).
      * For Gradle: distinguishes between test and integrationTest tasks.
      */
-    private String detectBuildToolPhase(Class<?> testClass) {
+    private ExecutionEnvironment detectBuildToolPhase(Class<?> testClass) {
         // First, detect the build tool
         String buildTool = detectBuildTool();
         
@@ -85,12 +156,11 @@ public class SpringTestInsightExtension implements BeforeAllCallback, AfterAllCa
         
         // Return phase based on build tool
         if ("maven".equals(buildTool)) {
-            return isIntegrationTest ? "failsafe" : "surefire";
+            return isIntegrationTest ? ExecutionEnvironment.MAVEN_FAILSAFE : ExecutionEnvironment.MAVEN_SUREFIRE;
         } else if ("gradle".equals(buildTool)) {
-            return isIntegrationTest ? "integrationTest" : "test";
+            return isIntegrationTest ? ExecutionEnvironment.GRADLE_INTEGRATION_TEST : ExecutionEnvironment.GRADLE_TEST;
         } else {
-            // Unknown build tool, use generic phase names
-            return isIntegrationTest ? "integration" : "unit";
+            return ExecutionEnvironment.UNKNOWN;
         }
     }
     
@@ -126,5 +196,39 @@ public class SpringTestInsightExtension implements BeforeAllCallback, AfterAllCa
         
         // Default to unknown
         return "unknown";
+    }
+    
+    /**
+     * Converts execution environment to phase string for reporting.
+     */
+    private String getPhaseFromEnvironment(ExecutionEnvironment environment) {
+        switch (environment) {
+            case MAVEN_SUREFIRE:
+                return "surefire";
+            case MAVEN_FAILSAFE:
+                return "failsafe";
+            case GRADLE_TEST:
+                return "gradle-test";
+            case GRADLE_INTEGRATION_TEST:
+                return "gradle-integrationTest";
+            case INTELLIJ:
+                return "intellij";
+            case ECLIPSE:
+                return "eclipse";
+            case VSCODE:
+                return "vscode";
+            case NETBEANS:
+                return "netbeans";
+            case UNKNOWN:
+            default:
+                return "unknown";
+        }
+    }
+    
+    /**
+     * Gets the detected execution environment.
+     */
+    public static ExecutionEnvironment getDetectedEnvironment() {
+        return detectedEnvironment;
     }
 }
