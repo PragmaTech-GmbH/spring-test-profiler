@@ -36,6 +36,12 @@ public class TestExecutionReporter {
     }
     
     public void generateReport(String phase, TestExecutionTracker executionTracker, SpringContextCacheAccessor.CacheStatistics cacheStats) {
+        generateReport(phase, executionTracker, cacheStats, null);
+    }
+    
+    public void generateReport(String phase, TestExecutionTracker executionTracker, 
+                             SpringContextCacheAccessor.CacheStatistics cacheStats, 
+                             ContextCacheTracker contextCacheTracker) {
         try {
             Path reportDir = determineReportDirectory();
             Files.createDirectories(reportDir);
@@ -46,7 +52,7 @@ public class TestExecutionReporter {
                 "test-insight-report-" + phase + "-" + timestamp + ".html";
             Path reportFile = reportDir.resolve(reportFileName);
             
-            String htmlContent = generateHtmlWithThymeleaf(phase, executionTracker, cacheStats);
+            String htmlContent = generateHtmlWithThymeleaf(phase, executionTracker, cacheStats, contextCacheTracker);
             Files.write(reportFile, htmlContent.getBytes());
             
             logger.info("Spring Test Insight report generated for {} phase: {}", phase, reportFile.toAbsolutePath());
@@ -152,6 +158,12 @@ public class TestExecutionReporter {
     }
     
     private String generateHtmlWithThymeleaf(String phase, TestExecutionTracker executionTracker, SpringContextCacheAccessor.CacheStatistics cacheStats) {
+        return generateHtmlWithThymeleaf(phase, executionTracker, cacheStats, null);
+    }
+    
+    private String generateHtmlWithThymeleaf(String phase, TestExecutionTracker executionTracker, 
+                                           SpringContextCacheAccessor.CacheStatistics cacheStats,
+                                           ContextCacheTracker contextCacheTracker) {
         try {
             Context context = new Context();
             
@@ -160,6 +172,7 @@ public class TestExecutionReporter {
             context.setVariable("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             context.setVariable("executionTracker", executionTracker);
             context.setVariable("cacheStats", cacheStats);
+            context.setVariable("contextCacheTracker", contextCacheTracker);
             
             // Pre-compute test status counts to avoid complex template expressions
             Map<String, TestExecutionTracker.TestClassMetrics> classMetrics = executionTracker.getClassMetrics();

@@ -125,8 +125,11 @@ public class SpringTestInsightExtension implements TestWatcher, BeforeAllCallbac
             if (!reportGenerated) {
                 String phase = currentPhase != null ? currentPhase : "unknown";
                 logger.info("All tests completed for {} phase. Generating Spring Test Insight report...", phase);
-                executionTracker.stopTracking();
-                reporter.generateReport(phase, executionTracker, SpringContextCacheStatistics.getCacheStatistics());
+                
+                // Call the SpringTestInsightListener to generate the report
+                SpringTestInsightListener.generateReport(phase);
+                
+                // Clear old context configuration detector data
                 ContextConfigurationDetector.clear();
                 reportGenerated = true;
             } else {

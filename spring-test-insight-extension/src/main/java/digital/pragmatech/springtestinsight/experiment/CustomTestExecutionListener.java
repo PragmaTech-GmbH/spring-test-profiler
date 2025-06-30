@@ -28,6 +28,7 @@ public class CustomTestExecutionListener extends AbstractTestExecutionListener {
 //    LOG.info("Test class: {}", testContext.getTestClass().getName());
 
     var contextBootstrapper = BootstrapUtils.resolveTestContextBootstrapper(testContext.getTestClass());
+    var mergedConfig = contextBootstrapper.buildMergedContextConfiguration();
     var delegate = (DefaultCacheAwareContextLoaderDelegate) contextBootstrapper.getBootstrapContext().getCacheAwareContextLoaderDelegate();
 
     Class<?> clazz = DefaultCacheAwareContextLoaderDelegate.class;
@@ -42,11 +43,10 @@ public class CustomTestExecutionListener extends AbstractTestExecutionListener {
     method.setAccessible(true);
 
 
-    MergedContextConfiguration contextCache = contextBootstrapper.buildMergedContextConfiguration();
     LOG.info("Bootstrapper: {}", contextBootstrapper);
-    LOG.info("Bootstrapper: {}", contextBootstrapper.getBootstrapContext().getCacheAwareContextLoaderDelegate().isContextLoaded(contextCache));
-    LOG.info("Bootstrapper: {}", contextCache);
-    LOG.info("Bootstrapper: {}", contextCache.hashCode());
+    LOG.info("Bootstrapper: {}", contextBootstrapper.getBootstrapContext().getCacheAwareContextLoaderDelegate().isContextLoaded(mergedConfig));
+    LOG.info("Bootstrapper: {}", mergedConfig);
+    LOG.info("Bootstrapper: {}", mergedConfig.hashCode());
   }
 
   @Override

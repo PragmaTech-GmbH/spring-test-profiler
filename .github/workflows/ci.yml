@@ -10,104 +10,58 @@ jobs:
   test-extension:
     name: Test Extension
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('spring-test-insight-extension/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-          
+          cache: 'maven'
+          cache-dependency-path: 'spring-test-insight-extension/pom.xml'
+
       - name: Test extension
         working-directory: spring-test-insight-extension
-        run: ./mvnw clean verify
-        
-      - name: Install extension to local repository
-        working-directory: spring-test-insight-extension
-        run: ./mvnw clean install -DskipTests
-        
-      - name: Upload extension test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: extension-test-results
-          path: |
-            spring-test-insight-extension/target/surefire-reports/
-            spring-test-insight-extension/target/spring-test-insight/
-            
-  test-demos:
-    name: Test Demo Projects
+        run: ./mvnw verify
+
+  test-maven-demos:
+    name: Test Gradle Demo Projects
     runs-on: ubuntu-latest
     needs: test-extension
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        demo: 
+        demo:
           - spring-boot-3.4-maven
           - spring-boot-3.5-maven
-          - spring-boot-3.5-gradle
           - spring-boot-3.5-maven-failsafe-parallel
           - spring-boot-3.5-maven-junit-parallel
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          
-      - name: Cache Maven dependencies
-        if: contains(matrix.demo, 'maven')
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('demo/${{ matrix.demo }}/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-          
-      - name: Cache Gradle dependencies
-        if: contains(matrix.demo, 'gradle')
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('demo/${{ matrix.demo }}/**/*.gradle*', 'demo/${{ matrix.demo }}/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-          
+          cache: 'maven'
+          cache-dependency-path: '${{ matrix.demo }}/pom.xml'
+
       - name: Install extension to local repository
         working-directory: spring-test-insight-extension
         run: ./mvnw clean install -DskipTests
-        
+
       - name: Build demo project
         id: build-demo
         continue-on-error: true
         working-directory: demo/${{ matrix.demo }}
-        run: |
-          chmod +x build.sh
-          ./build.sh
-          
-      - name: Load build environment
-        if: always()
-        working-directory: demo/${{ matrix.demo }}
-        run: |
-          if [ -f build-env.properties ]; then
-            cat build-env.properties >> $GITHUB_ENV
-          fi
-          
+        run: ./mvnw verify
+
       - name: Report demo status
         if: always()
         run: |
@@ -117,25 +71,70 @@ jobs:
           else
             echo "❌ Tests failed"
           fi
-        
+
+      - name: Upload demo test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-test-results-${{ matrix.demo }}
+          path: demo/${{ matrix.demo }}/target
+
+  test-gradle-demos:
+    name: Test Gradle Demo Projects
+    runs-on: ubuntu-latest
+    needs: test-extension
+    strategy:
+      fail-fast: false
+      matrix:
+        demo:
+          - spring-boot-3.5-gradle
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+          cache-dependency-path: '${{ matrix.demo }}/build.gradle'
+
+      - name: Install extension to local repository
+        working-directory: spring-test-insight-extension
+        run: ./mvnw clean install -DskipTests
+
+      - name: Build demo project
+        id: build-demo
+        continue-on-error: true
+        working-directory: demo/${{ matrix.demo }}
+        run: ./gradlew build
+
+      - name: Report demo status
+        if: always()
+        run: |
+          echo "### Test results for ${{ matrix.demo }}"
+          if [ "${{ steps.build-demo.outcome }}" == "success" ]; then
+            echo "✅ Tests passed"
+          else
+            echo "❌ Tests failed"
+          fi
+
       - name: Upload demo test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: demo-test-results-${{ matrix.demo }}
           path: |
-            demo/${{ matrix.demo }}/${{ env.SPRING_TEST_INSIGHT_REPORTS }}/
-            demo/${{ matrix.demo }}/${{ env.SUREFIRE_REPORTS }}/
-            demo/${{ matrix.demo }}/${{ env.FAILSAFE_REPORTS }}/
-            demo/${{ matrix.demo }}/${{ env.TEST_REPORTS }}/
-            demo/${{ matrix.demo }}/${{ env.TEST_RESULTS }}/
-            
+            demo/${{ matrix.demo }}/build
+
   summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [test-extension, test-demos]
+    needs: [test-extension, test-maven-demos, test-gradle-demos]
     if: always()
-    
+
     steps:
       - name: Test Results Summary
         run: |
@@ -152,13 +151,13 @@ jobs:
           echo "Demo tests status: ${{ needs.test-demos.result }}"
           echo ""
           echo "Note: Individual demo project results can be found in the workflow run details."
-          
+
       - name: Check critical failures
         if: needs.test-extension.result == 'failure'
         run: |
           echo "Critical failure: Extension tests failed"
           exit 1
-          
+
       - name: Final status
         run: |
           if [ "${{ needs.test-extension.result }}" == "success" ]; then
