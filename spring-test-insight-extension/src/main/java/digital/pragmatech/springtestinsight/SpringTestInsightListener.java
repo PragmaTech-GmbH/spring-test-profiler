@@ -183,6 +183,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
                 
                 // Clear data
                 contextCacheTracker.clear();
+                ContextConfigurationDetector.clear();
                 reportGenerated = true;
             }
         }

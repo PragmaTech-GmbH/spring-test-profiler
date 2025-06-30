@@ -50,7 +50,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: '${{ matrix.demo }}/pom.xml'
+          cache-dependency-path: 'demo/${{ matrix.demo }}/pom.xml'
 
       - name: Install extension to local repository
         working-directory: spring-test-insight-extension
@@ -99,7 +99,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
-          cache-dependency-path: '${{ matrix.demo }}/build.gradle'
+          cache-dependency-path: 'demo/${{ matrix.demo }}/build.gradle'
 
       - name: Install extension to local repository
         working-directory: spring-test-insight-extension
