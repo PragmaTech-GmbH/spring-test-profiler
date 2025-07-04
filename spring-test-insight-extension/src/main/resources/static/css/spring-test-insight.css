@@ -213,6 +213,56 @@ h2 {
     color: #27ae60;
 }
 
+.cache-overview {
+    margin-bottom: 25px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 20px;
+}
+
+.context-cache-details h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.cache-entry {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #3498db;
+}
+
+.cache-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.cache-id {
+    color: #2c3e50;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.bean-count {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.test-classes {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.test-classes .test-class {
+    color: #34495e;
+    font-family: monospace;
+    font-size: 13px;
+}
+
 .test-class {
     background: white;
     border-radius: 8px;

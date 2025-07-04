@@ -19,7 +19,7 @@
         <div th:replace="~{fragments/summary :: summary-section(${executionTracker}, ${cacheStats})}"></div>
         
         <!-- Context Caching Statistics Fragment -->
-        <div th:replace="~{fragments/caching :: caching-section(${cacheStats})}"></div>
+        <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
         
         <!-- Context Configurations Fragment -->
         <div th:replace="~{fragments/configurations :: configurations-section}"></div>

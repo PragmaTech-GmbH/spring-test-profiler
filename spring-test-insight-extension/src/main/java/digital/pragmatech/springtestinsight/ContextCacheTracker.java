@@ -250,6 +250,60 @@ public class ContextCacheTracker {
     }
     
     /**
+     * Gets the earliest context creation time across all cached contexts.
+     * This can be used as the start time for timeline visualization.
+     */
+    public Optional<Instant> getEarliestContextCreationTime() {
+        return cacheEntries.values().stream()
+            .filter(ContextCacheEntry::isCreated)
+            .map(ContextCacheEntry::getCreationTime)
+            .filter(Objects::nonNull)
+            .min(Instant::compareTo);
+    }
+    
+    /**
+     * Gets the latest context access time across all cached contexts.
+     * This can be used as the end time for timeline visualization.
+     */
+    public Optional<Instant> getLatestContextAccessTime() {
+        return cacheEntries.values().stream()
+            .map(ContextCacheEntry::getLastUsedTime)
+            .filter(Objects::nonNull)
+            .max(Instant::compareTo);
+    }
+    
+    /**
+     * Gets all context entries sorted by creation time for timeline visualization.
+     */
+    public List<ContextCacheEntry> getEntriesSortedByCreationTime() {
+        return cacheEntries.values().stream()
+            .filter(ContextCacheEntry::isCreated)
+            .sorted((a, b) -> {
+                Instant timeA = a.getCreationTime();
+                Instant timeB = b.getCreationTime();
+                if (timeA == null && timeB == null) return 0;
+                if (timeA == null) return 1;
+                if (timeB == null) return -1;
+                return timeA.compareTo(timeB);
+            })
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Gets the total timeline span from first context creation to last context access.
+     * @return Duration in milliseconds, or 0 if no contexts tracked
+     */
+    public long getTotalTimelineSpanInMillis() {
+        Optional<Instant> earliest = getEarliestContextCreationTime();
+        Optional<Instant> latest = getLatestContextAccessTime();
+        
+        if (earliest.isPresent() && latest.isPresent()) {
+            return java.time.Duration.between(earliest.get(), latest.get()).toMillis();
+        }
+        return 0;
+    }
+    
+    /**
      * Clears all tracking data.
      */
     public void clear() {
@@ -270,10 +324,15 @@ public class ContextCacheTracker {
         private final Set<String> testClasses = ConcurrentHashMap.newKeySet();
         private volatile boolean created = false;
         private volatile Instant creationTime;
+        private volatile Instant lastUsedTime;
+        private volatile Instant firstUsedTime;
         private final AtomicInteger hitCount = new AtomicInteger(0);
         private volatile MergedContextConfiguration nearestContext;
         private volatile int beanDefinitionCount = 0;
         private volatile Set<String> beanDefinitionNames = ConcurrentHashMap.newKeySet();
+        
+        // Timeline tracking for future visualization
+        private final List<Instant> accessTimes = new CopyOnWriteArrayList<>();
         
         public ContextCacheEntry(MergedContextConfiguration configuration) {
             this.configuration = configuration;
@@ -285,11 +344,23 @@ public class ContextCacheTracker {
         
         public void recordCreation() {
             this.created = true;
-            this.creationTime = Instant.now();
+            Instant now = Instant.now();
+            this.creationTime = now;
+            this.firstUsedTime = now;
+            this.lastUsedTime = now;
+            this.accessTimes.add(now);
         }
         
         public void recordCacheHit() {
             hitCount.incrementAndGet();
+            Instant now = Instant.now();
+            this.lastUsedTime = now;
+            this.accessTimes.add(now);
+            
+            // Set first used time if not already set (shouldn't happen, but defensive)
+            if (this.firstUsedTime == null) {
+                this.firstUsedTime = now;
+            }
         }
         
         public void setNearestContext(MergedContextConfiguration nearestContext) {
@@ -318,8 +389,57 @@ public class ContextCacheTracker {
             return creationTime;
         }
         
+        public Instant getLastUsedTime() {
+            return lastUsedTime;
+        }
+        
+        public Instant getFirstUsedTime() {
+            return firstUsedTime;
+        }
+        
         public int getHitCount() {
             return hitCount.get();
+        }
+        
+        /**
+         * Gets all access times for timeline visualization.
+         * Returns an unmodifiable list of timestamps when this context was accessed.
+         */
+        public List<Instant> getAccessTimes() {
+            return Collections.unmodifiableList(accessTimes);
+        }
+        
+        /**
+         * Calculates the age of this context from creation to now.
+         * @return Duration in milliseconds, or -1 if not created yet
+         */
+        public long getAgeInMillis() {
+            if (creationTime == null) {
+                return -1;
+            }
+            return java.time.Duration.between(creationTime, Instant.now()).toMillis();
+        }
+        
+        /**
+         * Calculates how long this context has been active (from first to last use).
+         * @return Duration in milliseconds, or 0 if used only once
+         */
+        public long getLifespanInMillis() {
+            if (firstUsedTime == null || lastUsedTime == null) {
+                return 0;
+            }
+            return java.time.Duration.between(firstUsedTime, lastUsedTime).toMillis();
+        }
+        
+        /**
+         * Calculates time since last use.
+         * @return Duration in milliseconds since last access, or -1 if never used
+         */
+        public long getTimeSinceLastUseInMillis() {
+            if (lastUsedTime == null) {
+                return -1;
+            }
+            return java.time.Duration.between(lastUsedTime, Instant.now()).toMillis();
         }
         
         public Optional<MergedContextConfiguration> getNearestContext() {

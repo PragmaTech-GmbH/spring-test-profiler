@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="caching-section(cacheStats)" class="cache-stats">
+    <div th:fragment="caching-section(cacheStats, contextCacheTracker)" class="cache-stats">
         <h2>Spring Context Caching Statistics</h2>
-        <div th:if="${cacheStats != null}">
+        
+        <!-- Basic cache metrics -->
+        <div th:if="${cacheStats != null}" class="cache-overview">
             <div class="cache-metric">
                 <span class="label">Cache Size:</span>
                 <span class="value" th:text="${cacheStats.getSize() + ' / ' + cacheStats.getMaxSize()}">0 / 32</span>
-            </div>
-            <div class="cache-metric">
-                <span class="label">Max Cache Size:</span>
-                <span class="value" th:text="${cacheStats.getMaxSize()}">32</span>
             </div>
             <div class="cache-metric">
                 <span class="label">Cache Hits:</span>
@@ -24,15 +22,27 @@
                 <span class="label">Cache Hit Rate:</span>
                 <span class="value hit-rate" th:text="${#numbers.formatDecimal(cacheStats.getHitRatio() * 100, 1, 1) + '%'}">0.0%</span>
             </div>
-            <div class="cache-metric" th:if="${not #lists.isEmpty(cacheStats.getContextKeys())}">
-                <span class="label">Cached Context Keys:</span>
-                <div class="context-keys">
-                    <div th:each="contextKey : ${cacheStats.getContextKeys()}" class="context-key" th:text="${contextKey}">Context Key</div>
+        </div>
+        
+        <!-- Detailed context information -->
+        <div th:if="${contextCacheTracker != null and contextCacheTracker.getAllEntries().size() > 0}" class="context-cache-details">
+            <h3>Context Cache Entries</h3>
+            <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry">
+                <div class="cache-entry-header">
+                    <span class="cache-id" th:text="${'Context ID: ' + entry.configuration.hashCode()}">Context ID: 12345</span>
+                    <span class="bean-count" th:text="${entry.beanDefinitionCount + ' beans'}">0 beans</span>
+                </div>
+                <div class="test-classes">
+                    <strong>Test Classes:</strong>
+                    <span th:each="testClass, iterStat : ${entry.testClasses}" 
+                          th:text="${testClass + (iterStat.last ? '' : ', ')}" 
+                          class="test-class">TestClass</span>
                 </div>
             </div>
         </div>
-        <div th:if="${cacheStats == null}" class="cache-unavailable">
-            <p>Cache statistics are not available. This may occur when Spring's DefaultContextCache is not accessible via reflection.</p>
+        
+        <div th:if="${cacheStats == null and (contextCacheTracker == null or contextCacheTracker.getAllEntries().size() == 0)}" class="cache-unavailable">
+            <p>No context cache information is available.</p>
         </div>
     </div>
 </body>
