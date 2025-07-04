@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -143,6 +144,64 @@ public class TestExecutionReporter {
         return "unknown";
     }
     
+    /**
+     * Detects the execution environment (IntelliJ, Maven Surefire, Failsafe, Gradle, etc.)
+     */
+    private String detectExecutionEnvironment() {
+        // Check for IntelliJ IDEA
+        if (System.getProperty("idea.test.cyclic.buffer.size") != null ||
+            System.getProperty("idea.launcher.port") != null ||
+            System.getProperty("idea.launcher.bin.path") != null ||
+            System.getProperty("java.class.path", "").contains("idea_rt.jar")) {
+            return "IntelliJ IDEA";
+        }
+        
+        // Check for Eclipse
+        if (System.getProperty("eclipse.launcher") != null ||
+            System.getProperty("osgi.instance.area") != null ||
+            System.getProperty("java.class.path", "").contains("eclipse")) {
+            return "Eclipse";
+        }
+        
+        // Check for VS Code
+        if (System.getProperty("java.class.path", "").contains("vscode")) {
+            return "VS Code";
+        }
+        
+        // Check for Maven Surefire
+        if (System.getProperty("surefire.test.class.path") != null ||
+            System.getProperty("maven.test.skip") != null ||
+            System.getProperty("java.class.path", "").contains("surefire")) {
+            return "Maven Surefire";
+        }
+        
+        // Check for Maven Failsafe
+        if (System.getProperty("failsafe.test.class.path") != null ||
+            System.getProperty("java.class.path", "").contains("failsafe")) {
+            return "Maven Failsafe";
+        }
+        
+        // Check for Gradle Test
+        if (System.getProperty("org.gradle.test.worker") != null ||
+            System.getProperty("gradle.test.ignoreFailures") != null ||
+            System.getProperty("java.class.path", "").contains("gradle")) {
+            return "Gradle Test";
+        }
+        
+        // Check for generic Maven (fallback)
+        if (detectBuildTool().equals("maven")) {
+            return "Maven";
+        }
+        
+        // Check for generic Gradle (fallback)
+        if (detectBuildTool().equals("gradle")) {
+            return "Gradle";
+        }
+        
+        // Default to unknown
+        return "Unknown";
+    }
+    
     private TemplateEngine createTemplateEngine() {
         TemplateEngine engine = new TemplateEngine();
         
@@ -173,6 +232,11 @@ public class TestExecutionReporter {
             context.setVariable("executionTracker", executionTracker);
             context.setVariable("cacheStats", cacheStats);
             context.setVariable("contextCacheTracker", contextCacheTracker);
+            
+            // Execution environment info
+            context.setVariable("executionEnvironment", detectExecutionEnvironment());
+            context.setVariable("executionTimestamp", LocalDateTime.now());
+            context.setVariable("timeZone", ZoneId.systemDefault().getId());
             
             // Pre-compute test status counts to avoid complex template expressions
             Map<String, TestExecutionTracker.TestClassMetrics> classMetrics = executionTracker.getClassMetrics();

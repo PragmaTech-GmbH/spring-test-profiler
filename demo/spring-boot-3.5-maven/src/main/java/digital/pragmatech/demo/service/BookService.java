@@ -106,4 +106,9 @@ public class BookService {
   public long countByCategory(BookCategory category) {
     return bookRepository.countByCategory(category);
   }
+
+  @Transactional(readOnly = true)
+  public long count() {
+    return bookRepository.count();
+  }
 }

@@ -39,14 +39,9 @@
                 
                 <!-- Context complexity analysis -->
                 <div th:if="${configInfo.configuration.containsKey('beanDefinitionCount')}" class="context-complexity">
-                    <div class="complexity-indicator" 
-                         th:with="beanCount=${configInfo.configuration.get('beanDefinitionCount')}"
-                         th:classappend="${beanCount > 300 ? 'complexity-high' : (beanCount > 150 ? 'complexity-medium' : 'complexity-low')}">
+                    <div class="complexity-indicator">
                         <strong>Context Complexity:</strong>
-                        <span th:text="${beanCount}">0</span> bean definitions
-                        <span th:if="${beanCount > 300}" class="complexity-warning">⚠️ Very High - Consider splitting tests</span>
-                        <span th:if="${beanCount > 150 and beanCount <= 300}" class="complexity-warning">⚡ High - Monitor complexity</span>
-                        <span th:if="${beanCount <= 150}" class="complexity-ok">✅ Manageable</span>
+                        <span th:text="${configInfo.configuration.get('beanDefinitionCount')}">0</span> bean definitions
                     </div>
                 </div>
             </div>

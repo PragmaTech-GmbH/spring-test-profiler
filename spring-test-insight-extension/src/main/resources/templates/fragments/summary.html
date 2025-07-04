@@ -7,6 +7,17 @@
         totalDurationMs=${executionTracker.getOverallDuration().toMillis()}">
         
         <h2>Test Execution Summary</h2>
+        <div class="execution-info">
+            <div class="execution-detail">
+                <strong>Executed via:</strong> <span th:text="${executionEnvironment}">Unknown</span>
+            </div>
+            <div class="execution-detail">
+                <strong>Execution Time:</strong> <span th:text="${#temporals.format(executionTimestamp, 'yyyy-MM-dd HH:mm:ss')}">2025-01-01 12:00:00</span>
+            </div>
+            <div class="execution-detail">
+                <strong>Time Zone:</strong> <span th:text="${timeZone}">UTC</span>
+            </div>
+        </div>
         <div class="summary-grid">
             <div class="summary-card">
                 <h3>Test Classes</h3>
