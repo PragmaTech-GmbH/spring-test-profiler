@@ -37,9 +37,57 @@ h2 {
 .theory-section {
     background: white;
     border-radius: 8px;
-    padding: 30px;
+    padding: 20px 30px;
     margin-bottom: 30px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.theory-header {
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 0;
+    border-bottom: 1px solid #ecf0f1;
+    margin-bottom: 20px;
+    transition: background-color 0.2s ease;
+}
+
+.theory-header:hover {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin: 0 -15px 20px -15px;
+}
+
+.theory-header h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2c3e50;
+}
+
+.toggle-icon {
+    font-size: 14px;
+    color: #7f8c8d;
+    transition: transform 0.3s ease;
+    display: inline-block;
+    width: 20px;
+}
+
+.toggle-icon.expanded {
+    transform: rotate(90deg);
+}
+
+.theory-subtitle {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin: 5px 0 0 30px;
+    font-style: italic;
+}
+
+.theory-content {
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .theory-content h3 {

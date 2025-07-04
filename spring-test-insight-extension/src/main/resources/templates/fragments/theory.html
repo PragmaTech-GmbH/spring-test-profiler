@@ -2,8 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <div th:fragment="theory-section" class="theory-section">
-        <h2>Understanding Spring Test Context Caching</h2>
-        <div class="theory-content">
+        <div class="theory-header" onclick="toggleTheorySection()">
+            <h2>
+                <span class="toggle-icon" id="theory-toggle-icon">▶</span>
+                Understanding Spring Test Context Caching
+            </h2>
+            <p class="theory-subtitle">Click to learn about Spring Test context caching principles and optimization tips</p>
+        </div>
+        <div class="theory-content" id="theory-content" style="display: none;">
             <p>Spring Test Framework provides <strong>context caching</strong> to improve test performance by reusing ApplicationContext instances across multiple test classes when they share the same configuration.</p>
             
             <h3>How Context Caching Works</h3>

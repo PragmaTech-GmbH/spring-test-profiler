@@ -34,6 +34,21 @@
             const methods = element.nextElementSibling;
             methods.classList.toggle('show');
         }
+        
+        function toggleTheorySection() {
+            const content = document.getElementById('theory-content');
+            const icon = document.getElementById('theory-toggle-icon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▼';
+                icon.classList.add('expanded');
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶';
+                icon.classList.remove('expanded');
+            }
+        }
     </script>
 </body>
 </html>
