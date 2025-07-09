@@ -31,7 +31,7 @@ release:
         format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
 
 distributions:
-  helloworld:
+  spring-test-insight-extension:
     type: SINGLE_JAR
     artifacts:
       - path: target/{{distributionName}}-{{projectVersion}}.jar
