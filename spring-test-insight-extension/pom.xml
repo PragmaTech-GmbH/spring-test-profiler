@@ -10,7 +10,7 @@
 
   <name>Spring Test Insight Extension</name>
   <description>JUnit Jupiter extension for Spring Test insights and context caching visualization</description>
-  <url>https://github.com/rieckpil/spring-test-insight</url>
+  <url>https://github.com/PragmaTech-GmbH/spring-test-insight</url>
   <inceptionYear>2025</inceptionYear>
 
   <licenses>
