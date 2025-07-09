@@ -1,0 +1,37 @@
+project:
+  name: spring-test-insight-extension
+  version: 0.0.1-SNAPSHOT
+  description: JUnit Jupiter extension for Spring Test insights and context caching visualization
+  longDescription: Spring Test Insight is a JUnit Jupiter extension that provides detailed insights
+    into Spring Test execution, focusing on context caching statistics and performance optimization.
+    It generates beautiful HTML reports showing cache hit rates, test execution times, and
+    optimization recommendations.
+  authors:
+    - rieckpil
+  license: MIT
+  links:
+    homepage: https://github.com/PragmaTech-GmbH/spring-test-insight-extension
+  java:
+    groupId: digital.pragmatech
+    version: 17
+  inceptionYear: 2025
+
+signing:
+  active: ALWAYS
+  armored: true
+  verify: true
+
+release:
+  github:
+    overwrite: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+
+distributions:
+  helloworld:
+    type: SINGLE_JAR
+    artifacts:
+      - path: target/{{distributionName}}-{{projectVersion}}.jar
