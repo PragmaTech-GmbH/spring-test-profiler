@@ -31,7 +31,7 @@ jobs:
 
       - name: Build with Maven
         working-directory: spring-test-insight-extension
-        run: ./mvnw -Prelease verify
+        run: ./mvnw verify
 
       - name: Run JReleaser
         uses: jreleaser/release-action@v2
