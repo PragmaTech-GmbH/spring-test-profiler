@@ -14,30 +14,25 @@ jobs:
     permissions:
       contents: write
       packages: write
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          
-      - name: Cache Maven dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-          
+          cache: 'maven'
+          cache-dependency-path: 'spring-test-insight-extension/pom.xml'
+
       - name: Build with Maven
         working-directory: spring-test-insight-extension
         run: ./mvnw -Prelease verify
-        
+
       - name: Run JReleaser
         uses: jreleaser/release-action@v2
         with:
@@ -52,12 +47,3 @@ jobs:
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.MAVEN_GPG_SECRET_KEY }}
           JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-          
-      - name: Upload JReleaser logs
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: jreleaser-logs
-          path: |
-            spring-test-insight-extension/out/jreleaser/trace.log
-            spring-test-insight-extension/out/jreleaser/output.properties

@@ -1,0 +1,4 @@
+signing:
+  active: ALWAYS
+  armored: true
+  verify: true

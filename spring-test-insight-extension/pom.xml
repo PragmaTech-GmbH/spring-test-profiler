@@ -22,9 +22,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/rieckpil/spring-test-insight.git</connection>
-    <developerConnection>scm:git:https://github.com/rieckpil/spring-test-insight.git</developerConnection>
-    <url>https://github.com/rieckpil/spring-test-insight</url>
+    <connection>scm:git:https://github.com/PragmaTech-GmbH/spring-test-insight.git</connection>
+    <developerConnection>scm:git:https://github.com/PragmaTech-GmbH/spring-test-insight.git</developerConnection>
+    <url>https://github.com/PragmaTech-GmbH/spring-test-insight</url>
   </scm>
 
   <properties>
@@ -156,6 +156,7 @@
         <artifactId>jreleaser-maven-plugin</artifactId>
         <version>1.14.0</version>
         <configuration>
+          <gitRootSearch>true</gitRootSearch>
           <jreleaser>
             <project>
               <name>spring-test-insight-extension</name>
@@ -166,13 +167,13 @@
                 It generates beautiful HTML reports showing cache hit rates, test execution times, and
                 optimization recommendations.
               </longDescription>
-              <website>https://github.com/rieckpil/spring-test-insight</website>
+              <website>https://github.com/PragmaTech-GmbH/spring-test-insight</website>
               <authors>
                 <author>Philip Riecks</author>
               </authors>
               <license>MIT</license>
               <inceptionYear>2025</inceptionYear>
-              <stereotype>none</stereotype>
+              <stereotype>NONE</stereotype>
             </project>
             <release>
               <github>
@@ -191,6 +192,7 @@
                   <maven-central>
                     <active>ALWAYS</active>
                     <url>https://central.sonatype.com/api/v1/publisher</url>
+                    <snapshotUrl>https://oss.sonatype.org/content/repositories/snapshots/</snapshotUrl>
                     <closeRepository>true</closeRepository>
                     <releaseRepository>true</releaseRepository>
                     <stagingRepositories>target/staging-deploy</stagingRepositories>
