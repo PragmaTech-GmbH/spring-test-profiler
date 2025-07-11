@@ -1,5 +1,5 @@
 project:
-  name: spring-test-insight-extension
+  name: spring-test-profiler-extension
   version: 0.0.1-SNAPSHOT
   description: JUnit Jupiter extension for Spring Test insights and context caching visualization
   longDescription: Spring Test Insight is a JUnit Jupiter extension that provides detailed insights
@@ -10,7 +10,7 @@ project:
     - rieckpil
   license: MIT
   links:
-    homepage: https://github.com/PragmaTech-GmbH/spring-test-insight-extension
+    homepage: https://github.com/PragmaTech-GmbH/spring-test-profiler-extension
   java:
     groupId: digital.pragmatech
     version: 17
@@ -31,7 +31,7 @@ release:
         format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
 
 distributions:
-  spring-test-insight-extension:
+  spring-test-profiler-extension:
     type: SINGLE_JAR
     artifacts:
       - path: target/{{distributionName}}-{{projectVersion}}.jar

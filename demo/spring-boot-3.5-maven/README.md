@@ -15,7 +15,7 @@ This is a simple Spring Boot application with:
 First, install the Spring Test Insight Extension to your local Maven repository:
 
 ```bash
-cd ../spring-test-insight-extension
+cd ../spring-test-profiler-extension
 ./mvnw clean install
 ```
 
@@ -30,7 +30,7 @@ mvn clean test
 
 After running the tests, the Spring Test Insight report will be generated at:
 
-- `target/spring-test-insight/latest.html`
+- `target/spring-test-profiler/latest.html`
 
 Open this file in a web browser to see:
 

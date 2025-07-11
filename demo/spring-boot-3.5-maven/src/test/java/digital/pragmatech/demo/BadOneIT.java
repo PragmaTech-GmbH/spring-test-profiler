@@ -34,8 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) // BAD: Forces context reload
 public class BadOneIT {
 
-  @Autowired
-  private BookRepository bookRepository;
+  private final BookRepository bookRepository;
+
+  public BadOneIT(@Autowired BookRepository bookRepository) {
+    this.bookRepository = bookRepository;
+  }
 
   @Test
   void testCreateBook() {

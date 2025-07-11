@@ -35,7 +35,7 @@ public class JsonReportGenerator {
             Files.createDirectories(reportDir);
 
             String uniqueId = UUID.randomUUID().toString();
-            String jsonFileName = String.format("spring-test-insight-%s-%s.json", phase, uniqueId);
+            String jsonFileName = String.format("spring-test-profiler-%s-%s.json", phase, uniqueId);
             Path jsonFile = reportDir.resolve(jsonFileName);
 
             ReportData reportData = new ReportData(phase, executionTracker, cacheStats, contextCacheTracker);

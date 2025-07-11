@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>digital.pragmatech</groupId>
-  <artifactId>spring-test-insight-demo-failsafe-parallel</artifactId>
+  <artifactId>spring-test-profiler-demo-failsafe-parallel</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
@@ -64,7 +64,7 @@
     <!-- Spring Test Insight Extension -->
     <dependency>
       <groupId>digital.pragmatech</groupId>
-      <artifactId>spring-test-insight-extension</artifactId>
+      <artifactId>spring-test-profiler-extension</artifactId>
       <version>0.0.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>

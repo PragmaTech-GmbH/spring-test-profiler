@@ -21,7 +21,7 @@ Add the dependency to your project:
 ```xml
 <dependency>
     <groupId>digital.pragmatech</groupId>
-    <artifactId>spring-test-insight-extension</artifactId>
+    <artifactId>spring-test-profiler-extension</artifactId>
     <version>1.0.0</version>
     <scope>test</scope>
 </dependency>
@@ -58,8 +58,8 @@ mvn test
 ### Viewing Reports
 
 After test execution, find the HTML report at:
-- Maven: `target/spring-test-insight/latest.html`
-- Gradle: `build/spring-test-insight/latest.html`
+- Maven: `target/spring-test-profiler/latest.html`
+- Gradle: `build/spring-test-profiler/latest.html`
 
 ### Demo Project
 
@@ -69,14 +69,14 @@ See the `demo` directory for a complete Spring Boot example showcasing the exten
 # Run the demo
 cd demo
 mvn clean test
-# Open target/spring-test-insight/latest.html
+# Open target/spring-test-profiler/latest.html
 ```
 
 ## Bug Reports
 
 Found a bug? Please help us improve by reporting it:
 
-1. **Search existing issues** at https://github.com/rieckpil/spring-test-insight/issues
+1. **Search existing issues** at https://github.com/rieckpil/spring-test-profiler/issues
 2. **Create a new issue** with:
    - Clear description of the problem
    - Steps to reproduce
@@ -93,7 +93,7 @@ We welcome contributions! Here's how to get started:
 1. **Fork and clone** the repository
 2. **Build the project**:
    ```bash
-   cd spring-test-insight-extension
+   cd spring-test-profiler-extension
    ./mvnw clean install
    ```
 3. **Run tests**:

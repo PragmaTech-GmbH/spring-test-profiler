@@ -27,10 +27,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: 'spring-test-insight-extension/pom.xml'
+          cache-dependency-path: 'spring-test-profiler-extension/pom.xml'
 
       - name: Build with Maven
-        working-directory: spring-test-insight-extension
+        working-directory: spring-test-profiler-extension
         run: ./mvnw verify
 
       - name: Run JReleaser
@@ -38,7 +38,7 @@ jobs:
         with:
           arguments: 'full-release --git-root-search'
           version: 1.14.0
-          working-directory: spring-test-insight-extension
+          working-directory: spring-test-profiler-extension
         env:
           JRELEASER_PROJECT_VERSION: ${{ github.event.inputs.version }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

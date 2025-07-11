@@ -22,11 +22,11 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TestExecutionReporter {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(TestExecutionReporter.class);
-    private static final String REPORT_DIR_NAME = "spring-test-insight";
+    private static final String REPORT_DIR_NAME = "spring-test-profiler";
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-    
+
     private final TemplateEngine templateEngine;
     private final JsonReportGenerator jsonReportGenerator;
 
@@ -34,13 +34,13 @@ public class TestExecutionReporter {
         this.templateEngine = createTemplateEngine();
         this.jsonReportGenerator = new JsonReportGenerator();
     }
-    
+
     public void generateReport(String phase, TestExecutionTracker executionTracker, SpringContextCacheAccessor.CacheStatistics cacheStats) {
         generateReport(phase, executionTracker, cacheStats, null);
     }
-    
-    public void generateReport(String phase, TestExecutionTracker executionTracker, 
-                             SpringContextCacheAccessor.CacheStatistics cacheStats, 
+
+    public void generateReport(String phase, TestExecutionTracker executionTracker,
+                             SpringContextCacheAccessor.CacheStatistics cacheStats,
                              ContextCacheTracker contextCacheTracker) {
 
         // Beta feature flag for JSON reporting
@@ -55,16 +55,16 @@ public class TestExecutionReporter {
             } else {
                 // Original HTML reporting logic
                 String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-                String reportFileName = phase.equals("default") ? 
+                String reportFileName = phase.equals("default") ?
                     "test-insight-report-" + timestamp + ".html" :
                     "test-insight-report-" + phase + "-" + timestamp + ".html";
                 Path reportFile = reportDir.resolve(reportFileName);
-                
+
                 String htmlContent = generateHtmlWithThymeleaf(phase, executionTracker, cacheStats, contextCacheTracker);
                 Files.write(reportFile, htmlContent.getBytes());
-                
+
                 logger.info("Spring Test Insight report generated for {} phase: {}", phase, reportFile.toAbsolutePath());
-                
+
                 // Also create a latest.html symlink for easy access
                 String latestFileName = phase.equals("default") ? "latest.html" : "latest-" + phase + ".html";
                 Path latestLink = reportDir.resolve(latestFileName);
@@ -76,7 +76,7 @@ public class TestExecutionReporter {
             logger.error("Failed to generate Spring Test Insight report", e);
         }
     }
-    
+
     /**
      * Determines the report directory based on the build tool and system properties.
      * Supports custom directory via system property, or defaults to build tool conventions.
@@ -87,11 +87,11 @@ public class TestExecutionReporter {
         if (customDir != null && !customDir.trim().isEmpty()) {
             return Paths.get(customDir);
         }
-        
+
         // Otherwise, detect build tool and use appropriate directory
         String buildTool = detectBuildTool();
         String baseDir;
-        
+
         switch (buildTool) {
             case "maven":
                 baseDir = "target";
@@ -110,23 +110,23 @@ public class TestExecutionReporter {
                     baseDir = ".";
                 }
         }
-        
+
         return Paths.get(baseDir, REPORT_DIR_NAME);
     }
-    
+
     /**
      * Detects the build tool being used based on system properties and classpath indicators.
      * This method is duplicated from SpringTestInsightExtension for independence.
      */
     private String detectBuildTool() {
         // Check for Maven-specific system properties
-        if (System.getProperty("maven.home") != null || 
+        if (System.getProperty("maven.home") != null ||
             System.getProperty("maven.version") != null ||
             System.getProperty("surefire.test.class.path") != null ||
             System.getProperty("basedir") != null && System.getProperty("basedir").contains("target")) {
             return "maven";
         }
-        
+
         // Check for Gradle-specific system properties
         if (System.getProperty("gradle.home") != null ||
             System.getProperty("gradle.version") != null ||
@@ -134,21 +134,21 @@ public class TestExecutionReporter {
             System.getProperty("gradle.user.home") != null) {
             return "gradle";
         }
-        
+
         // Check classpath for build tool indicators
         String classpath = System.getProperty("java.class.path", "");
-        if (classpath.contains("/target/") || classpath.contains("\\target\\") || 
+        if (classpath.contains("/target/") || classpath.contains("\\target\\") ||
             classpath.contains("maven")) {
             return "maven";
-        } else if (classpath.contains("/build/") || classpath.contains("\\build\\") || 
+        } else if (classpath.contains("/build/") || classpath.contains("\\build\\") ||
                    classpath.contains("gradle")) {
             return "gradle";
         }
-        
+
         // Default to unknown
         return "unknown";
     }
-    
+
     /**
      * Detects the execution environment (IntelliJ, Maven Surefire, Failsafe, Gradle, etc.)
      */
@@ -160,116 +160,116 @@ public class TestExecutionReporter {
             System.getProperty("java.class.path", "").contains("idea_rt.jar")) {
             return "IntelliJ IDEA";
         }
-        
+
         // Check for Eclipse
         if (System.getProperty("eclipse.launcher") != null ||
             System.getProperty("osgi.instance.area") != null ||
             System.getProperty("java.class.path", "").contains("eclipse")) {
             return "Eclipse";
         }
-        
+
         // Check for VS Code
         if (System.getProperty("java.class.path", "").contains("vscode")) {
             return "VS Code";
         }
-        
+
         // Check for Maven Surefire
         if (System.getProperty("surefire.test.class.path") != null ||
             System.getProperty("maven.test.skip") != null ||
             System.getProperty("java.class.path", "").contains("surefire")) {
             return "Maven Surefire";
         }
-        
+
         // Check for Maven Failsafe
         if (System.getProperty("failsafe.test.class.path") != null ||
             System.getProperty("java.class.path", "").contains("failsafe")) {
             return "Maven Failsafe";
         }
-        
+
         // Check for Gradle Test
         if (System.getProperty("org.gradle.test.worker") != null ||
             System.getProperty("gradle.test.ignoreFailures") != null ||
             System.getProperty("java.class.path", "").contains("gradle")) {
             return "Gradle Test";
         }
-        
+
         // Check for generic Maven (fallback)
         if (detectBuildTool().equals("maven")) {
             return "Maven";
         }
-        
+
         // Check for generic Gradle (fallback)
         if (detectBuildTool().equals("gradle")) {
             return "Gradle";
         }
-        
+
         // Default to unknown
         return "Unknown";
     }
-    
+
     private TemplateEngine createTemplateEngine() {
         TemplateEngine engine = new TemplateEngine();
-        
+
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
         resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setPrefix("/templates/");
         resolver.setSuffix(".html");
         resolver.setCacheable(false); // For development; set to true in production
         resolver.setCharacterEncoding("UTF-8");
-        
+
         engine.setTemplateResolver(resolver);
         return engine;
     }
-    
+
     private String generateHtmlWithThymeleaf(String phase, TestExecutionTracker executionTracker, SpringContextCacheAccessor.CacheStatistics cacheStats) {
         return generateHtmlWithThymeleaf(phase, executionTracker, cacheStats, null);
     }
-    
-    private String generateHtmlWithThymeleaf(String phase, TestExecutionTracker executionTracker, 
+
+    private String generateHtmlWithThymeleaf(String phase, TestExecutionTracker executionTracker,
                                            SpringContextCacheAccessor.CacheStatistics cacheStats,
                                            ContextCacheTracker contextCacheTracker) {
         try {
             Context context = new Context();
-            
+
             // Basic template variables
             context.setVariable("phase", phase);
             context.setVariable("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             context.setVariable("executionTracker", executionTracker);
             context.setVariable("cacheStats", cacheStats);
             context.setVariable("contextCacheTracker", contextCacheTracker);
-            
+
             // Execution environment info
             context.setVariable("executionEnvironment", detectExecutionEnvironment());
             context.setVariable("executionTimestamp", LocalDateTime.now());
             context.setVariable("timeZone", ZoneId.systemDefault().getId());
-            
+
             // Extension version info
             context.setVariable("extensionVersion", getExtensionVersion());
-            
+
             // Pre-compute test status counts to avoid complex template expressions
             Map<String, TestExecutionTracker.TestClassMetrics> classMetrics = executionTracker.getClassMetrics();
             long passedTests = TemplateHelpers.countTestsByStatus(classMetrics, "PASSED");
             long failedTests = TemplateHelpers.countTestsByStatus(classMetrics, "FAILED");
             long disabledTests = TemplateHelpers.countTestsByStatus(classMetrics, "DISABLED");
             long abortedTests = TemplateHelpers.countTestsByStatus(classMetrics, "ABORTED");
-            
+
             context.setVariable("passedTests", passedTests);
             context.setVariable("failedTests", failedTests);
             context.setVariable("disabledTests", disabledTests);
             context.setVariable("abortedTests", abortedTests);
-            
+
             // Pre-compute success rate
             int totalTestMethods = executionTracker.getTotalTestMethods();
             double successRate = totalTestMethods > 0 ? (passedTests * 100.0) / totalTestMethods : 0.0;
             context.setVariable("successRate", successRate);
-            
+
             // Load CSS content
             String cssContent = loadCssContent();
             context.setVariable("cssContent", cssContent);
-            
+
             // Register helper beans for templates
             registerHelperBeans(context, contextCacheTracker);
-            
+
             String result = templateEngine.process("report", context);
             logger.info("Successfully generated HTML with Thymeleaf templates");
             return result;
@@ -278,8 +278,8 @@ public class TestExecutionReporter {
             throw new RuntimeException("Report generation failed", e);
         }
     }
-    
-    
+
+
     private void registerHelperBeans(Context context, ContextCacheTracker contextCacheTracker) {
         // Register all helper beans that templates can use
         context.setVariable("durationFormatter", new TemplateHelpers.DurationFormatter());
@@ -296,14 +296,14 @@ public class TestExecutionReporter {
         context.setVariable("contextConfigurationDetector", ContextConfigurationDetector.class);
         context.setVariable("testStatusCounter", new TemplateHelpers.TestStatusCounter());
     }
-    
+
     private String loadCssContent() {
         try {
             // Use InputStream to read from classpath resource which works both in IDE and JAR
             try (var inputStream = getClass().getClassLoader()
-                    .getResourceAsStream("static/css/spring-test-insight.css")) {
+                    .getResourceAsStream("static/css/spring-test-profiler.css")) {
                 if (inputStream == null) {
-                    throw new RuntimeException("CSS file not found in classpath: static/css/spring-test-insight.css");
+                    throw new RuntimeException("CSS file not found in classpath: static/css/spring-test-profiler.css");
                 }
                 return new String(inputStream.readAllBytes());
             }
@@ -312,7 +312,7 @@ public class TestExecutionReporter {
             throw new RuntimeException("CSS file not found", e);
         }
     }
-    
+
     /**
      * Gets the extension version from the package implementation version.
      * This works when the extension is packaged as a JAR with proper manifest.
@@ -324,10 +324,10 @@ public class TestExecutionReporter {
             if (pkg != null && pkg.getImplementationVersion() != null) {
                 return "v" + pkg.getImplementationVersion();
             }
-            
+
             // Fallback: try to read from Maven properties file
             try (var inputStream = getClass().getClassLoader()
-                    .getResourceAsStream("META-INF/maven/digital.pragmatech/spring-test-insight-extension/pom.properties")) {
+                    .getResourceAsStream("META-INF/maven/digital.pragmatech/spring-test-profiler-extension/pom.properties")) {
                 if (inputStream != null) {
                     var properties = new java.util.Properties();
                     properties.load(inputStream);
@@ -337,7 +337,7 @@ public class TestExecutionReporter {
                     }
                 }
             }
-            
+
             // Final fallback
             return "v0.0.1-SNAPSHOT";
         } catch (Exception e) {
@@ -345,8 +345,8 @@ public class TestExecutionReporter {
             return "v0.0.1-SNAPSHOT";
         }
     }
-    
-    
-    
-    
+
+
+
+
 }
