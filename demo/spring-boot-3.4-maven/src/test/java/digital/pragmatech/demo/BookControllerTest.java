@@ -1,15 +1,11 @@
-package digital.pragmatech.demo.controller;
+package digital.pragmatech.demo;
 
-import java.util.Arrays;
-
+import digital.pragmatech.demo.controller.BookController;
 import digital.pragmatech.demo.service.BookService;
-import digital.pragmatech.springtestinsight.experiment.CustomTestExecutionListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.TestContextManager;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
@@ -23,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@TestExecutionListeners(value = CustomTestExecutionListener.class, mergeMode =  TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
 @WebMvcTest(BookController.class)
 class BookControllerTest {
 

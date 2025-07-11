@@ -30,14 +30,27 @@ dependencies {
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
+test {
   useJUnitPlatform()
+  exclude '**/*IT.class'
+
+  testLogging {
+    events "passed"
+  }
 }
 
-compileJava {
-  options.compilerArgs << '-parameters'
+tasks.register('integrationTest', Test) {
+  description = 'Runs integration tests.'
+  group = 'verification'
+
+  useJUnitPlatform()
+  include '**/*IT.class'
+
+  testLogging {
+    events "passed"
+  }
 }
 
-compileTestJava {
-  options.compilerArgs << '-parameters'
+tasks.named('check') {
+  dependsOn integrationTest
 }
