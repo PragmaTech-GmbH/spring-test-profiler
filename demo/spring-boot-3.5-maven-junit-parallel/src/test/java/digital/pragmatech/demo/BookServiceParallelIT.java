@@ -1,30 +1,28 @@
 package digital.pragmatech.demo;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.service.BookService;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Parallel Integration test for BookService - Set 2
  * Tests service layer operations - SHARES CONTEXT with BookRepositoryParallelTest (same configuration)
  */
 @SpringBootTest
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @Transactional
 @Execution(ExecutionMode.CONCURRENT)

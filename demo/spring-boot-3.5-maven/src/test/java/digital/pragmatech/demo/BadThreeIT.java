@@ -4,11 +4,7 @@ import java.math.BigDecimal;
 
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
-import digital.pragmatech.demo.repository.BookRepository;
-import digital.pragmatech.demo.service.BookService;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -30,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc // BAD: Unnecessary annotation that changes context
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test") // Same as first test, but other config differs
 @TestPropertySource(properties = {
   "spring.datasource.url=jdbc:h2:mem:badtest3;DB_CLOSE_DELAY=-1", // Different DB name again

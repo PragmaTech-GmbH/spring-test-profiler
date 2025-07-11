@@ -5,15 +5,12 @@ import java.math.BigDecimal;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * This is a cache MISS every time!
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
   "spring.datasource.url=jdbc:h2:mem:badtest1;DB_CLOSE_DELAY=-1",

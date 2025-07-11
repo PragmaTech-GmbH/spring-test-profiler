@@ -1,28 +1,26 @@
 package digital.pragmatech.demo;
 
-import digital.pragmatech.demo.entity.Book;
-import digital.pragmatech.demo.entity.BookCategory;
-import digital.pragmatech.demo.repository.BookRepository;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import digital.pragmatech.demo.entity.Book;
+import digital.pragmatech.demo.entity.BookCategory;
+import digital.pragmatech.demo.repository.BookRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit test for BookRepository using @DataJpaTest slice
  * This creates a minimal Spring context with only JPA components
  */
 @DataJpaTest
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 public class BookRepositoryTest {
 
   @Autowired

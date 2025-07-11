@@ -17,7 +17,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Spring Test Insight Demo</name>
+  <name>Spring Test Insight Demo - Spring Boot 3.4</name>
   <description>Demo project for Spring Test Insight Extension</description>
 
   <properties>

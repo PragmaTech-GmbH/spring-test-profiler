@@ -1,29 +1,28 @@
 package digital.pragmatech.demo;
 
-import digital.pragmatech.demo.entity.Book;
-import digital.pragmatech.demo.entity.BookCategory;
-import digital.pragmatech.demo.repository.BookRepository;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import digital.pragmatech.demo.entity.Book;
+import digital.pragmatech.demo.entity.BookCategory;
+import digital.pragmatech.demo.repository.BookRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Integration test for Data Layer - Part 4
  * Tests only JPA layer with @DataJpaTest - DIFFERENT CONTEXT (test slice)
  */
 @DataJpaTest
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
   "spring.datasource.url=jdbc:h2:mem:datatest;DB_CLOSE_DELAY=-1",

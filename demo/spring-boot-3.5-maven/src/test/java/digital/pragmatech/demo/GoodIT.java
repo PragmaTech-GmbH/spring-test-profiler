@@ -6,13 +6,10 @@ import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
 import digital.pragmatech.demo.service.BookService;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Uses @Transactional to clean up data instead of @DirtiesContext.
  */
 @SpringBootTest
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @Transactional // GOOD: Rolls back after each test, no context recreation needed
 public class GoodIT {

@@ -17,7 +17,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Spring Test Insight Demo</name>
+  <name>Spring Test Insight Demo - Spring Boot 3.5</name>
   <description>Demo project for Spring Profiler Insight Extension</description>
 
   <properties>
