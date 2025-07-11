@@ -9,7 +9,7 @@ Spring Test Insight is a JUnit Jupiter extension that provides visualization and
 ### Architecture
 
 - **Core Extension** (`SpringTestInsightExtension`): JUnit Jupiter extension implementing TestWatcher and lifecycle callbacks
-- **Statistics Collection** (`SpringContextCacheStatistics`): Tracks Spring context loads, cache hits/misses
+- **Statistics Collection**: Context cache tracking integrated into SpringTestInsightListener
 - **Report Generation** (`TestExecutionReporter`): Generates HTML reports with test results and caching metrics
 - **Data Models**: POJOs for test execution data and statistics
 
@@ -62,7 +62,7 @@ mvn clean test
 spring-test-profiler-extension/
 ├── src/main/java/digital/pragmatech/springtestinsight/
 │   ├── SpringTestInsightExtension.java    # Main extension entry point
-│   ├── SpringContextCacheStatistics.java  # Context cache tracking
+│   ├── SpringTestInsightListener.java     # Test execution listener with cache tracking
 │   ├── TestExecutionReporter.java         # HTML report generator
 │   └── [Data models]                      # Test data structures
 └── src/test/java/                         # Comprehensive test suite

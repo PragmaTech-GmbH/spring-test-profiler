@@ -35,7 +35,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     // Static flag to ensure report is generated only once
     private static volatile boolean reportGenerated = false;
     
-    // Hold a reference to a TestContext so we can access the cache later (consolidated from SpringContextCacheStatistics)
+    // Hold a reference to a TestContext so we can access the cache later
     private static final AtomicReference<TestContext> lastTestContext = new AtomicReference<>();
     
     @Override
@@ -60,7 +60,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
         testClassNames.put(testContext, className);
         executionTracker.recordTestClassStart(className);
         
-        // Capture the TestContext reference for cache access (consolidated from SpringContextCacheStatistics)
+        // Capture the TestContext reference for cache access
         lastTestContext.set(testContext);
         
         // Extract and track context configuration
@@ -233,7 +233,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     }
     
     /**
-     * Gets the Spring ContextCache if available (consolidated from SpringContextCacheStatistics).
+     * Gets the Spring ContextCache if available.
      */
     public static org.springframework.test.context.cache.ContextCache getContextCache() {
         TestContext context = lastTestContext.get();
@@ -244,7 +244,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     }
     
     /**
-     * Gets cache statistics from Spring's DefaultContextCache (consolidated from SpringContextCacheStatistics).
+     * Gets cache statistics from Spring's DefaultContextCache.
      */
     public static SpringContextCacheAccessor.CacheStatistics getCacheStatistics() {
         org.springframework.test.context.cache.ContextCache cache = getContextCache();
