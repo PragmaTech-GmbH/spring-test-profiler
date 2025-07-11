@@ -69,7 +69,7 @@ fi
 print_status "Building Spring Test Insight Extension"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 cd "$SCRIPT_DIR/spring-test-profiler-extension"
-if mvn clean install -q; then
+if ./mvnw install -q; then
     print_success "Extension built and installed to local repository"
 else
     print_error "Extension build failed"
@@ -80,11 +80,11 @@ cd - > /dev/null
 
 # Demo projects and their build commands
 DEMOS=(
-    "spring-boot-3.4-maven:./mvnw clean test"
-    "spring-boot-3.5-maven:./mvnw clean test"
-    "spring-boot-3.5-gradle:./gradlew clean test"
-    "spring-boot-3.5-maven-failsafe-parallel:./mvnw clean verify"
-    "spring-boot-3.5-maven-junit-parallel:./mvnw clean verify"
+    "spring-boot-3.4-maven:./mvnw verify"
+    "spring-boot-3.5-maven:./mvnw verify"
+    "spring-boot-3.5-gradle:./gradlew build"
+    "spring-boot-3.5-maven-failsafe-parallel:./mvnw verify"
+    "spring-boot-3.5-maven-junit-parallel:./mvnw verify"
 )
 
 # Track results
