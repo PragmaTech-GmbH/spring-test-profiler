@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="timeline-section(timelineData)" class="timeline-section">
+        <h2>📊 Context Lifecycle Timeline</h2>
+        
+        <div th:if="${timelineData != null and timelineData.entries.size() > 0}" class="timeline-content">
+            <!-- Timeline Summary -->
+            <div class="timeline-summary">
+                <div class="timeline-metric">
+                    <span class="label">Total Timeline Duration:</span>
+                    <span class="value" th:text="${timelineData.totalDurationMs + 'ms'}">0ms</span>
+                </div>
+                <div class="timeline-metric">
+                    <span class="label">Contexts Tracked:</span>
+                    <span class="value" th:text="${timelineData.entries.stream().map(e -> e.contextLabel).distinct().count()}">0</span>
+                </div>
+            </div>
+
+            <!-- Timeline Legend -->
+            <div class="timeline-legend">
+                <div class="legend-item">
+                    <div class="legend-color creation"></div>
+                    <span>Context Creation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color active"></div>
+                    <span>Active Usage</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color cached"></div>
+                    <span>Cached Retention</span>
+                </div>
+            </div>
+
+            <!-- Timeline Chart Container -->
+            <div class="timeline-chart-container">
+                <canvas id="contextTimelineChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Timeline Details Table -->
+            <div class="timeline-details">
+                <h3>Timeline Details</h3>
+                <table class="timeline-table">
+                    <thead>
+                        <tr>
+                            <th>Context</th>
+                            <th>Phase</th>
+                            <th>Start Time</th>
+                            <th>Duration</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="entry : ${timelineData.entries}">
+                            <td th:text="${entry.contextLabel}" class="context-name">Context</td>
+                            <td>
+                                <span class="phase-badge" 
+                                      th:class="${'phase-badge phase-' + entry.phase.toLowerCase()}"
+                                      th:text="${entry.phase}">Phase</span>
+                            </td>
+                            <td th:text="${entry.startMs + 'ms'}" class="time-value">0ms</td>
+                            <td th:text="${entry.durationMs + 'ms'}" class="duration-value">0ms</td>
+                            <td th:text="${entry.tooltip}" class="details">Details</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Insights -->
+            <div class="timeline-insights">
+                <h3>🔍 Timeline Insights</h3>
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h4>Context Overlap</h4>
+                        <p>Multiple contexts active simultaneously may indicate opportunities for consolidation.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Cache Retention</h4>
+                        <p>Contexts retained long after last use consume memory without benefit.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Creation Timing</h4>
+                        <p>Context creation spikes show when tests require new configurations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No timeline data available -->
+        <div th:if="${timelineData == null or timelineData.entries.size() == 0}" class="no-timeline-data">
+            <p>No context lifecycle data available for timeline visualization.</p>
+        </div>
+
+        <!-- Chart.js Integration Script -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+        <script th:if="${timelineData != null and timelineData.entries.size() > 0}">
+            // Prepare timeline data for Chart.js
+            const timelineData = [
+                /*[# th:each="entry : ${timelineData.entries}"]*/
+                {
+                    label: /*[[${entry.contextLabel}]]*/ 'Context',
+                    phase: /*[[${entry.phase}]]*/ 'Phase',
+                    data: [{
+                        x: /*[[${entry.startMs}]]*/ 0,
+                        y: /*[[${entry.contextLabel}]]*/ 'Context',
+                        width: /*[[${entry.durationMs}]]*/ 100
+                    }],
+                    backgroundColor: /*[[${entry.color}]]*/ '#3498db',
+                    tooltip: /*[[${entry.tooltip}]]*/ 'Tooltip'
+                }/*[# th:if="${!entryStat.last}"]*/,/*[/]*/
+                /*[/]*/
+            ];
+
+            // Group data by context for better visualization
+            const contextGroups = {};
+            timelineData.forEach(item => {
+                if (!contextGroups[item.label]) {
+                    contextGroups[item.label] = [];
+                }
+                contextGroups[item.label].push(item);
+            });
+
+            // Prepare datasets for Chart.js
+            const datasets = [];
+            const labels = Object.keys(contextGroups);
+            
+            // Create datasets for each phase type
+            const phaseTypes = ['Creation', 'Active', 'Cached'];
+            const phaseColors = {
+                'Creation': '#e74c3c',
+                'Active': '#27ae60', 
+                'Cached': '#3498db'
+            };
+
+            phaseTypes.forEach(phase => {
+                const data = labels.map(label => {
+                    const phaseData = contextGroups[label].find(item => item.phase === phase);
+                    return phaseData ? {
+                        x: [phaseData.data[0].x, phaseData.data[0].x + phaseData.data[0].width],
+                        y: label,
+                        tooltip: phaseData.tooltip
+                    } : null;
+                }).filter(item => item !== null);
+
+                if (data.length > 0) {
+                    datasets.push({
+                        label: phase,
+                        data: data,
+                        backgroundColor: phaseColors[phase],
+                        borderColor: phaseColors[phase],
+                        borderWidth: 1,
+                        barThickness: 20
+                    });
+                }
+            });
+
+            // Create the timeline chart
+            const ctx = document.getElementById('contextTimelineChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Spring Context Lifecycle Timeline'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    const item = context.raw;
+                                    if (item.tooltip) {
+                                        return `${context.dataset.label}: ${item.tooltip}`;
+                                    }
+                                    return `${context.dataset.label}: ${item.x[1] - item.x[0]}ms`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Time (milliseconds)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'ms';
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Spring Contexts'
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: 20
+                    }
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

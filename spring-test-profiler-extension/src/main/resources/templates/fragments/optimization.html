@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="optimization-section(optimizationStats)" class="optimization-section">
+        <h2>⚡ Build Time Optimization Recommendations</h2>
+        
+        <div th:if="${optimizationStats != null and optimizationStats.totalContextsCreated > 0}" class="optimization-content">
+            <!-- Optimization Summary -->
+            <div class="optimization-summary">
+                <div class="optimization-metric potential-savings">
+                    <span class="label">Potential Time Savings:</span>
+                    <span class="value large" th:text="${optimizationStats.potentialTimeSavingsMs + 'ms'}">0ms</span>
+                    <span class="percentage" th:text="${'(' + #numbers.formatDecimal(optimizationStats.potentialTimeSavingsPercentage, 1, 1) + '% of total context load time)'}">
+                        (0.0% of total context load time)
+                    </span>
+                </div>
+                <div class="optimization-metric total-time">
+                    <span class="label">Total Context Creation Time:</span>
+                    <span class="value" th:text="${optimizationStats.totalContextCreationTimeMs + 'ms'}">0ms</span>
+                </div>
+                <div class="optimization-metric wasted-time">
+                    <span class="label">Potentially Wasted Time:</span>
+                    <span class="value" th:text="${optimizationStats.wastedTimeMs + 'ms'}">0ms</span>
+                </div>
+                <div class="optimization-metric contexts-created">
+                    <span class="label">Unique Contexts Created:</span>
+                    <span class="value" th:text="${optimizationStats.totalContextsCreated}">0</span>
+                </div>
+            </div>
+
+            <!-- Optimization Opportunities -->
+            <div th:if="${optimizationStats.topOpportunities.size() > 0}" class="optimization-opportunities">
+                <h3>🎯 Top Optimization Opportunities</h3>
+                <div class="opportunities-list">
+                    <div th:each="opportunity : ${optimizationStats.topOpportunities}" class="opportunity-card">
+                        <div class="opportunity-header">
+                            <span class="test-class" th:text="${opportunity.testClass}">TestClass</span>
+                            <span class="load-time" th:text="${opportunity.loadTimeMs + 'ms'}">1000ms</span>
+                        </div>
+                        <div class="opportunity-details">
+                            <span class="bean-count" th:text="${opportunity.beanCount + ' beans'}">100 beans</span>
+                        </div>
+                        <div class="opportunity-recommendation">
+                            <span th:text="${opportunity.recommendation}">Optimization recommendation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Tips -->
+            <div class="optimization-tips">
+                <h3>💡 Optimization Tips</h3>
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <div class="tip-icon">🔄</div>
+                        <div class="tip-content">
+                            <h4>Harmonize Test Contexts</h4>
+                            <p>Reduce context variations by standardizing test configurations, profiles, and component scanning paths across similar test classes.</p>
+                        </div>
+                    </div>
+                    <div class="tip-card">
+                        <div class="tip-icon">🎯</div>
+                        <div class="tip-content">
+                            <h4>Use Slice Tests</h4>
+                            <p>Replace @SpringBootTest with slice tests like @WebMvcTest, @DataJpaTest when testing specific layers.</p>
+                        </div>
+                    </div>
+                    <div class="tip-card">
+                        <div class="tip-icon">⚙️</div>
+                        <div class="tip-content">
+                            <h4>Optimize Component Scanning</h4>
+                            <p>Limit component scanning scope using @ComponentScan(basePackages) or exclude unnecessary configurations.</p>
+                        </div>
+                    </div>
+                    <div class="tip-card">
+                        <div class="tip-icon">🧪</div>
+                        <div class="tip-content">
+                            <h4>Share Test Configuration</h4>
+                            <p>Create common @TestConfiguration classes that can be reused across multiple test classes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Analysis -->
+            <div th:if="${optimizationStats.potentialTimeSavingsMs > 1000}" class="impact-analysis">
+                <h3>📊 Potential Impact Analysis</h3>
+                <div class="impact-content">
+                    <div class="impact-metric">
+                        <div class="impact-title">Daily Savings (10 builds):</div>
+                        <div class="impact-value" th:text="${(optimizationStats.potentialTimeSavingsMs * 10) / 1000.0 + 's'}">0s</div>
+                    </div>
+                    <div class="impact-metric">
+                        <div class="impact-title">Weekly Savings (50 builds):</div>
+                        <div class="impact-value" th:text="${(optimizationStats.potentialTimeSavingsMs * 50) / 60000.0 + 'm'}">0m</div>
+                    </div>
+                    <div class="impact-metric">
+                        <div class="impact-title">Monthly Savings (200 builds):</div>
+                        <div class="impact-value" th:text="${(optimizationStats.potentialTimeSavingsMs * 200) / 60000.0 + 'm'}">0m</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No optimization data available -->
+        <div th:if="${optimizationStats == null or optimizationStats.totalContextsCreated == 0}" class="no-optimization-data">
+            <p>No context timing data available for optimization analysis. Ensure context loading measurements are enabled.</p>
+        </div>
+    </div>
+</body>
+</html>

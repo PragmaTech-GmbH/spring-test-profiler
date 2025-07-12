@@ -31,6 +31,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
   // Track current test class and method
   private final Map<TestContext, String> testClassNames = new ConcurrentHashMap<>();
   private final Map<TestContext, Instant> methodStartTimes = new ConcurrentHashMap<>();
+  private final Map<TestContext, Instant> contextLoadStartTimes = new ConcurrentHashMap<>();
 
   // Static flag to ensure report is generated only once
   private static volatile boolean reportGenerated = false;
@@ -60,6 +61,9 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     testClassNames.put(testContext, className);
     executionTracker.recordTestClassStart(className);
 
+    // Start timing context loading for this test class
+    contextLoadStartTimes.put(testContext, Instant.now());
+
     // Capture the TestContext reference for cache access
     lastTestContext.set(testContext);
 
@@ -87,6 +91,8 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
   public void prepareTestInstance(TestContext testContext) throws Exception {
     // After test instance is prepared, the context should be loaded
     String className = testClassNames.get(testContext);
+    Instant contextLoadEndTime = Instant.now();
+    
     if (className != null) {
       try {
         Class<?> testClass = testContext.getTestClass();
@@ -94,21 +100,29 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
         MergedContextConfiguration mergedConfig = bootstrapper.buildMergedContextConfiguration();
         int cacheKey = mergedConfig.hashCode();
 
+        // Calculate context loading time
+        Instant contextLoadStartTime = contextLoadStartTimes.get(testContext);
+        long contextLoadDurationMs = 0;
+        if (contextLoadStartTime != null) {
+          contextLoadDurationMs = java.time.Duration.between(contextLoadStartTime, contextLoadEndTime).toMillis();
+        }
+
         // Now check if this was a cache hit or miss
         // If the context was already tracked as created for another test, it's a hit
         Optional<ContextCacheTracker.ContextCacheEntry> entry = contextCacheTracker.getCacheEntry(mergedConfig);
         if (entry.isPresent() && entry.get().isCreated()) {
           contextCacheTracker.recordContextCacheHit(mergedConfig);
-          logger.debug("Context cache hit for test class {}", className);
+          logger.debug("Context cache hit for test class {} ({}ms)", className, contextLoadDurationMs);
         }
         else {
-          contextCacheTracker.recordContextCreation(mergedConfig);
+          contextCacheTracker.recordContextCreation(mergedConfig, contextLoadDurationMs);
 
           // Capture bean definitions for context complexity analysis
           try {
             String[] beanNames = testContext.getApplicationContext().getBeanDefinitionNames();
             contextCacheTracker.recordBeanDefinitions(mergedConfig, beanNames);
-            logger.debug("New context created for test class {} with {} bean definitions", className, beanNames.length);
+            logger.debug("New context created for test class {} with {} bean definitions ({}ms)", 
+              className, beanNames.length, contextLoadDurationMs);
           }
           catch (Exception beanException) {
             logger.warn("Failed to capture bean definitions for test class {}: {}", className, beanException.getMessage());
@@ -117,6 +131,10 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
       }
       catch (Exception e) {
         logger.warn("Failed to track context loading for test class {}: {}", className, e.getMessage());
+      }
+      finally {
+        // Clean up context load timing
+        contextLoadStartTimes.remove(testContext);
       }
     }
   }

@@ -64,9 +64,16 @@ public class ContextCacheTracker {
      * Records that a new context was created (cache miss).
      */
     public void recordContextCreation(MergedContextConfiguration config) {
+        recordContextCreation(config, 0);
+    }
+
+    /**
+     * Records that a new context was created (cache miss) with timing information.
+     */
+    public void recordContextCreation(MergedContextConfiguration config, long loadTimeMs) {
         ContextCacheEntry entry = cacheEntries.get(config);
         if (entry != null) {
-            entry.recordCreation();
+            entry.recordCreation(loadTimeMs);
             contextCreationOrder.add(config);
             totalContextsCreated.incrementAndGet();
             cacheMisses.incrementAndGet();
@@ -76,8 +83,8 @@ public class ContextCacheTracker {
                 MergedContextConfiguration nearestConfig = findNearestContext(config);
                 if (nearestConfig != null) {
                     entry.setNearestContext(nearestConfig);
-                    logger.info("New context {} is most similar to existing context {}",
-                        config, nearestConfig);
+                    logger.info("New context {} is most similar to existing context {} (load time: {}ms)",
+                        config, nearestConfig, loadTimeMs);
                 }
             }
         }
@@ -304,6 +311,193 @@ public class ContextCacheTracker {
     }
 
     /**
+     * Calculates optimization statistics based on context loading times and cache usage.
+     */
+    public OptimizationStatistics calculateOptimizationStatistics() {
+        List<ContextCacheEntry> createdEntries = cacheEntries.values().stream()
+            .filter(ContextCacheEntry::isCreated)
+            .collect(Collectors.toList());
+
+        if (createdEntries.isEmpty()) {
+            return new OptimizationStatistics(0, 0, 0, 0, Collections.emptyList());
+        }
+
+        // Calculate total time spent creating contexts
+        long totalContextCreationTimeMs = createdEntries.stream()
+            .mapToLong(ContextCacheEntry::getContextLoadTimeMs)
+            .sum();
+
+        // Calculate potential time savings if contexts were harmonized
+        long potentialTimeSavingsMs = calculatePotentialTimeSavings(createdEntries);
+
+        // Calculate wasted time from duplicate context loads
+        long wastedTimeMs = calculateWastedTime(createdEntries);
+
+        // Find the slowest context loads
+        List<ContextOptimizationOpportunity> opportunities = identifyOptimizationOpportunities(createdEntries);
+
+        return new OptimizationStatistics(
+            totalContextCreationTimeMs,
+            potentialTimeSavingsMs,
+            wastedTimeMs,
+            createdEntries.size(),
+            opportunities
+        );
+    }
+
+    private long calculatePotentialTimeSavings(List<ContextCacheEntry> entries) {
+        // For each context that could potentially be harmonized with a similar context,
+        // calculate the time that could be saved
+        long savings = 0;
+        
+        for (ContextCacheEntry entry : entries) {
+            Optional<MergedContextConfiguration> nearest = entry.getNearestContext();
+            if (nearest.isPresent()) {
+                ContextCacheEntry nearestEntry = cacheEntries.get(nearest.get());
+                if (nearestEntry != null && nearestEntry.isCreated()) {
+                    // Time that could be saved if this context was harmonized with the nearest one
+                    savings += entry.getContextLoadTimeMs();
+                }
+            }
+        }
+        
+        return savings;
+    }
+
+    private long calculateWastedTime(List<ContextCacheEntry> entries) {
+        // Calculate time wasted on slow context loads that could have been optimized
+        return entries.stream()
+            .filter(entry -> entry.getContextLoadTimeMs() > 1000) // Consider contexts taking >1s as potential waste
+            .mapToLong(entry -> entry.getContextLoadTimeMs() - 1000) // Assume 1s is reasonable
+            .sum();
+    }
+
+    private List<ContextOptimizationOpportunity> identifyOptimizationOpportunities(List<ContextCacheEntry> entries) {
+        return entries.stream()
+            .filter(entry -> entry.getContextLoadTimeMs() > 500) // Focus on contexts taking >500ms
+            .sorted((a, b) -> Long.compare(b.getContextLoadTimeMs(), a.getContextLoadTimeMs())) // Sort by load time desc
+            .limit(5) // Top 5 opportunities
+            .map(entry -> {
+                String recommendation = generateRecommendation(entry);
+                return new ContextOptimizationOpportunity(
+                    entry.getTestClasses().iterator().next(), // Representative test class
+                    entry.getContextLoadTimeMs(),
+                    entry.getBeanDefinitionCount(),
+                    recommendation
+                );
+            })
+            .collect(Collectors.toList());
+    }
+
+    private String generateRecommendation(ContextCacheEntry entry) {
+        Optional<MergedContextConfiguration> nearest = entry.getNearestContext();
+        if (nearest.isPresent()) {
+            return "Consider harmonizing with similar context to save " + entry.getContextLoadTimeMs() + "ms";
+        } else if (entry.getBeanDefinitionCount() > 100) {
+            return "Large context (" + entry.getBeanDefinitionCount() + " beans) - consider using @TestConfiguration to reduce scope";
+        } else if (entry.getContextLoadTimeMs() > 2000) {
+            return "Slow context load (" + entry.getContextLoadTimeMs() + "ms) - review component scanning and auto-configuration";
+        } else {
+            return "Consider optimizing test setup to reduce context load time";
+        }
+    }
+
+    /**
+     * Gets timeline data for visualization of context lifecycle.
+     * Returns data suitable for Chart.js timeline visualization.
+     */
+    public TimelineData getTimelineData() {
+        List<ContextCacheEntry> createdEntries = cacheEntries.values().stream()
+            .filter(ContextCacheEntry::isCreated)
+            .sorted((a, b) -> {
+                Instant timeA = a.getCreationTime();
+                Instant timeB = b.getCreationTime();
+                if (timeA == null && timeB == null) return 0;
+                if (timeA == null) return 1;
+                if (timeB == null) return -1;
+                return timeA.compareTo(timeB);
+            })
+            .collect(Collectors.toList());
+
+        if (createdEntries.isEmpty()) {
+            return new TimelineData(Collections.emptyList(), null, null);
+        }
+
+        // Calculate timeline bounds
+        Instant earliestCreation = createdEntries.get(0).getCreationTime();
+        Instant latestAccess = createdEntries.stream()
+            .map(ContextCacheEntry::getLastUsedTime)
+            .filter(Objects::nonNull)
+            .max(Instant::compareTo)
+            .orElse(earliestCreation);
+
+        // If all contexts are only used once, extend timeline to now
+        if (latestAccess.equals(earliestCreation)) {
+            latestAccess = Instant.now();
+        }
+
+        List<TimelineEntry> timelineEntries = new ArrayList<>();
+        for (int i = 0; i < createdEntries.size(); i++) {
+            ContextCacheEntry entry = createdEntries.get(i);
+            
+            String contextLabel = "Context " + (i + 1);
+            if (!entry.getTestClasses().isEmpty()) {
+                String firstTestClass = entry.getTestClasses().iterator().next();
+                String simpleName = firstTestClass.substring(firstTestClass.lastIndexOf('.') + 1);
+                contextLabel = simpleName + " Context";
+            }
+
+            // Creation phase
+            long creationStartMs = java.time.Duration.between(earliestCreation, entry.getCreationTime()).toMillis();
+            long creationEndMs = creationStartMs + entry.getContextLoadTimeMs();
+
+            timelineEntries.add(new TimelineEntry(
+                contextLabel,
+                "Creation",
+                creationStartMs,
+                creationEndMs,
+                "#e74c3c", // Red for creation
+                entry.getContextLoadTimeMs() + "ms load time",
+                entry.getConfiguration().hashCode()
+            ));
+
+            // Active usage phase (from creation to last use)
+            if (entry.getLastUsedTime() != null && entry.getLastUsedTime().isAfter(entry.getCreationTime())) {
+                long usageStartMs = creationEndMs;
+                long usageEndMs = java.time.Duration.between(earliestCreation, entry.getLastUsedTime()).toMillis();
+
+                timelineEntries.add(new TimelineEntry(
+                    contextLabel,
+                    "Active",
+                    usageStartMs,
+                    usageEndMs,
+                    "#27ae60", // Green for active usage
+                    entry.getHitCount() + " cache hits",
+                    entry.getConfiguration().hashCode()
+                ));
+            }
+
+            // Cache retention phase (from last use to timeline end, if applicable)
+            if (entry.getLastUsedTime() != null && entry.getLastUsedTime().isBefore(latestAccess)) {
+                long retentionStartMs = java.time.Duration.between(earliestCreation, entry.getLastUsedTime()).toMillis();
+                long retentionEndMs = java.time.Duration.between(earliestCreation, latestAccess).toMillis();
+
+                timelineEntries.add(new TimelineEntry(
+                    contextLabel,
+                    "Cached",
+                    retentionStartMs,
+                    retentionEndMs,
+                    "#3498db", // Blue for cached retention
+                    "Retained in cache",
+                    entry.getConfiguration().hashCode()
+                ));
+            }
+        }
+
+        return new TimelineData(timelineEntries, earliestCreation, latestAccess);
+    }
+
+    /**
      * Clears all tracking data.
      */
     public void clear() {
@@ -314,6 +508,117 @@ public class ContextCacheTracker {
         totalContextsCreated.set(0);
         cacheHits.set(0);
         cacheMisses.set(0);
+    }
+
+    /**
+     * Data structure for timeline visualization.
+     */
+    public static class TimelineData {
+        private final List<TimelineEntry> entries;
+        private final Instant startTime;
+        private final Instant endTime;
+
+        public TimelineData(List<TimelineEntry> entries, Instant startTime, Instant endTime) {
+            this.entries = entries;
+            this.startTime = startTime;
+            this.endTime = endTime;
+        }
+
+        public List<TimelineEntry> getEntries() { return entries; }
+        public Instant getStartTime() { return startTime; }
+        public Instant getEndTime() { return endTime; }
+
+        public long getTotalDurationMs() {
+            return startTime != null && endTime != null ? 
+                java.time.Duration.between(startTime, endTime).toMillis() : 0;
+        }
+    }
+
+    /**
+     * Individual timeline entry for visualization.
+     */
+    public static class TimelineEntry {
+        private final String contextLabel;
+        private final String phase;
+        private final long startMs;
+        private final long endMs;
+        private final String color;
+        private final String tooltip;
+        private final int contextId;
+
+        public TimelineEntry(String contextLabel, String phase, long startMs, long endMs, 
+                           String color, String tooltip, int contextId) {
+            this.contextLabel = contextLabel;
+            this.phase = phase;
+            this.startMs = startMs;
+            this.endMs = endMs;
+            this.color = color;
+            this.tooltip = tooltip;
+            this.contextId = contextId;
+        }
+
+        public String getContextLabel() { return contextLabel; }
+        public String getPhase() { return phase; }
+        public long getStartMs() { return startMs; }
+        public long getEndMs() { return endMs; }
+        public long getDurationMs() { return endMs - startMs; }
+        public String getColor() { return color; }
+        public String getTooltip() { return tooltip; }
+        public int getContextId() { return contextId; }
+    }
+
+    /**
+     * Statistics about potential optimizations.
+     */
+    public static class OptimizationStatistics {
+        private final long totalContextCreationTimeMs;
+        private final long potentialTimeSavingsMs;
+        private final long wastedTimeMs;
+        private final int totalContextsCreated;
+        private final List<ContextOptimizationOpportunity> topOpportunities;
+
+        public OptimizationStatistics(long totalContextCreationTimeMs, long potentialTimeSavingsMs, 
+                                    long wastedTimeMs, int totalContextsCreated,
+                                    List<ContextOptimizationOpportunity> topOpportunities) {
+            this.totalContextCreationTimeMs = totalContextCreationTimeMs;
+            this.potentialTimeSavingsMs = potentialTimeSavingsMs;
+            this.wastedTimeMs = wastedTimeMs;
+            this.totalContextsCreated = totalContextsCreated;
+            this.topOpportunities = topOpportunities;
+        }
+
+        public long getTotalContextCreationTimeMs() { return totalContextCreationTimeMs; }
+        public long getPotentialTimeSavingsMs() { return potentialTimeSavingsMs; }
+        public long getWastedTimeMs() { return wastedTimeMs; }
+        public int getTotalContextsCreated() { return totalContextsCreated; }
+        public List<ContextOptimizationOpportunity> getTopOpportunities() { return topOpportunities; }
+
+        public double getPotentialTimeSavingsPercentage() {
+            return totalContextCreationTimeMs > 0 ? 
+                (potentialTimeSavingsMs * 100.0) / totalContextCreationTimeMs : 0.0;
+        }
+    }
+
+    /**
+     * Represents a specific optimization opportunity.
+     */
+    public static class ContextOptimizationOpportunity {
+        private final String testClass;
+        private final long loadTimeMs;
+        private final int beanCount;
+        private final String recommendation;
+
+        public ContextOptimizationOpportunity(String testClass, long loadTimeMs, int beanCount, String recommendation) {
+            this.testClass = testClass;
+            this.loadTimeMs = loadTimeMs;
+            this.beanCount = beanCount;
+            this.recommendation = recommendation;
+        }
+
+        public String getTestClass() { return testClass; }
+        public long getLoadTimeMs() { return loadTimeMs; }
+        public int getBeanCount() { return beanCount; }
+        public String getRecommendation() { return recommendation; }
     }
 
     /**
@@ -330,6 +635,7 @@ public class ContextCacheTracker {
         private volatile MergedContextConfiguration nearestContext;
         private volatile int beanDefinitionCount = 0;
         private volatile Set<String> beanDefinitionNames = ConcurrentHashMap.newKeySet();
+        private volatile long contextLoadTimeMs = 0;
 
         // Timeline tracking for future visualization
         private final List<Instant> accessTimes = new CopyOnWriteArrayList<>();
@@ -343,7 +649,12 @@ public class ContextCacheTracker {
         }
 
         public void recordCreation() {
+            recordCreation(0);
+        }
+
+        public void recordCreation(long loadTimeMs) {
             this.created = true;
+            this.contextLoadTimeMs = loadTimeMs;
             Instant now = Instant.now();
             this.creationTime = now;
             this.firstUsedTime = now;
@@ -452,6 +763,10 @@ public class ContextCacheTracker {
 
         public Set<String> getBeanDefinitionNames() {
             return Collections.unmodifiableSet(beanDefinitionNames);
+        }
+
+        public long getContextLoadTimeMs() {
+            return contextLoadTimeMs;
         }
 
         /**

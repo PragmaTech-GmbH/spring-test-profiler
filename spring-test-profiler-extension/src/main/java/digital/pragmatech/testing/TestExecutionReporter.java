@@ -260,6 +260,17 @@ public class TestExecutionReporter {
             double successRate = totalTestMethods > 0 ? (passedTests * 100.0) / totalTestMethods : 0.0;
             context.setVariable("successRate", successRate);
 
+            // Calculate and add optimization statistics
+            if (contextCacheTracker != null) {
+                ContextCacheTracker.OptimizationStatistics optimizationStats = 
+                    contextCacheTracker.calculateOptimizationStatistics();
+                context.setVariable("optimizationStats", optimizationStats);
+                
+                // Add timeline data for visualization
+                ContextCacheTracker.TimelineData timelineData = contextCacheTracker.getTimelineData();
+                context.setVariable("timelineData", timelineData);
+            }
+
             // Load CSS content
             String cssContent = loadCssContent();
             context.setVariable("cssContent", cssContent);
