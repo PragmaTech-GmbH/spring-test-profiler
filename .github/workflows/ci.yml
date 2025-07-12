@@ -60,10 +60,10 @@ jobs:
 
       - name: Upload demo test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('demo/${{ matrix.demo }}/target/spring-test-profiler/latest.html') != ''
         with:
           name: demo-test-results-${{ matrix.demo }}
-          path: demo/${{ matrix.demo }}/target
+          path: demo/${{ matrix.demo }}/target/spring-test-profiler/
 
   test-gradle-demos:
     name: Test Gradle Demo Projects
@@ -98,11 +98,10 @@ jobs:
 
       - name: Upload demo test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('demo/${{ matrix.demo }}/build/spring-test-profiler/latest.html') != ''
         with:
           name: demo-test-results-${{ matrix.demo }}
-          path: |
-            demo/${{ matrix.demo }}/build
+          path: demo/${{ matrix.demo }}/build/spring-test-profiler/
 
   summary:
     name: Test Summary
