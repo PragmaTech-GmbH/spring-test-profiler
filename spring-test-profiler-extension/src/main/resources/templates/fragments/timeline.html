@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="timeline-section(timelineData)" class="timeline-section">
+        <h2>📊 Context Lifecycle Timeline</h2>
+        
+        <div th:if="${timelineData != null and timelineData.entries.size() > 0}" class="timeline-content">
+            <!-- Timeline Summary -->
+            <div class="timeline-summary">
+                <div class="timeline-metric">
+                    <span class="label">Total Timeline Duration:</span>
+                    <span class="value" th:text="${timelineData.totalDurationMs + 'ms'}">0ms</span>
+                </div>
+                <div class="timeline-metric">
+                    <span class="label">Timeline Entries:</span>
+                    <span class="value" th:text="${timelineData.entries.size()}">0</span>
+                </div>
+            </div>
+
+            <!-- Timeline Legend -->
+            <div class="timeline-legend">
+                <div class="legend-item">
+                    <div class="legend-color creation"></div>
+                    <span>Context Creation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color active"></div>
+                    <span>Active Usage</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color cached"></div>
+                    <span>Cached Retention</span>
+                </div>
+            </div>
+
+            <!-- Timeline Chart Container -->
+            <div class="timeline-chart-container">
+                <canvas id="contextTimelineChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Timeline Details Table -->
+            <div class="timeline-details">
+                <h3>Timeline Details</h3>
+                <table class="timeline-table">
+                    <thead>
+                        <tr>
+                            <th>Context</th>
+                            <th>Phase</th>
+                            <th>Start Time</th>
+                            <th>Duration</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="entry : ${timelineData.entries}">
+                            <td th:text="${entry.contextLabel}" class="context-name">Context</td>
+                            <td>
+                                <span class="phase-badge" 
+                                      th:class="${'phase-badge phase-' + entry.phase.toLowerCase()}"
+                                      th:text="${entry.phase}">Phase</span>
+                            </td>
+                            <td th:text="${entry.startMs + 'ms'}" class="time-value">0ms</td>
+                            <td th:text="${entry.durationMs + 'ms'}" class="duration-value">0ms</td>
+                            <td th:text="${entry.tooltip}" class="details">Details</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Insights -->
+            <div class="timeline-insights">
+                <h3>🔍 Timeline Insights</h3>
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h4>Context Overlap</h4>
+                        <p>Multiple contexts active simultaneously may indicate opportunities for consolidation.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Cache Retention</h4>
+                        <p>Contexts retained long after last use consume memory without benefit.</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>Creation Timing</h4>
+                        <p>Context creation spikes show when tests require new configurations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No timeline data available -->
+        <div th:if="${timelineData == null or timelineData.entries.size() == 0}" class="no-timeline-data">
+            <p>No context lifecycle data available for timeline visualization.</p>
+        </div>
+
+        <!-- Chart.js Integration Script -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+        <script th:if="${timelineData != null and timelineData.entries.size() > 0}">
+            // Simple timeline visualization - avoiding complex Thymeleaf inline expressions
+            document.addEventListener('DOMContentLoaded', function() {
+                const ctx = document.getElementById('contextTimelineChart');
+                if (ctx) {
+                    // Simple placeholder chart - will be enhanced with actual data via separate endpoint if needed
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Timeline Chart'],
+                            datasets: [{
+                                label: 'Context Lifecycle',
+                                data: [100],
+                                backgroundColor: '#3498db'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Spring Context Lifecycle Timeline (Placeholder)'
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

@@ -55,7 +55,7 @@
 
     <!-- Spring Test Insight Extension -->
     <dependency>
-      <groupId>digital.pragmatech</groupId>
+      <groupId>digital.pragmatech.testing</groupId>
       <artifactId>spring-test-profiler-extension</artifactId>
       <version>0.0.1-SNAPSHOT</version>
       <scope>test</scope>

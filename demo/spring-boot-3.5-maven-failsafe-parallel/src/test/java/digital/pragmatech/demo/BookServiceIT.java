@@ -1,28 +1,26 @@
 package digital.pragmatech.demo;
 
-import digital.pragmatech.demo.entity.Book;
-import digital.pragmatech.demo.entity.BookCategory;
-import digital.pragmatech.demo.service.BookService;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import digital.pragmatech.demo.entity.Book;
+import digital.pragmatech.demo.entity.BookCategory;
+import digital.pragmatech.demo.service.BookService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Integration test for BookService - Part 2
  * Tests service layer operations - SHARES CONTEXT with BookRepositoryIT (same configuration)
  */
 @SpringBootTest
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 @ActiveProfiles("test")
 @Transactional
 public class BookServiceIT {

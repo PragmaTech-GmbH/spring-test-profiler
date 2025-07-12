@@ -1,41 +1,39 @@
 package digital.pragmatech.demo;
 
-import digital.pragmatech.demo.controller.BookController;
-import digital.pragmatech.demo.entity.Book;
-import digital.pragmatech.demo.entity.BookCategory;
-import digital.pragmatech.demo.service.BookService;
-import digital.pragmatech.springtestinsight.SpringTestInsightExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Optional;
 
+import digital.pragmatech.demo.controller.BookController;
+import digital.pragmatech.demo.entity.Book;
+import digital.pragmatech.demo.entity.BookCategory;
+import digital.pragmatech.demo.service.BookService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Unit test for BookController using @WebMvcTest slice
  * This creates a minimal Spring context with only web layer components
  */
 @WebMvcTest(BookController.class)
-@ExtendWith({SpringExtension.class, SpringTestInsightExtension.class})
 public class BookControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
 
-  @MockBean
+  @MockitoBean
   private BookService bookService;
 
   @Test

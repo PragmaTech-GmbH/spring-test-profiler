@@ -21,6 +21,12 @@
         <!-- Context Caching Statistics Fragment -->
         <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
         
+        <!-- Optimization Recommendations Fragment -->
+        <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>
+        
+        <!-- Timeline Visualization Fragment -->
+        <div th:replace="~{fragments/timeline :: timeline-section(${timelineData})}"></div>
+        
         <!-- Context Configurations Fragment -->
         <div th:replace="~{fragments/configurations :: configurations-section}"></div>
         
