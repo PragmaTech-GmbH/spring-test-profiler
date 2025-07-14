@@ -7,7 +7,9 @@ on:
         description: 'Release version (e.g., 1.0.0)'
         required: true
         type: string
-
+      nextVersion:
+        description: 'Next version after release (-SNAPSHOT will be added automatically)'
+        required: true
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -30,7 +32,6 @@ jobs:
           cache-dependency-path: 'spring-test-profiler-extension/pom.xml'
 
       - name: Build with Maven
-        working-directory: spring-test-profiler-extension
         run: ./mvnw verify
 
       - name: Run JReleaser
@@ -38,7 +39,6 @@ jobs:
         with:
           arguments: 'full-release --git-root-search'
           version: 1.14.0
-          working-directory: spring-test-profiler-extension
         env:
           JRELEASER_PROJECT_VERSION: ${{ github.event.inputs.version }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,3 +47,13 @@ jobs:
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.MAVEN_GPG_SECRET_KEY }}
           JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+
+      - name: Set release version
+        run: ./mvnw --no-transfer-progress --batch-mode versions:set -DnewVersion=${{ github.event.inputs.nextVersion }}
+
+      - name: Commit & Push changes
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
+          message: Setting SNAPSHOT version ${{ github.event.inputs.nextVersion }}-SNAPSHOT
+          tags: true

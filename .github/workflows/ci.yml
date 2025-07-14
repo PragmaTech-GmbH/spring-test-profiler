@@ -21,7 +21,6 @@ jobs:
           cache-dependency-path: 'spring-test-profiler-extension/pom.xml'
 
       - name: Test extension
-        working-directory: spring-test-profiler-extension
         run: ./mvnw verify
 
   test-maven-demos:
@@ -50,7 +49,6 @@ jobs:
           cache-dependency-path: 'demo/${{ matrix.demo }}/pom.xml'
 
       - name: Install extension to local repository
-        working-directory: spring-test-profiler-extension
         run: ./mvnw clean install -DskipTests
 
       - name: Build demo project
@@ -88,7 +86,6 @@ jobs:
           cache-dependency-path: 'demo/${{ matrix.demo }}/build.gradle'
 
       - name: Install extension to local repository
-        working-directory: spring-test-profiler-extension
         run: ./mvnw clean install -DskipTests
 
       - name: Build demo project

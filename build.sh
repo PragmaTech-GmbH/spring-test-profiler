@@ -68,7 +68,7 @@ fi
 # Build extension first
 print_status "Building Spring Test Insight Extension"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-cd "$SCRIPT_DIR/spring-test-profiler-extension"
+cd "$SCRIPT_DIR"
 if ./mvnw install -q; then
     print_success "Extension built and installed to local repository"
 else
