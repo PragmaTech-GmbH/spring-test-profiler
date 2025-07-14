@@ -1,6 +1,6 @@
 # Spring Test Profiler
 
-![](docs/resources/spring-test-profiler-logo-256x256.png)
+![](docs/resources/spring-test-profiler-logo-three-256x256.png)
 
 A JUnit Jupiter extension that provides visualization and insights for Spring Test execution, with a focus on Spring context caching statistics.
 
