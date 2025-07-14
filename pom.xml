@@ -6,7 +6,7 @@
 
   <groupId>digital.pragmatech.testing</groupId>
   <artifactId>spring-test-profiler</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.3-SNAPSHOT</version>
 
   <name>Spring Test Profiler</name>
   <description>Spring Test insights and context caching visualization</description>
@@ -29,21 +29,27 @@
 
   <properties>
     <spring.version>6.1.10</spring.version>
-    <junit-jupiter.version>5.13.2</junit-jupiter.version>
+    <thymeleaf.version>3.1.3.RELEASE</thymeleaf.version>
+    <logback-classic.version>1.5.18</logback-classic.version>
     <jackson.version>2.17.1</jackson.version>
+
+    <junit-jupiter.version>5.13.2</junit-jupiter.version>
     <assertj.version>3.26.3</assertj.version>
 
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <project.build.outputTimestamp>2025-01-01T01:00:00Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2025-07-14T14:06:35Z</project.build.outputTimestamp>
 
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
     <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
     <maven-surefire.version>3.5.3</maven-surefire.version>
+    <maven-failsafe.version>3.5.3</maven-failsafe.version>
+
+    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
   </properties>
 
   <developers>
@@ -68,17 +74,6 @@
 
 
   <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.platform</groupId>
-      <artifactId>junit-platform-launcher</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
@@ -109,13 +104,25 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.18</version>
+      <scope>provided</scope>
+      <version>${logback-classic.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.thymeleaf</groupId>
       <artifactId>thymeleaf</artifactId>
-      <version>3.1.3.RELEASE</version>
+      <version>${thymeleaf.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
     </dependency>
   </dependencies>
 
@@ -125,22 +132,22 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>${maven-deploy-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.13.0</version>
+          <version>${maven-compiler-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.6.3</version>
+          <version>${maven-javadoc-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>${maven-source-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -153,7 +160,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${maven-surefire.version}</version>
+        <version>${maven-failsafe.version}</version>
         <executions>
           <execution>
             <phase>integration-test</phase>
@@ -202,6 +209,7 @@
                 </goals>
                 <configuration>
                   <attach>true</attach>
+                  <defaultManifestFile/>
                 </configuration>
               </execution>
             </executions>

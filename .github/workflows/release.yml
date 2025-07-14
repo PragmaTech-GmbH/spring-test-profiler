@@ -16,6 +16,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+    env:
+      NEXT_DEV_VERSION: ${{ github.event.inputs.nextVersion }}-SNAPSHOT
 
     steps:
       - name: Checkout repository
@@ -29,10 +31,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: 'spring-test-profiler-extension/pom.xml'
 
       - name: Build with Maven
-        run: ./mvnw verify
+        run: ./mvnw -Ppublication
 
       - name: Run JReleaser
         uses: jreleaser/release-action@v2
@@ -48,12 +49,15 @@ jobs:
           JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
 
-      - name: Set release version
-        run: ./mvnw --no-transfer-progress --batch-mode versions:set -DnewVersion=${{ github.event.inputs.nextVersion }}
+      - name: Set next development version in pom.xml
+        run: ./mvnw --batch-mode versions:set -DnewVersion=$NEXT_DEV_VERSION
+
+      - name: Update JReleaser project.version
+        run: 'sed -i "3s/version: .*/version: $NEXT_DEV_VERSION/" jreleaser.yml'
 
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
           github_token: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
-          message: Setting SNAPSHOT version ${{ github.event.inputs.nextVersion }}-SNAPSHOT
+          message: prepare for next development version $NEXT_DEV_VERSION
           tags: true
