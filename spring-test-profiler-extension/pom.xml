@@ -6,7 +6,7 @@
 
   <groupId>digital.pragmatech.testing</groupId>
   <artifactId>spring-test-profiler-extension</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <name>Spring Test Profiler Extension</name>
   <description>JUnit Jupiter extension for Spring Test insights and context caching visualization</description>
