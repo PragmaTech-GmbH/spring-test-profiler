@@ -18,7 +18,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: 'spring-test-profiler-extension/pom.xml'
 
       - name: Test extension
         run: ./mvnw verify

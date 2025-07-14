@@ -40,25 +40,13 @@ Add the dependency to your project:
 Add the dependency to your project:
 
 ```groovy
-testImplementation('digital.pragmatech:spring-test-profiler-extension:0.9.0')
+testImplementation('digital.pragmatech.testing:spring-test-profiler:0.9.0')
 ```
 
 
 ### Automatic Activation (Recommended)
 
-The extension automatically activates for all tests via service loader. No additional configuration needed.
-
-### Manual Activation
-
-Alternatively, add the extension to specific test classes:
-
-```java
-@ExtendWith(SpringTestInsightExtension.class)
-@SpringBootTest
-class MySpringTest {
-    // Your tests here
-}
-```
+TBD
 
 ### Running Tests
 

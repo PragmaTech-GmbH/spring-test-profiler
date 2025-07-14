@@ -11,60 +11,60 @@
     <div class="container">
         <h1 th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">Spring Test Insight Report</h1>
         <div class="timestamp" th:text="${'Generated at: ' + generatedAt}">Generated at: 2025-01-01 12:00:00</div>
-        
+
         <!-- Theory Section Fragment -->
         <div th:replace="~{fragments/theory :: theory-section}"></div>
-        
+
         <!-- Summary Section Fragment -->
         <div th:replace="~{fragments/summary :: summary-section(${executionTracker}, ${cacheStats})}"></div>
-        
+
         <!-- Context Caching Statistics Fragment -->
         <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
-        
+
         <!-- Optimization Recommendations Fragment -->
         <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>
-        
+
         <!-- Timeline Visualization Fragment -->
         <div th:replace="~{fragments/timeline :: timeline-section(${timelineData})}"></div>
-        
+
         <!-- Context Configurations Fragment -->
         <div th:replace="~{fragments/configurations :: configurations-section}"></div>
-        
+
         <!-- Test Execution Details Fragment -->
         <div th:replace="~{fragments/test-execution :: test-execution-section(${executionTracker})}"></div>
-        
+
     </div>
-    
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <p>
-                Generated on <span th:text="${generatedAt}">2025-01-01 12:00:00</span> 
-                by <strong>Spring Test Insight</strong> 
+                Generated on <span th:text="${generatedAt}">2025-01-01 12:00:00</span>
+                by <strong>Spring Test Profiler</strong>
                 <span th:text="${extensionVersion}">v0.0.1-SNAPSHOT</span>
             </p>
             <p>
-                <a href="https://github.com/PragmaTech-GmbH/spring-test-insight" target="_blank" rel="noopener noreferrer">
+                <a href="https://pragmatech.digital" target="_blank" rel="noopener noreferrer">
                     🚀 PragmaTech GmbH
                 </a>
-                | 
-                <a href="https://pragmatech.digital" target="_blank" rel="noopener noreferrer">
-                    pragmatech.digital
+                |
+                <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler" target="_blank" rel="noopener noreferrer">
+                    GitHub
                 </a>
             </p>
         </div>
     </footer>
-    
+
     <script>
         function toggleClass(element) {
             const methods = element.nextElementSibling;
             methods.classList.toggle('show');
         }
-        
+
         function toggleTheorySection() {
             const content = document.getElementById('theory-content');
             const icon = document.getElementById('theory-toggle-icon');
-            
+
             if (content.style.display === 'none') {
                 content.style.display = 'block';
                 icon.textContent = '▼';

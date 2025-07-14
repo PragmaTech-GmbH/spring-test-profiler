@@ -55,7 +55,7 @@ build_demo() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEMO_DIR="$SCRIPT_DIR/demo"
 
-print_status "Starting build for all Spring Test Insight demo projects"
+print_status "Starting build for all Spring Test Profiler demo projects"
 print_status "Demo directory: $DEMO_DIR"
 echo
 
@@ -65,14 +65,14 @@ if [ ! -d "$DEMO_DIR" ]; then
     exit 1
 fi
 
-# Build extension first
-print_status "Building Spring Test Insight Extension"
+# Build profiler first
+print_status "Building Spring Test Profiler"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 cd "$SCRIPT_DIR"
 if ./mvnw install -q; then
-    print_success "Extension built and installed to local repository"
+    print_success "Profiler built and installed to local repository"
 else
-    print_error "Extension build failed"
+    print_error "Profiler build failed"
     exit 1
 fi
 echo

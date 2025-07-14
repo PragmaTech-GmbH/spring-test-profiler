@@ -338,7 +338,7 @@ public class TestExecutionReporter {
 
       // Fallback: try to read from Maven properties file
       try (var inputStream = getClass().getClassLoader()
-        .getResourceAsStream("META-INF/maven/digital.pragmatech/spring-test-profiler-extension/pom.properties")) {
+        .getResourceAsStream("META-INF/maven/digital.pragmatech/spring-test-profiler/pom.properties")) {
         if (inputStream != null) {
           var properties = new java.util.Properties();
           properties.load(inputStream);
