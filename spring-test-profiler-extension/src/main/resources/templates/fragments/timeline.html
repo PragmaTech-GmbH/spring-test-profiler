@@ -4,16 +4,16 @@
     <div th:fragment="timeline-section(timelineData)" class="timeline-section">
         <h2>📊 Context Lifecycle Timeline</h2>
         
-        <div th:if="${timelineData != null and timelineData.entries.size() > 0}" class="timeline-content">
+        <div th:if="${timelineData != null and timelineData.events.size() > 0}" class="timeline-content">
             <!-- Timeline Summary -->
             <div class="timeline-summary">
                 <div class="timeline-metric">
                     <span class="label">Total Timeline Duration:</span>
-                    <span class="value" th:text="${timelineData.totalDurationMs + 'ms'}">0ms</span>
+                    <span class="value" th:text="${timelineData.totalDurationSeconds + 's'}">0s</span>
                 </div>
                 <div class="timeline-metric">
-                    <span class="label">Timeline Entries:</span>
-                    <span class="value" th:text="${timelineData.entries.size()}">0</span>
+                    <span class="label">Context Creation Events:</span>
+                    <span class="value" th:text="${timelineData.events.size()}">0</span>
                 </div>
             </div>
 
@@ -88,36 +88,104 @@
         </div>
 
         <!-- No timeline data available -->
-        <div th:if="${timelineData == null or timelineData.entries.size() == 0}" class="no-timeline-data">
+        <div th:if="${timelineData == null or timelineData.events.size() == 0}" class="no-timeline-data">
             <p>No context lifecycle data available for timeline visualization.</p>
         </div>
 
         <!-- Chart.js Integration Script -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-        <script th:if="${timelineData != null and timelineData.entries.size() > 0}">
-            // Simple timeline visualization - avoiding complex Thymeleaf inline expressions
+        <script th:if="${timelineData != null and timelineData.events.size() > 0}">
             document.addEventListener('DOMContentLoaded', function() {
                 const ctx = document.getElementById('contextTimelineChart');
                 if (ctx) {
-                    // Simple placeholder chart - will be enhanced with actual data via separate endpoint if needed
+                    // Get timeline events data
+                    const events = /*[[${timelineData.events}]]*/ [];
+                    const totalDurationSeconds = /*[[${timelineData.totalDurationSeconds}]]*/ 0;
+                    
+                    // Prepare data for scatter plot timeline visualization
+                    const datasets = events.map((event, index) => ({
+                        label: event.contextName,
+                        data: [{
+                            x: event.creationTimeSeconds,
+                            y: index + 1,
+                            loadTime: event.loadTimeMs,
+                            testClasses: event.testClassCount,
+                            cacheHits: event.cacheHitCount,
+                            beans: event.beanCount
+                        }],
+                        backgroundColor: event.color,
+                        borderColor: event.color,
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }));
+
                     new Chart(ctx.getContext('2d'), {
-                        type: 'bar',
+                        type: 'scatter',
                         data: {
-                            labels: ['Timeline Chart'],
-                            datasets: [{
-                                label: 'Context Lifecycle',
-                                data: [100],
-                                backgroundColor: '#3498db'
-                            }]
+                            datasets: datasets
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    position: 'bottom',
+                                    title: {
+                                        display: true,
+                                        text: 'Time (seconds)'
+                                    },
+                                    min: 0,
+                                    max: Math.max(totalDurationSeconds, 10)
+                                },
+                                y: {
+                                    type: 'linear',
+                                    title: {
+                                        display: true,
+                                        text: 'Context Creation Order'
+                                    },
+                                    min: 0,
+                                    max: events.length + 1,
+                                    ticks: {
+                                        stepSize: 1,
+                                        callback: function(value) {
+                                            if (value === 0 || value > events.length) return '';
+                                            return 'Context ' + value;
+                                        }
+                                    }
+                                }
+                            },
                             plugins: {
                                 title: {
                                     display: true,
-                                    text: 'Spring Context Lifecycle Timeline (Placeholder)'
+                                    text: 'Spring Context Creation Timeline'
+                                },
+                                legend: {
+                                    display: true,
+                                    position: 'bottom'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(context) {
+                                            const point = context[0];
+                                            return point.dataset.label;
+                                        },
+                                        label: function(context) {
+                                            const data = context.raw;
+                                            return [
+                                                `Created at: ${data.x}s`,
+                                                `Load time: ${data.loadTime}ms`,
+                                                `Test classes: ${data.testClasses}`,
+                                                `Cache hits: ${data.cacheHits}`,
+                                                `Beans: ${data.beans}`
+                                            ];
+                                        }
+                                    }
                                 }
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: 'point'
                             }
                         }
                     });

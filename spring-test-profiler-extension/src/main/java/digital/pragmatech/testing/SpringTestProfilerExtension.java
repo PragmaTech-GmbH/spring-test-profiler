@@ -5,8 +5,9 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.test.context.TestExecutionListeners;
 
-public class SpringTestProfilerExtension implements BeforeAllCallback, AfterAllCallback, AutoCloseable {
+public class SpringTestProfilerExtension implements BeforeAllCallback, AfterAllCallback {
 
   private static final Logger logger = LoggerFactory.getLogger(SpringTestProfilerExtension.class);
   private static final String STORE_KEY = "spring-test-profiler";
@@ -32,21 +33,11 @@ public class SpringTestProfilerExtension implements BeforeAllCallback, AfterAllC
   @Override
   public void afterAll(ExtensionContext context) throws Exception {
     logger.debug("Completing Spring Test Insight for test class: {}", context.getRequiredTestClass().getName());
-    // Report generation is now handled in the close() method
-  }
 
-  private ExtensionContext.Store getStore(ExtensionContext context) {
-    return context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL);
-  }
-
-  @Override
-  public void close() {
-    // This method is called after all tests have completed
-    // Use synchronization to ensure the report is only generated once per phase
     synchronized (SpringTestProfilerExtension.class) {
       if (!reportGenerated) {
         String phase = detectedEnvironment.toString();
-        logger.info("All tests completed for {} phase. Generating Spring Test Insight report...", phase);
+        logger.debug("All tests completed for {} phase. Generating Spring Test Insight report...", phase);
 
         // Call the SpringTestInsightListener to generate the report
         SpringTestInsightListener.generateReport(phase);
@@ -56,5 +47,9 @@ public class SpringTestProfilerExtension implements BeforeAllCallback, AfterAllC
         logger.debug("Report already generated for current phase, skipping...");
       }
     }
+  }
+
+  private ExtensionContext.Store getStore(ExtensionContext context) {
+    return context.getRoot().getStore(ExtensionContext.Namespace.GLOBAL);
   }
 }

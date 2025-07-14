@@ -82,7 +82,7 @@ public class BuildToolDetection {
       return isIntegrationTest ? ExecutionEnvironment.GRADLE_INTEGRATION_TEST : ExecutionEnvironment.GRADLE_TEST;
     }
     else {
-      return ExecutionEnvironment.UNKNOWN;
+      return buildTool;
     }
   }
 

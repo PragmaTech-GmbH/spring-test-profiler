@@ -92,7 +92,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     // After test instance is prepared, the context should be loaded
     String className = testClassNames.get(testContext);
     Instant contextLoadEndTime = Instant.now();
-    
+
     if (className != null) {
       try {
         Class<?> testClass = testContext.getTestClass();
@@ -121,7 +121,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
           try {
             String[] beanNames = testContext.getApplicationContext().getBeanDefinitionNames();
             contextCacheTracker.recordBeanDefinitions(mergedConfig, beanNames);
-            logger.debug("New context created for test class {} with {} bean definitions ({}ms)", 
+            logger.debug("New context created for test class {} with {} bean definitions ({}ms)",
               className, beanNames.length, contextLoadDurationMs);
           }
           catch (Exception beanException) {
@@ -183,14 +183,6 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     }
   }
 
-  @Override
-  public void afterTestExecution(TestContext testContext) throws Exception {
-    // Check if all tests are complete and generate report
-    // This is a simplified approach - in production, you might want a more sophisticated
-    // mechanism to determine when all tests are complete
-    checkAndGenerateReport();
-  }
-
   private TestStatus determineTestStatus(TestContext testContext) {
     if (testContext.getTestException() != null) {
       Throwable exception = testContext.getTestException();
@@ -204,16 +196,6 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
       return TestStatus.FAILED;
     }
     return TestStatus.PASSED;
-  }
-
-  private synchronized void checkAndGenerateReport() {
-    // In a real implementation, you would need a more sophisticated way
-    // to determine when all tests are complete. This might involve:
-    // - JVM shutdown hooks
-    // - Integration with build tools
-    // - Custom test suite completion detection
-
-    // For now, we'll rely on the JUnit extension to trigger report generation
   }
 
   /**

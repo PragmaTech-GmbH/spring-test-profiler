@@ -404,7 +404,7 @@ public class ContextCacheTracker {
 
     /**
      * Gets timeline data for visualization of context lifecycle.
-     * Returns data suitable for Chart.js timeline visualization.
+     * Returns data suitable for Chart.js timeline visualization showing actual test execution progression.
      */
     public TimelineData getTimelineData() {
         List<ContextCacheEntry> createdEntries = cacheEntries.values().stream()
@@ -420,7 +420,7 @@ public class ContextCacheTracker {
             .collect(Collectors.toList());
 
         if (createdEntries.isEmpty()) {
-            return new TimelineData(Collections.emptyList(), null, null);
+            return new TimelineData(Collections.emptyList(), null, null, Collections.emptyList());
         }
 
         // Calculate timeline bounds
@@ -429,14 +429,15 @@ public class ContextCacheTracker {
             .map(ContextCacheEntry::getLastUsedTime)
             .filter(Objects::nonNull)
             .max(Instant::compareTo)
-            .orElse(earliestCreation);
+            .orElse(Instant.now());
 
-        // If all contexts are only used once, extend timeline to now
-        if (latestAccess.equals(earliestCreation)) {
-            latestAccess = Instant.now();
-        }
+        // Generate context events for timeline visualization
+        List<ContextTimelineEvent> events = new ArrayList<>();
+        List<String> contextColors = Arrays.asList(
+            "#e74c3c", "#3498db", "#27ae60", "#f39c12", "#9b59b6", 
+            "#e67e22", "#1abc9c", "#34495e", "#e91e63", "#ff5722"
+        );
 
-        List<TimelineEntry> timelineEntries = new ArrayList<>();
         for (int i = 0; i < createdEntries.size(); i++) {
             ContextCacheEntry entry = createdEntries.get(i);
             
@@ -444,57 +445,43 @@ public class ContextCacheTracker {
             if (!entry.getTestClasses().isEmpty()) {
                 String firstTestClass = entry.getTestClasses().iterator().next();
                 String simpleName = firstTestClass.substring(firstTestClass.lastIndexOf('.') + 1);
-                contextLabel = simpleName + " Context";
+                contextLabel = simpleName;
             }
 
-            // Creation phase
-            long creationStartMs = java.time.Duration.between(earliestCreation, entry.getCreationTime()).toMillis();
-            long creationEndMs = creationStartMs + entry.getContextLoadTimeMs();
+            String color = contextColors.get(i % contextColors.size());
+            long creationTimeSeconds = java.time.Duration.between(earliestCreation, entry.getCreationTime()).toMillis() / 1000;
+            
+            events.add(new ContextTimelineEvent(
+                contextLabel,
+                color,
+                creationTimeSeconds,
+                entry.getContextLoadTimeMs(),
+                entry.getTestClasses().size(),
+                entry.getHitCount(),
+                entry.getBeanDefinitionCount()
+            ));
+        }
 
+        // Calculate timeline entries for the table
+        List<TimelineEntry> timelineEntries = new ArrayList<>();
+        for (int i = 0; i < createdEntries.size(); i++) {
+            ContextCacheEntry entry = createdEntries.get(i);
+            
+            String contextLabel = events.get(i).getContextName();
+            long creationStartMs = java.time.Duration.between(earliestCreation, entry.getCreationTime()).toMillis();
+            
             timelineEntries.add(new TimelineEntry(
                 contextLabel,
                 "Creation",
                 creationStartMs,
-                creationEndMs,
-                "#e74c3c", // Red for creation
+                creationStartMs + entry.getContextLoadTimeMs(),
+                events.get(i).getColor(),
                 entry.getContextLoadTimeMs() + "ms load time",
                 entry.getConfiguration().hashCode()
             ));
-
-            // Active usage phase (from creation to last use)
-            if (entry.getLastUsedTime() != null && entry.getLastUsedTime().isAfter(entry.getCreationTime())) {
-                long usageStartMs = creationEndMs;
-                long usageEndMs = java.time.Duration.between(earliestCreation, entry.getLastUsedTime()).toMillis();
-
-                timelineEntries.add(new TimelineEntry(
-                    contextLabel,
-                    "Active",
-                    usageStartMs,
-                    usageEndMs,
-                    "#27ae60", // Green for active usage
-                    entry.getHitCount() + " cache hits",
-                    entry.getConfiguration().hashCode()
-                ));
-            }
-
-            // Cache retention phase (from last use to timeline end, if applicable)
-            if (entry.getLastUsedTime() != null && entry.getLastUsedTime().isBefore(latestAccess)) {
-                long retentionStartMs = java.time.Duration.between(earliestCreation, entry.getLastUsedTime()).toMillis();
-                long retentionEndMs = java.time.Duration.between(earliestCreation, latestAccess).toMillis();
-
-                timelineEntries.add(new TimelineEntry(
-                    contextLabel,
-                    "Cached",
-                    retentionStartMs,
-                    retentionEndMs,
-                    "#3498db", // Blue for cached retention
-                    "Retained in cache",
-                    entry.getConfiguration().hashCode()
-                ));
-            }
         }
 
-        return new TimelineData(timelineEntries, earliestCreation, latestAccess);
+        return new TimelineData(timelineEntries, earliestCreation, latestAccess, events);
     }
 
     /**
@@ -517,20 +504,27 @@ public class ContextCacheTracker {
         private final List<TimelineEntry> entries;
         private final Instant startTime;
         private final Instant endTime;
+        private final List<ContextTimelineEvent> events;
 
-        public TimelineData(List<TimelineEntry> entries, Instant startTime, Instant endTime) {
+        public TimelineData(List<TimelineEntry> entries, Instant startTime, Instant endTime, List<ContextTimelineEvent> events) {
             this.entries = entries;
             this.startTime = startTime;
             this.endTime = endTime;
+            this.events = events;
         }
 
         public List<TimelineEntry> getEntries() { return entries; }
         public Instant getStartTime() { return startTime; }
         public Instant getEndTime() { return endTime; }
+        public List<ContextTimelineEvent> getEvents() { return events; }
 
         public long getTotalDurationMs() {
             return startTime != null && endTime != null ? 
                 java.time.Duration.between(startTime, endTime).toMillis() : 0;
+        }
+
+        public long getTotalDurationSeconds() {
+            return getTotalDurationMs() / 1000;
         }
     }
 
@@ -619,6 +613,38 @@ public class ContextCacheTracker {
         public long getLoadTimeMs() { return loadTimeMs; }
         public int getBeanCount() { return beanCount; }
         public String getRecommendation() { return recommendation; }
+    }
+
+    /**
+     * Timeline event for Chart.js visualization showing context creation timing.
+     */
+    public static class ContextTimelineEvent {
+        private final String contextName;
+        private final String color;
+        private final long creationTimeSeconds;
+        private final long loadTimeMs;
+        private final int testClassCount;
+        private final int cacheHitCount;
+        private final int beanCount;
+
+        public ContextTimelineEvent(String contextName, String color, long creationTimeSeconds, 
+                                  long loadTimeMs, int testClassCount, int cacheHitCount, int beanCount) {
+            this.contextName = contextName;
+            this.color = color;
+            this.creationTimeSeconds = creationTimeSeconds;
+            this.loadTimeMs = loadTimeMs;
+            this.testClassCount = testClassCount;
+            this.cacheHitCount = cacheHitCount;
+            this.beanCount = beanCount;
+        }
+
+        public String getContextName() { return contextName; }
+        public String getColor() { return color; }
+        public long getCreationTimeSeconds() { return creationTimeSeconds; }
+        public long getLoadTimeMs() { return loadTimeMs; }
+        public int getTestClassCount() { return testClassCount; }
+        public int getCacheHitCount() { return cacheHitCount; }
+        public int getBeanCount() { return beanCount; }
     }
 
     /**

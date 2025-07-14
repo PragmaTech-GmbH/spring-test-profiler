@@ -1,91 +1,92 @@
 package digital.pragmatech.testing;
 
-import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TestExecutionDataTest {
 
-    @Test
-    void testConstructorAndGetters() {
-        Instant startTime = Instant.now();
-        TestExecutionData data = new TestExecutionData("com.example.TestClass#testMethod", startTime);
+  @Test
+  void testConstructorAndGetters() {
+    Instant startTime = Instant.now();
+    TestExecutionData data = new TestExecutionData("com.example.TestClass#testMethod", startTime);
 
-        assertEquals("com.example.TestClass#testMethod", data.getTestId());
-        assertEquals(startTime, data.getStartTime());
-        assertNull(data.getEndTime());
-        assertEquals(TestStatus.RUNNING, data.getStatus());
-        assertNull(data.getThrowable());
-        assertNull(data.getReason());
-    }
+    assertEquals("com.example.TestClass#testMethod", data.getTestId());
+    assertEquals(startTime, data.getStartTime());
+    assertNull(data.getEndTime());
+    assertEquals(TestStatus.RUNNING, data.getStatus());
+    assertNull(data.getThrowable());
+    assertNull(data.getReason());
+  }
 
-    @Test
-    void testDurationCalculation() {
-        Instant startTime = Instant.now();
-        TestExecutionData data = new TestExecutionData("test#method", startTime);
+  @Test
+  void testDurationCalculation() {
+    Instant startTime = Instant.now();
+    TestExecutionData data = new TestExecutionData("test#method", startTime);
 
-        // Initially no duration
-        assertNull(data.getDuration());
+    // Initially no duration
+    assertNull(data.getDuration());
 
-        // Set end time and check duration
-        Instant endTime = startTime.plusMillis(500);
-        data.setEndTime(endTime);
+    // Set end time and check duration
+    Instant endTime = startTime.plusMillis(500);
+    data.setEndTime(endTime);
 
-        assertEquals(Duration.ofMillis(500), data.getDuration());
-    }
+    assertEquals(Duration.ofMillis(500), data.getDuration());
+  }
 
-    @Test
-    void testTestMethodNameExtraction() {
-        TestExecutionData data = new TestExecutionData("com.example.TestClass#testMethod", Instant.now());
+  @Test
+  void testTestMethodNameExtraction() {
+    TestExecutionData data = new TestExecutionData("com.example.TestClass#testMethod", Instant.now());
 
-        assertEquals("testMethod", data.getTestMethodName());
-        assertEquals("com.example.TestClass", data.getTestClassName());
-    }
+    assertEquals("testMethod", data.getTestMethodName());
+    assertEquals("com.example.TestClass", data.getTestClassName());
+  }
 
-    @Test
-    void testTestMethodNameExtractionWithNestedClass() {
-        TestExecutionData data = new TestExecutionData("com.example.OuterClass$InnerClass#testMethod", Instant.now());
+  @Test
+  void testTestMethodNameExtractionWithNestedClass() {
+    TestExecutionData data = new TestExecutionData("com.example.OuterClass$InnerClass#testMethod", Instant.now());
 
-        assertEquals("testMethod", data.getTestMethodName());
-        assertEquals("com.example.OuterClass$InnerClass", data.getTestClassName());
-    }
+    assertEquals("testMethod", data.getTestMethodName());
+    assertEquals("com.example.OuterClass$InnerClass", data.getTestClassName());
+  }
 
-    @Test
-    void testStatusTransitions() {
-        TestExecutionData data = new TestExecutionData("test#method", Instant.now());
+  @Test
+  void testStatusTransitions() {
+    TestExecutionData data = new TestExecutionData("test#method", Instant.now());
 
-        assertEquals(TestStatus.RUNNING, data.getStatus());
+    assertEquals(TestStatus.RUNNING, data.getStatus());
 
-        data.setStatus(TestStatus.PASSED);
-        assertEquals(TestStatus.PASSED, data.getStatus());
+    data.setStatus(TestStatus.PASSED);
+    assertEquals(TestStatus.PASSED, data.getStatus());
 
-        data.setStatus(TestStatus.FAILED);
-        assertEquals(TestStatus.FAILED, data.getStatus());
-    }
+    data.setStatus(TestStatus.FAILED);
+    assertEquals(TestStatus.FAILED, data.getStatus());
+  }
 
-    @Test
-    void testFailureWithThrowable() {
-        TestExecutionData data = new TestExecutionData("test#method", Instant.now());
-        Exception exception = new RuntimeException("Test failed");
+  @Test
+  void testFailureWithThrowable() {
+    TestExecutionData data = new TestExecutionData("test#method", Instant.now());
+    Exception exception = new RuntimeException("Test failed");
 
-        data.setStatus(TestStatus.FAILED);
-        data.setThrowable(exception);
+    data.setStatus(TestStatus.FAILED);
+    data.setThrowable(exception);
 
-        assertEquals(TestStatus.FAILED, data.getStatus());
-        assertEquals(exception, data.getThrowable());
-    }
+    assertEquals(TestStatus.FAILED, data.getStatus());
+    assertEquals(exception, data.getThrowable());
+  }
 
-    @Test
-    void testDisabledWithReason() {
-        TestExecutionData data = new TestExecutionData("test#method", Instant.now());
+  @Test
+  void testDisabledWithReason() {
+    TestExecutionData data = new TestExecutionData("test#method", Instant.now());
 
-        data.setStatus(TestStatus.DISABLED);
-        data.setReason("Feature not implemented yet");
+    data.setStatus(TestStatus.DISABLED);
+    data.setReason("Feature not implemented yet");
 
-        assertEquals(TestStatus.DISABLED, data.getStatus());
-        assertEquals("Feature not implemented yet", data.getReason());
-    }
+    assertEquals(TestStatus.DISABLED, data.getStatus());
+    assertEquals("Feature not implemented yet", data.getReason());
+  }
 }
