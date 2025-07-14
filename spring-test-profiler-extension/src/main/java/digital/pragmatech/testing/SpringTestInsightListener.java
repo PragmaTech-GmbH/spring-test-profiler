@@ -35,6 +35,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
 
   // Static flag to ensure report is generated only once
   private static volatile boolean reportGenerated = false;
+  private static volatile boolean shutdownHookRegistered = false;
 
   // Hold a reference to a TestContext so we can access the cache later
   private static final AtomicReference<TestContext> lastTestContext = new AtomicReference<>();
@@ -51,6 +52,9 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     String className = testClass.getName();
 
     logger.debug("Starting Spring Test Insight for test class: {}", className);
+
+    // Register shutdown hook once to generate report when JVM exits
+    registerShutdownHook();
 
     // Start tracking if this is the first test class
     if (executionTracker.getTotalTestClasses() == 0) {
@@ -199,7 +203,25 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
   }
 
   /**
-   * Called by the JUnit extension to generate the final report.
+   * Registers a shutdown hook to ensure report generation when JVM exits.
+   * This is called once when the first test class is processed.
+   */
+  private static void registerShutdownHook() {
+    if (!shutdownHookRegistered) {
+      synchronized (SpringTestInsightListener.class) {
+        if (!shutdownHookRegistered) {
+          Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            generateReport("default");
+          }, "SpringTestInsightReportGenerator"));
+          shutdownHookRegistered = true;
+          logger.debug("Registered shutdown hook for Spring Test Insight report generation");
+        }
+      }
+    }
+  }
+
+  /**
+   * Called by the shutdown hook or manually to generate the final report.
    */
   public static void generateReport(String phase) {
     synchronized (SpringTestInsightListener.class) {
