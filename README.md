@@ -6,9 +6,6 @@
 
 A Spring Test utility that provides visualization and insights for Spring Test execution, with a focus on Spring context caching statistics.
 
-
-[![Build & Test Maven Project (main)](https://github.com/PragmaTech-GmbH/spring-test-profiler/workflows/CI/badge.svg)](https://github.com/PragmaTech-GmbH/spring-test-profiler/actions/workflows/ci.yml?query=branch%3Amain)
-
 ## Features
 
 - Track Spring Test context caching statistics for your test suite
@@ -18,6 +15,8 @@ A Spring Test utility that provides visualization and insights for Spring Test e
 - Works with both Maven Surefire/Failsafe and Gradle test tasks
 
 ## Requirements
+
+[![Build & Test Maven Project (main)](https://github.com/PragmaTech-GmbH/spring-test-profiler/workflows/CI/badge.svg)](https://github.com/PragmaTech-GmbH/spring-test-profiler/actions/workflows/ci.yml?query=branch%3Amain)
 
 This profiler works with Java 17+ and is compatible with Spring Framework 6.X (aka. Spring Boot 3.X).
 
