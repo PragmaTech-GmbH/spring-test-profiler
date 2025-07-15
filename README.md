@@ -1,6 +1,8 @@
 # Spring Test Profiler
 
-![](docs/resources/spring-test-profiler-logo-three-256x256.png)
+<p align="center">
+  <img src="docs/resources/spring-test-profiler-logo-three-256x256.png" alt="Spring Test Profiler Logo" />
+</p>
 
 A Spring Test utility that provides visualization and insights for Spring Test execution, with a focus on Spring context caching statistics.
 
