@@ -58,6 +58,8 @@ testImplementation('digital.pragmatech.testing:spring-test-profiler:0.9.0')
 
 ### 2. Activate the Profiler
 
+Pick **either one** of the following methods to activate the profiler in your tests.
+
 #### Automatically for all Your Tests (Recommended)
 
 Add a file named `META-INF/spring.factories` to your resources directory with the following content:
