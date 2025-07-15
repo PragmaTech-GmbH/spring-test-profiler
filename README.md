@@ -107,7 +107,7 @@ After test execution, find the HTML report at:
 
 Found a bug? Please help us improve by reporting it:
 
-1. **Search existing issues** at https://github.com/rieckpil/spring-test-profiler/issues
+1. **Search existing issues** at https://github.com/PragmaTech-GmbH/spring-test-profiler/issues
 2. **Create a new issue** with:
    - Clear description of the problem
    - Steps to reproduce
