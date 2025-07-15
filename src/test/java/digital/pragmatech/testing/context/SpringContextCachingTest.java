@@ -1,4 +1,4 @@
-package digital.pragmatech.testing;
+package digital.pragmatech.testing.context;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,7 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SpringContextCachingTest.FirstConfig.class)
+@ContextConfiguration(classes = SpringContextCachingTest.FirstConfig.class, initializers = SlowContextInitializer.class)
 class SpringContextCachingTest {
 
   @Autowired
@@ -28,7 +28,7 @@ class SpringContextCachingTest {
   }
 
   @Nested
-  @ContextConfiguration(classes = SecondConfig.class)
+  @ContextConfiguration(classes = SecondConfig.class, initializers = SlowContextInitializer.class)
   class DifferentContextTest {
 
     @Autowired
@@ -43,6 +43,7 @@ class SpringContextCachingTest {
 
   @Configuration
   static class SecondConfig {
+
   }
 
   @Nested

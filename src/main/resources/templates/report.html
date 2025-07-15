@@ -1,84 +1,88 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">Spring Test Insight Report</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
-    <style th:utext="${cssContent}"></style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">
+    Spring Test Insight Report</title>
+  <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
+  <style th:utext="${cssContent}"></style>
 </head>
 <body>
-    <div class="container">
-        <h1 th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">Spring Test Insight Report</h1>
-        <div class="timestamp" th:text="${'Generated at: ' + generatedAt}">Generated at: 2025-01-01 12:00:00</div>
+<div class="container">
+  <h1 th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">
+    Spring Test Insight Report</h1>
+  <div class="timestamp" th:text="${'Generated at: ' + generatedAt}">Generated at: 2025-01-01 12:00:00</div>
 
-        <!-- Theory Section Fragment -->
-        <div th:replace="~{fragments/theory :: theory-section}"></div>
+  <!-- Theory Section Fragment -->
+  <div th:replace="~{fragments/theory :: theory-section}"></div>
 
-        <!-- Summary Section Fragment -->
-        <div th:replace="~{fragments/summary :: summary-section(${executionTracker}, ${cacheStats})}"></div>
+  <!-- Summary Section Fragment -->
+  <div th:replace="~{fragments/summary :: summary-section(${executionTracker}, ${cacheStats})}"></div>
 
-        <!-- Context Caching Statistics Fragment -->
-        <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
+  <!-- Context Caching Statistics Fragment -->
+  <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
 
-        <!-- Optimization Recommendations Fragment -->
-        <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>
+  <!-- Optimization Recommendations Fragment -->
+  <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>
 
-        <!-- Timeline Visualization Fragment -->
-        <div th:replace="~{fragments/timeline :: timeline-section(${timelineData})}"></div>
+  <!-- Timeline Visualization Fragment -->
+  <div th:replace="~{fragments/timeline :: timeline-section(${timelineData}, ${jsonHelper})}"></div>
 
-        <!-- Context Configurations Fragment -->
-        <div th:replace="~{fragments/configurations :: configurations-section}"></div>
+  <!-- Context Configurations Fragment -->
+  <div th:replace="~{fragments/configurations :: configurations-section}"></div>
 
-        <!-- Test Execution Details Fragment -->
-        <div th:replace="~{fragments/test-execution :: test-execution-section(${executionTracker})}"></div>
+  <!-- Test Execution Details Fragment -->
+  <div th:replace="~{fragments/test-execution :: test-execution-section(${executionTracker})}"></div>
 
-    </div>
+</div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <p>
-                Generated on <span th:text="${generatedAt}">2025-01-01 12:00:00</span>
-                by <strong>Spring Test Profiler</strong>
-                <span th:text="${extensionVersion}">v0.0.1-SNAPSHOT</span>
-            </p>
-            <p>
-                <a href="https://pragmatech.digital" target="_blank" rel="noopener noreferrer">
-                    PragmaTech GmbH
-                </a>
-                |
-                <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler" target="_blank" rel="noopener noreferrer">
-                    GitHub
-                </a>
-              |
-              <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler/issues" target="_blank" rel="noopener noreferrer">
-                Submit a Bug/Feature Request
-              </a>
-            </p>
-        </div>
-    </footer>
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-content">
+    <p>
+      Get help with optimizing your Spring Boot test suite at
+      <a href="https://pragmatech.digital" target="_blank" rel="noopener noreferrer">
+        PragmaTech GmbH
+      </a>
+    </p>
+    <p>
+      Generated on <span th:text="${generatedAt}">2025-01-01 12:00:00</span>
+      by <strong>Spring Test Profiler</strong>
+      <span th:text="${extensionVersion}">v0.0.1-SNAPSHOT</span>
+    </p>
+    <p>
+      <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler" target="_blank" rel="noopener noreferrer">GitHub</a>
+      |
+      <a href="https://pragmatech.digital/products/" target="_blank" rel="noopener noreferrer">Documentation</a>
+      |
+      <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler/issues" target="_blank"
+         rel="noopener noreferrer">Submit a Bug or Feature Request</a>
+    </p>
+  </div>
+</footer>
 
-    <script>
-        function toggleClass(element) {
-            const methods = element.nextElementSibling;
-            methods.classList.toggle('show');
-        }
+<script>
+  function toggleClass(element) {
+    const methods = element.nextElementSibling;
+    methods.classList.toggle('show');
+  }
 
-        function toggleTheorySection() {
-            const content = document.getElementById('theory-content');
-            const icon = document.getElementById('theory-toggle-icon');
+  function toggleTheorySection() {
+    const content = document.getElementById('theory-content');
+    const icon = document.getElementById('theory-toggle-icon');
 
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                icon.textContent = '▼';
-                icon.classList.add('expanded');
-            } else {
-                content.style.display = 'none';
-                icon.textContent = '▶';
-                icon.classList.remove('expanded');
-            }
-        }
-    </script>
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      icon.textContent = '▼';
+      icon.classList.add('expanded');
+    } else {
+      content.style.display = 'none';
+      icon.textContent = '▶';
+      icon.classList.remove('expanded');
+    }
+  }
+</script>
 </body>
 </html>

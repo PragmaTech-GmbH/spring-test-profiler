@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="timeline-section(timelineData)" class="timeline-section">
+    <div th:fragment="timeline-section(timelineData, jsonHelper)" class="timeline-section">
         <h2>📊 Context Lifecycle Timeline</h2>
         
         <div th:if="${timelineData != null and timelineData.events.size() > 0}" class="timeline-content">
@@ -99,7 +99,7 @@
                 const ctx = document.getElementById('contextTimelineChart');
                 if (ctx) {
                     // Get timeline events data
-                    const events = /*[[${timelineData.events}]]*/ [];
+                    const events = /*[(${jsonHelper.timelineEventsToJson(timelineData)})]*/ [];
                     const totalDurationSeconds = /*[[${timelineData.totalDurationSeconds}]]*/ 0;
                     
                     // Prepare data for scatter plot timeline visualization

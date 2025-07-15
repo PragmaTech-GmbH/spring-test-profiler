@@ -305,6 +305,7 @@ public class TestExecutionReporter {
     context.setVariable("summaryCalculator", new TemplateHelpers.SummaryCalculator());
     context.setVariable("configurationHelper", new TemplateHelpers.ConfigurationHelper(contextCacheTracker));
     context.setVariable("testStatusCounter", new TemplateHelpers.TestStatusCounter());
+    context.setVariable("jsonHelper", new TemplateHelpers.JsonHelper());
   }
 
   private String loadCssContent() {

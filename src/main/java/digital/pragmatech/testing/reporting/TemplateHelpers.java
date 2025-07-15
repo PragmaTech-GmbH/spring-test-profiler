@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.ContextCacheEntry;
+import digital.pragmatech.testing.ContextTimelineEvent;
+import digital.pragmatech.testing.TimelineData;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import digital.pragmatech.testing.SpringContextStatistics;
 import digital.pragmatech.testing.TestClassExecutionData;
 import digital.pragmatech.testing.TestExecutionData;
@@ -288,6 +292,31 @@ public class TemplateHelpers {
       }
 
       return allCacheKeyInfo;
+    }
+  }
+
+  public static class JsonHelper {
+    private static final ObjectMapper objectMapper = createObjectMapper();
+
+    private static ObjectMapper createObjectMapper() {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new JavaTimeModule());
+      return mapper;
+    }
+
+    public String toJson(Object object) {
+      try {
+        return objectMapper.writeValueAsString(object);
+      } catch (Exception e) {
+        return "[]";
+      }
+    }
+
+    public String timelineEventsToJson(TimelineData timelineData) {
+      if (timelineData == null || timelineData.events() == null) {
+        return "[]";
+      }
+      return toJson(timelineData.events());
     }
   }
 }
