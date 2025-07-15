@@ -36,8 +36,8 @@
     <junit-jupiter.version>5.13.2</junit-jupiter.version>
     <assertj.version>3.26.3</assertj.version>
 
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <project.build.outputTimestamp>2025-07-14T14:06:35Z</project.build.outputTimestamp>

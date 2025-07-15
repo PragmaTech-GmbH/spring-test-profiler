@@ -13,7 +13,6 @@ import org.springframework.test.context.BootstrapUtils;
 import org.springframework.test.context.MergedContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestContextBootstrapper;
-import org.springframework.test.context.cache.ContextCache;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 
 /**
@@ -118,10 +117,10 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
           profileData = TimingTrackingApplicationContextInitializer
             .getContextProfileData((org.springframework.context.ConfigurableApplicationContext) testContext.getApplicationContext());
         }
-        
+
         if (profileData != null) {
-          logger.debug("Enhanced context profiling available for test class {} - Total time: {}ms, Memory: {}MB, Beans: {}", 
-            className, profileData.getTotalLoadTimeMs(), profileData.getMemoryUsedMB(), 
+          logger.debug("Enhanced context profiling available for test class {} - Total time: {}ms, Memory: {}MB, Beans: {}",
+            className, profileData.getTotalLoadTimeMs(), profileData.getMemoryUsedMB(),
             profileData.getBeanCreationMetrics() != null ? profileData.getBeanCreationMetrics().getTotalBeansCreated() : "unknown");
         }
 
@@ -289,7 +288,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     org.springframework.test.context.cache.ContextCache cache = getContextCache();
     return SpringContextCacheAccessor.getCacheStatistics(cache);
   }
-  
+
   /**
    * Gets all enhanced profile data from ApplicationContextInitializer profiling.
    */

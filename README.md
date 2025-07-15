@@ -9,19 +9,32 @@ A JUnit Jupiter extension that provides visualization and insights for Spring Te
 
 ## Features
 
-- Visualize test results in a clean HTML report
-- Track Spring Test context caching statistics
+- Track Spring Test context caching statistics for your test suite
 - Show context reuse metrics and cache hit/miss ratios
 - Identify tests that couldn't reuse contexts and explain why
-- Support for Spring 6+ and Java 21+
-- Easy integration via `@ExtendWith` or automatic service loader activation
+- Easy integration with a `spring.factories` file or `@TestExecutionListeners` annotation
 - Works with both Maven Surefire/Failsafe and Gradle test tasks
+
+## Requirements
+
+This profiler works with Java 17+ and is compatible with Spring Framework 6.X (aka. Spring Boot 3.X).
+
+## Prototype Phase
+
+This project is highly work-in-progress. What's currently not working or missing:
+
+- Support for parallel test execution
+- Fully-fledged visualization of the contexts on a timeline
+- For each Gradle test task, a separate HTML report is generated
+- For Surefire and Failsafe, a separate HTML report is generated
 
 ## Usage
 
 [![](https://img.shields.io/badge/Latest%20Version-0.9.0-orange)](/spring-test-profiler-extension/pom.xml)
 
-### Quick Start Maven
+### 1. Add the Dependency
+
+#### Quick Start Maven
 
 Add the dependency to your project:
 
@@ -34,8 +47,7 @@ Add the dependency to your project:
 </dependency>
 ```
 
-
-### Quick Start Gradle
+#### Quick Start Gradle
 
 Add the dependency to your project:
 
@@ -44,29 +56,49 @@ testImplementation('digital.pragmatech.testing:spring-test-profiler:0.9.0')
 ```
 
 
-### Automatic Activation (Recommended)
+### 2. Activate the Profiler
 
-TBD
+#### Automatically for all Your Tests (Recommended)
 
-### Running Tests
+Add a file named `META-INF/spring.factories` to your resources directory with the following content:
 
-Execute your tests normally:
+```text
+org.springframework.test.context.TestExecutionListener=\
+digital.pragmatech.testing.SpringTestInsightListener
+```
+
+#### Manually for Specific Tests
+
+Add the `@TestExecutionListeners` annotation to your test classes:
+
+```java
+@TestExecutionListeners(
+  value = {SpringTestInsightListener.class},
+  mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS
+)
+```
+
+### 3. Run Your Tests
+
+Execute your tests:
 
 ```bash
 # Maven
-mvn test
+./mvnw verify
 
 # Gradle
-./gradlew test
+./gradlew build
 ```
 
-### Viewing Reports
+### 4. Analyze the Generated Report
 
 After test execution, find the HTML report at:
+
 - Maven: `target/spring-test-profiler/latest.html`
 - Gradle: `build/spring-test-profiler/latest.html`
 
 ### Demo Report
+
 
 
 ## Bug Reports
