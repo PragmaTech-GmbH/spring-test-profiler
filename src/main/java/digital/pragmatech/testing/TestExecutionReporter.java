@@ -9,8 +9,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import digital.pragmatech.testing.reporting.JsonReportGenerator;
+import digital.pragmatech.testing.reporting.json.JsonReportGenerator;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
+import digital.pragmatech.testing.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.TemplateEngine;
@@ -242,7 +243,7 @@ public class TestExecutionReporter {
       context.setVariable("timeZone", ZoneId.systemDefault().getId());
 
       // Extension version info
-      context.setVariable("extensionVersion", getExtensionVersion());
+      context.setVariable("extensionVersion", VersionInfo.getVersion());
 
       // Pre-compute test status counts to avoid complex template expressions
       Map<String, TestExecutionTracker.TestClassMetrics> classMetrics = executionTracker.getClassMetrics();
@@ -263,12 +264,12 @@ public class TestExecutionReporter {
 
       // Calculate and add optimization statistics
       if (contextCacheTracker != null) {
-        ContextCacheTracker.OptimizationStatistics optimizationStats =
+        OptimizationStatistics optimizationStats =
           contextCacheTracker.calculateOptimizationStatistics();
         context.setVariable("optimizationStats", optimizationStats);
 
         // Add timeline data for visualization
-        ContextCacheTracker.TimelineData timelineData = contextCacheTracker.getTimelineData();
+        TimelineData timelineData = contextCacheTracker.getTimelineData();
         context.setVariable("timelineData", timelineData);
       }
 
@@ -303,7 +304,6 @@ public class TestExecutionReporter {
     context.setVariable("cacheKeyProcessor", new TemplateHelpers.CacheKeyProcessor());
     context.setVariable("summaryCalculator", new TemplateHelpers.SummaryCalculator());
     context.setVariable("configurationHelper", new TemplateHelpers.ConfigurationHelper(contextCacheTracker));
-    context.setVariable("contextConfigurationDetector", ContextConfigurationDetector.class);
     context.setVariable("testStatusCounter", new TemplateHelpers.TestStatusCounter());
   }
 
@@ -321,40 +321,6 @@ public class TestExecutionReporter {
     catch (Exception e) {
       logger.error("Could not load CSS file. Report generation will fail.", e);
       throw new RuntimeException("CSS file not found", e);
-    }
-  }
-
-  /**
-   * Gets the extension version from the package implementation version.
-   * This works when the extension is packaged as a JAR with proper manifest.
-   */
-  private String getExtensionVersion() {
-    try {
-      // Try to get version from the package implementation version (works when JAR has proper manifest)
-      Package pkg = TestExecutionReporter.class.getPackage();
-      if (pkg != null && pkg.getImplementationVersion() != null) {
-        return "v" + pkg.getImplementationVersion();
-      }
-
-      // Fallback: try to read from Maven properties file
-      try (var inputStream = getClass().getClassLoader()
-        .getResourceAsStream("META-INF/maven/digital.pragmatech/spring-test-profiler/pom.properties")) {
-        if (inputStream != null) {
-          var properties = new java.util.Properties();
-          properties.load(inputStream);
-          String version = properties.getProperty("version");
-          if (version != null) {
-            return "v" + version;
-          }
-        }
-      }
-
-      // Final fallback
-      return "v0.0.1-SNAPSHOT";
-    }
-    catch (Exception e) {
-      logger.debug("Could not determine extension version", e);
-      return "v0.0.1-SNAPSHOT";
     }
   }
 

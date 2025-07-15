@@ -1,4 +1,4 @@
-package digital.pragmatech.testing;
+package digital.pragmatech.testing.util;
 
 import java.util.Arrays;
 

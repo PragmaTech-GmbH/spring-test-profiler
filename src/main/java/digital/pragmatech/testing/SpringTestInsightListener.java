@@ -113,7 +113,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
 
         // Now check if this was a cache hit or miss
         // If the context was already tracked as created for another test, it's a hit
-        Optional<ContextCacheTracker.ContextCacheEntry> entry = contextCacheTracker.getCacheEntry(mergedConfig);
+        Optional<ContextCacheEntry> entry = contextCacheTracker.getCacheEntry(mergedConfig);
         if (entry.isPresent() && entry.get().isCreated()) {
           contextCacheTracker.recordContextCacheHit(mergedConfig);
           logger.debug("Context cache hit for test class {} ({}ms)", className, contextLoadDurationMs);
@@ -238,7 +238,6 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
 
         // Clear data
         contextCacheTracker.clear();
-        ContextConfigurationDetector.clear();
         reportGenerated = true;
       }
     }

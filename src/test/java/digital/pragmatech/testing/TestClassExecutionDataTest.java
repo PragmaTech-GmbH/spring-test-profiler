@@ -49,9 +49,9 @@ class TestClassExecutionDataTest {
       contextStatistics
     );
 
-    assertEquals("com.example.TestClass", classData.getClassName());
-    assertEquals(testExecutions, classData.getTestExecutions());
-    assertEquals(contextStatistics, classData.getContextStatistics());
+    assertEquals("com.example.TestClass", classData.className());
+    assertEquals(testExecutions, classData.testExecutions());
+    assertEquals(contextStatistics, classData.contextStatistics());
   }
 
   @Test
@@ -136,7 +136,7 @@ class TestClassExecutionDataTest {
       contextStatistics
     );
 
-    assertEquals(1, classData.getContextStatistics().getContextLoads());
-    assertEquals(1, classData.getContextStatistics().getCacheHits());
+    assertEquals(1, classData.contextStatistics().getContextLoads());
+    assertEquals(1, classData.contextStatistics().getCacheHits());
   }
 }

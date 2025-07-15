@@ -1,5 +1,5 @@
 
-package digital.pragmatech.testing.reporting;
+package digital.pragmatech.testing.reporting.json;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,37 +50,10 @@ public class JsonReportGenerator {
     }
   }
 
-  // A simple data holder class for serialization
-  private static class ReportData {
-    private final String phase;
-    private final TestExecutionTracker executionTracker;
-    private final SpringContextCacheAccessor.CacheStatistics cacheStats;
-    private final ContextCacheTracker contextCacheTracker;
-
-    public ReportData(String phase, TestExecutionTracker executionTracker,
-      SpringContextCacheAccessor.CacheStatistics cacheStats,
-      ContextCacheTracker contextCacheTracker) {
-      this.phase = phase;
-      this.executionTracker = executionTracker;
-      this.cacheStats = cacheStats;
-      this.contextCacheTracker = contextCacheTracker;
-    }
-
-    // Getters are needed by Jackson for serialization
-    public String getPhase() {
-      return phase;
-    }
-
-    public TestExecutionTracker getExecutionTracker() {
-      return executionTracker;
-    }
-
-    public SpringContextCacheAccessor.CacheStatistics getCacheStats() {
-      return cacheStats;
-    }
-
-    public ContextCacheTracker getContextCacheTracker() {
-      return contextCacheTracker;
-    }
+  private record ReportData(
+    String phase,
+    TestExecutionTracker executionTracker,
+    SpringContextCacheAccessor.CacheStatistics cacheStats,
+    ContextCacheTracker contextCacheTracker) {
   }
 }
