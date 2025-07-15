@@ -125,7 +125,6 @@ We welcome contributions! Here's how to get started:
 2. **Build the project**:
 
 ```bash
-cd spring-test-profiler-extension
 ./mvnw install
 ```
 
