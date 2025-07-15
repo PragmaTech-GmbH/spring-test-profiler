@@ -4,15 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">
-    Spring Test Insight Report</title>
+    Spring Test Profiler Report</title>
   <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
   <style th:utext="${cssContent}"></style>
 </head>
 <body>
 <div class="container">
-  <h1 th:text="${'Spring Test Insight Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">
-    Spring Test Insight Report</h1>
+  <h1 th:text="${'Spring Test Profiler Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">
+    Spring Test Profiler Report</h1>
+  <p>Understanding when and how many Spring ApplicationContexts are created in your test suite allows you to optimize build times by leveraging Spring TestContext's context caching feature, which reuses already started contexts.</p>
+  <br/>
   <div class="timestamp" th:text="${'Generated at: ' + generatedAt}">Generated at: 2025-01-01 12:00:00</div>
 
   <!-- Theory Section Fragment -->

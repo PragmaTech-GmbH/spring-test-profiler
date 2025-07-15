@@ -13,6 +13,7 @@ import org.springframework.test.context.BootstrapUtils;
 import org.springframework.test.context.MergedContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestContextBootstrapper;
+import org.springframework.test.context.cache.ContextCache;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 
 /**
@@ -65,11 +66,11 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     testClassNames.put(testContext, className);
     executionTracker.recordTestClassStart(className);
 
-    // Start timing context loading for this test class
-    contextLoadStartTimes.put(testContext, Instant.now());
-
     // Capture the TestContext reference for cache access
     lastTestContext.set(testContext);
+
+    // Start timing context loading for this test class
+    contextLoadStartTimes.put(testContext, Instant.now());
 
     // Extract and track context configuration
     try {
@@ -109,6 +110,19 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
         long contextLoadDurationMs = 0;
         if (contextLoadStartTime != null) {
           contextLoadDurationMs = java.time.Duration.between(contextLoadStartTime, contextLoadEndTime).toMillis();
+        }
+
+        // Try to get enhanced profile data from ApplicationContextInitializer
+        ContextProfileData profileData = null;
+        if (testContext.getApplicationContext() instanceof org.springframework.context.ConfigurableApplicationContext) {
+          profileData = TimingTrackingApplicationContextInitializer
+            .getContextProfileData((org.springframework.context.ConfigurableApplicationContext) testContext.getApplicationContext());
+        }
+        
+        if (profileData != null) {
+          logger.debug("Enhanced context profiling available for test class {} - Total time: {}ms, Memory: {}MB, Beans: {}", 
+            className, profileData.getTotalLoadTimeMs(), profileData.getMemoryUsedMB(), 
+            profileData.getBeanCreationMetrics() != null ? profileData.getBeanCreationMetrics().getTotalBeansCreated() : "unknown");
         }
 
         // Now check if this was a cache hit or miss
@@ -274,5 +288,12 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
   public static SpringContextCacheAccessor.CacheStatistics getCacheStatistics() {
     org.springframework.test.context.cache.ContextCache cache = getContextCache();
     return SpringContextCacheAccessor.getCacheStatistics(cache);
+  }
+  
+  /**
+   * Gets all enhanced profile data from ApplicationContextInitializer profiling.
+   */
+  public static Map<String, ContextProfileData> getAllEnhancedProfileData() {
+    return TimingTrackingApplicationContextInitializer.getAllProfileData();
   }
 }

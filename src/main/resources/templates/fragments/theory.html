@@ -5,13 +5,13 @@
         <div class="theory-header" onclick="toggleTheorySection()">
             <h2>
                 <span class="toggle-icon" id="theory-toggle-icon">▶</span>
-                Understanding Spring Test Context Caching
+                Understanding Spring TestContext Context Caching
             </h2>
-            <p class="theory-subtitle">Click to learn about Spring Test context caching principles and optimization tips</p>
+            <p class="theory-subtitle">Click to learn about Spring TestContext context caching principles and optimization tips</p>
         </div>
         <div class="theory-content" id="theory-content" style="display: none;">
             <p>Spring Test Framework provides <strong>context caching</strong> to improve test performance by reusing ApplicationContext instances across multiple test classes when they share the same configuration.</p>
-            
+
             <h3>How Context Caching Works</h3>
             <p>Spring generates a <strong>cache key</strong> based on:</p>
             <ul>
@@ -22,7 +22,7 @@
                 <li><strong>Context Initializers</strong> - Custom context initializers</li>
                 <li><strong>Context Customizers</strong> - Customizers from test slices like @WebMvcTest</li>
             </ul>
-            
+
             <div class="cache-behavior">
                 <div class="cache-hit">
                     <h4>🎯 Cache Hit</h4>
@@ -33,7 +33,7 @@
                     <p>When a test class has a <em>different configuration</em>, Spring creates a new ApplicationContext. This takes more time but ensures test isolation.</p>
                 </div>
             </div>
-            
+
             <h3>Optimization Tips</h3>
             <ul>
                 <li><strong>Group similar tests:</strong> Use the same @ContextConfiguration across related test classes</li>
@@ -41,7 +41,7 @@
                 <li><strong>Use test slices:</strong> @WebMvcTest, @DataJpaTest create focused, cacheable contexts</li>
                 <li><strong>Consolidate profiles:</strong> Use consistent @ActiveProfiles across test classes</li>
             </ul>
-            
+
             <div class="docs-links">
                 <h3>📚 Learn More</h3>
                 <p>For detailed information about Spring Test context caching:</p>

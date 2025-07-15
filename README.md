@@ -27,10 +27,10 @@ Add the dependency to your project:
 
 ```xml
 <dependency>
-    <groupId>digital.pragmatech</groupId>
-    <artifactId>spring-test-profiler-extension</artifactId>
-    <version>0.9.0</version>
-    <scope>test</scope>
+  <groupId>digital.pragmatech.testing</groupId>
+  <artifactId>spring-test-profiler</artifactId>
+  <version>0.9.0</version>
+  <scope>test</scope>
 </dependency>
 ```
 
