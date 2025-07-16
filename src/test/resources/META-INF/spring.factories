@@ -1,2 +1,4 @@
 org.springframework.test.context.TestExecutionListener=\
 digital.pragmatech.testing.SpringTestInsightListener
+org.springframework.context.ApplicationContextInitializer=\
+digital.pragmatech.testing.TimingTrackingApplicationContextInitializer

@@ -13,7 +13,8 @@
 <div class="container">
   <h1 th:text="${'Spring Test Profiler Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">
     Spring Test Profiler Report</h1>
-  <p>Understanding when and how many Spring ApplicationContexts are created in your test suite allows you to optimize build times by leveraging Spring TestContext's context caching feature, which reuses already started contexts.</p>
+  <p>Understanding when and how many Spring ApplicationContexts are created in your test suite allows you to optimize
+    build times by leveraging Spring TestContext's context caching feature, which reuses already started contexts.</p>
   <br/>
   <div class="timestamp" th:text="${'Generated at: ' + generatedAt}">Generated at: 2025-01-01 12:00:00</div>
 
@@ -27,10 +28,10 @@
   <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
 
   <!-- Optimization Recommendations Fragment -->
-  <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>
+  <!--  <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>-->
 
   <!-- Timeline Visualization Fragment -->
-  <div th:replace="~{fragments/timeline :: timeline-section(${timelineData}, ${jsonHelper})}"></div>
+  <!--  <div th:replace="~{fragments/timeline :: timeline-section(${timelineData}, ${jsonHelper})}"></div>-->
 
   <!-- Context Configurations Fragment -->
   <div th:replace="~{fragments/configurations :: configurations-section}"></div>
@@ -55,7 +56,8 @@
       <span th:text="${extensionVersion}">v0.0.1-SNAPSHOT</span>
     </p>
     <p>
-      <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler" target="_blank"
+         rel="noopener noreferrer">GitHub</a>
       |
       <a href="https://pragmatech.digital/products/" target="_blank" rel="noopener noreferrer">Documentation</a>
       |

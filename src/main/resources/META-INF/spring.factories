@@ -1,4 +1,0 @@
-# Spring Test Profiler - Automatic Configuration
-# ApplicationContextInitializer for enhanced context profiling
-org.springframework.context.ApplicationContextInitializer=\
-digital.pragmatech.testing.TimingTrackingApplicationContextInitializer

@@ -1,5 +1,6 @@
 package digital.pragmatech.testing.context;
 
+import digital.pragmatech.testing.TimingTrackingApplicationContextInitializer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SpringContextCachingTest.FirstConfig.class, initializers = SlowContextInitializer.class)
+@ContextConfiguration(classes = SpringContextCachingTest.FirstConfig.class, initializers = {TimingTrackingApplicationContextInitializer.class, SlowContextInitializer.class})
 class SpringContextCachingTest {
 
   @Autowired

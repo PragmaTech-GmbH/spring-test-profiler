@@ -2,6 +2,8 @@ package digital.pragmatech.testing;
 
 import java.util.List;
 
+import digital.pragmatech.testing.optimization.ContextOptimizationOpportunity;
+
 /**
  * Statistics about potential optimizations.
  */

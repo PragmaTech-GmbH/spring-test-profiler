@@ -3,6 +3,7 @@ package digital.pragmatech.testing;
 import java.time.Duration;
 import java.time.Instant;
 
+import digital.pragmatech.testing.reporting.TestExecutionData;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

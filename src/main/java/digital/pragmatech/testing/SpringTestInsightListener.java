@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -72,23 +73,16 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
     contextLoadStartTimes.put(testContext, Instant.now());
 
     // Extract and track context configuration
-    try {
-      TestContextBootstrapper bootstrapper = BootstrapUtils.resolveTestContextBootstrapper(testClass);
-      MergedContextConfiguration mergedConfig = bootstrapper.buildMergedContextConfiguration();
+    TestContextBootstrapper bootstrapper = BootstrapUtils.resolveTestContextBootstrapper(testClass);
+    MergedContextConfiguration mergedConfig = bootstrapper.buildMergedContextConfiguration();
 
-      // The cache key is the hashCode of the MergedContextConfiguration
-      int cacheKey = mergedConfig.hashCode();
+    // The cache key is the hashCode of the MergedContextConfiguration
+    int cacheKey = mergedConfig.hashCode();
 
-      // Track the association between context configuration and test class
-      contextCacheTracker.recordTestClassForContext(mergedConfig, className);
+    // Track the association between context configuration and test class
+    contextCacheTracker.recordTestClassForContext(mergedConfig, className);
 
-      logger.info("Test class {} uses context cache key {}", className, cacheKey);
-
-    }
-    catch (Exception e) {
-      logger.warn("Failed to extract context configuration for test class {}: {}",
-        className, e.getMessage());
-    }
+    logger.info("Test class {} uses context cache key {}", className, cacheKey);
   }
 
   @Override
@@ -135,15 +129,12 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
           contextCacheTracker.recordContextCreation(mergedConfig, contextLoadDurationMs);
 
           // Capture bean definitions for context complexity analysis
-          try {
-            String[] beanNames = testContext.getApplicationContext().getBeanDefinitionNames();
-            contextCacheTracker.recordBeanDefinitions(mergedConfig, beanNames);
-            logger.debug("New context created for test class {} with {} bean definitions ({}ms)",
-              className, beanNames.length, contextLoadDurationMs);
-          }
-          catch (Exception beanException) {
-            logger.warn("Failed to capture bean definitions for test class {}: {}", className, beanException.getMessage());
-          }
+
+          String[] beanNames = testContext.getApplicationContext().getBeanDefinitionNames();
+          contextCacheTracker.recordBeanDefinitions(mergedConfig, beanNames);
+          logger.debug("New context created for test class {} with {} bean definitions ({}ms)",
+            className, beanNames.length, contextLoadDurationMs);
+
         }
       }
       catch (Exception e) {
@@ -225,9 +216,9 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
         if (!shutdownHookRegistered) {
           Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             generateReport("default");
-          }, "SpringTestInsightReportGenerator"));
+          }, "SpringTestProfilerReportGenerator"));
           shutdownHookRegistered = true;
-          logger.debug("Registered shutdown hook for Spring Test Insight report generation");
+          logger.debug("Registered shutdown hook for Spring Test Profiler report generation");
         }
       }
     }
@@ -257,20 +248,6 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
   }
 
   /**
-   * Reset the report generation flag (useful for testing or multi-phase builds).
-   */
-  public static void resetReportGeneration() {
-    reportGenerated = false;
-  }
-
-  /**
-   * Get the context cache tracker for external access.
-   */
-  public static ContextCacheTracker getContextCacheTracker() {
-    return contextCacheTracker;
-  }
-
-  /**
    * Gets the Spring ContextCache if available.
    */
   public static org.springframework.test.context.cache.ContextCache getContextCache() {
@@ -287,12 +264,5 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
   public static SpringContextCacheAccessor.CacheStatistics getCacheStatistics() {
     org.springframework.test.context.cache.ContextCache cache = getContextCache();
     return SpringContextCacheAccessor.getCacheStatistics(cache);
-  }
-
-  /**
-   * Gets all enhanced profile data from ApplicationContextInitializer profiling.
-   */
-  public static Map<String, ContextProfileData> getAllEnhancedProfileData() {
-    return TimingTrackingApplicationContextInitializer.getAllProfileData();
   }
 }

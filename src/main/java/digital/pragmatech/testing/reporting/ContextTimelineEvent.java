@@ -1,4 +1,4 @@
-package digital.pragmatech.testing;
+package digital.pragmatech.testing.reporting;
 
 /**
  * Timeline event for Chart.js visualization showing context creation timing.

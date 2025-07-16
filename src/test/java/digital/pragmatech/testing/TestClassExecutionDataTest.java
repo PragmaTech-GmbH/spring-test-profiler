@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+import digital.pragmatech.testing.reporting.TestClassExecutionData;
+import digital.pragmatech.testing.reporting.TestExecutionData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

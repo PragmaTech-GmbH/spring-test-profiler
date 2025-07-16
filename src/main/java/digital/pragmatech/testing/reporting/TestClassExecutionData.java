@@ -1,6 +1,9 @@
-package digital.pragmatech.testing;
+package digital.pragmatech.testing.reporting;
 
 import java.util.Map;
+
+import digital.pragmatech.testing.SpringContextStatistics;
+import digital.pragmatech.testing.TestStatus;
 
 public record TestClassExecutionData(String className, Map<String, TestExecutionData> testExecutions, SpringContextStatistics contextStatistics) {
 

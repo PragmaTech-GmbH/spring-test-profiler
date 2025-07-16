@@ -1,7 +1,9 @@
-package digital.pragmatech.testing;
+package digital.pragmatech.testing.reporting;
 
 import java.time.Duration;
 import java.time.Instant;
+
+import digital.pragmatech.testing.TestStatus;
 
 public class TestExecutionData {
     private final String testId;

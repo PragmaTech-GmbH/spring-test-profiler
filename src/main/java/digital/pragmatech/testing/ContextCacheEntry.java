@@ -173,39 +173,23 @@ public class ContextCacheEntry {
     Map<String, Object> summary = new LinkedHashMap<>();
 
     if (configuration != null) {
-      // Configuration classes
-      List<String> configClasses = Arrays.stream(configuration.getClasses())
+
+      summary.put("configurationClasses", Arrays.stream(configuration.getClasses()).map(Class::getSimpleName).collect(Collectors.toList()));
+
+      summary.put("activeProfiles", Arrays.asList(configuration.getActiveProfiles()));
+      summary.put("contextLoader", configuration.getContextLoader().getClass().getSimpleName());
+
+      summary.put("properties", configuration.getPropertySourceProperties().length + " properties");
+      summary.put("parentContext", configuration.getParent());
+      summary.put("contextCustomizers", configuration.getContextCustomizers());
+      summary.put("locations", String.join(",", configuration.getLocations()));
+
+      summary.put("contextInitializers", configuration.getContextInitializerClasses().stream()
         .map(Class::getSimpleName)
-        .collect(Collectors.toList());
-      if (!configClasses.isEmpty()) {
-        summary.put("configurationClasses", configClasses);
-      }
+        .collect(Collectors.toList()));
 
-      // Active profiles
-      if (configuration.getActiveProfiles().length > 0) {
-        summary.put("activeProfiles", Arrays.asList(configuration.getActiveProfiles()));
-      }
-
-      // Context loader
-      if (configuration.getContextLoader() != null) {
-        summary.put("contextLoader", configuration.getContextLoader().getClass().getSimpleName());
-      }
-
-      // Property sources
-      if (configuration.getPropertySourceProperties().length > 0) {
-        summary.put("properties", configuration.getPropertySourceProperties().length + " properties");
-      }
-
-      // Context initializers
-      if (!configuration.getContextInitializerClasses().isEmpty()) {
-        List<String> initializers = configuration.getContextInitializerClasses().stream()
-          .map(Class::getSimpleName)
-          .collect(Collectors.toList());
-        summary.put("contextInitializers", initializers);
-      }
-
-      // Bean definitions count
       summary.put("beanDefinitionCount", beanDefinitionCount);
+      summary.put("beanDefinitionNames", getBeanDefinitionNames());
     }
 
     return summary;
