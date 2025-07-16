@@ -189,7 +189,6 @@ public class ContextCacheEntry {
         .collect(Collectors.toList()));
 
       summary.put("beanDefinitionCount", beanDefinitionCount);
-      summary.put("beanDefinitionNames", getBeanDefinitionNames());
     }
 
     return summary;
