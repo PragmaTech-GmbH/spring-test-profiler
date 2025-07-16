@@ -16,6 +16,7 @@ import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TimelineData;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
 import digital.pragmatech.testing.reporting.json.JsonReportGenerator;
+import digital.pragmatech.testing.util.BuildToolDetection;
 import digital.pragmatech.testing.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,15 +90,14 @@ public class TestExecutionReporter {
       return Paths.get(customDir);
     }
 
-    // Otherwise, detect build tool and use appropriate directory
-    String buildTool = "maven";
+    BuildToolDetection.BuildTool buildTool = BuildToolDetection.getDetectedBuildTool();
     String baseDir;
 
     switch (buildTool) {
-      case "maven":
+      case MAVEN:
         baseDir = "target";
         break;
-      case "gradle":
+      case GRADLE:
         baseDir = "build";
         break;
       default:

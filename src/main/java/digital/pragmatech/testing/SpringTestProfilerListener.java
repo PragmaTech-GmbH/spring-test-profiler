@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
+import digital.pragmatech.testing.util.BuildToolDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -215,7 +216,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
       synchronized (SpringTestProfilerListener.class) {
         if (!shutdownHookRegistered) {
           Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            generateReport("default");
+            generateReport(BuildToolDetection.getDetectedExecutionEnvironment().name());
           }, "SpringTestProfilerReportGenerator"));
           shutdownHookRegistered = true;
           logger.debug("Registered shutdown hook for Spring Test Profiler report generation");
