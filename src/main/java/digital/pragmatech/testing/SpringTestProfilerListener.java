@@ -20,9 +20,9 @@ import org.springframework.test.context.support.AbstractTestExecutionListener;
  * Spring TestExecutionListener that tracks test execution and context cache usage.
  * This listener runs with highest precedence to capture context loading before Spring's own listeners.
  */
-public class SpringTestInsightListener extends AbstractTestExecutionListener {
+public class SpringTestProfilerListener extends AbstractTestExecutionListener {
 
-  private static final Logger logger = LoggerFactory.getLogger(SpringTestInsightListener.class);
+  private static final Logger logger = LoggerFactory.getLogger(SpringTestProfilerListener.class);
 
   // Shared instances for tracking across all tests
   private static final TestExecutionTracker executionTracker = new TestExecutionTracker();
@@ -212,7 +212,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
    */
   private static void registerShutdownHook() {
     if (!shutdownHookRegistered) {
-      synchronized (SpringTestInsightListener.class) {
+      synchronized (SpringTestProfilerListener.class) {
         if (!shutdownHookRegistered) {
           Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             generateReport("default");
@@ -228,7 +228,7 @@ public class SpringTestInsightListener extends AbstractTestExecutionListener {
    * Called by the shutdown hook or manually to generate the final report.
    */
   public static void generateReport(String phase) {
-    synchronized (SpringTestInsightListener.class) {
+    synchronized (SpringTestProfilerListener.class) {
       if (!reportGenerated) {
         logger.info("Generating Spring Test Insight report for {} phase...", phase);
         executionTracker.stopTracking();

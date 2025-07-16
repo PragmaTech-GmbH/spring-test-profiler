@@ -67,7 +67,7 @@ Add a file named `META-INF/spring.factories` to your resources directory with th
 
 ```text
 org.springframework.test.context.TestExecutionListener=\
-digital.pragmatech.testing.SpringTestInsightListener
+digital.pragmatech.testing.SpringTestProfilerListener
 ```
 
 #### Manually for Specific Tests
@@ -76,7 +76,7 @@ Add the `@TestExecutionListeners` annotation to your test classes:
 
 ```java
 @TestExecutionListeners(
-  value = {SpringTestInsightListener.class},
+  value = {SpringTestProfilerListener.class},
   mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS
 )
 ```

@@ -1,2 +1,2 @@
 org.springframework.test.context.TestExecutionListener=\
-digital.pragmatech.testing.SpringTestInsightListener
+digital.pragmatech.testing.SpringTestProfilerListener
