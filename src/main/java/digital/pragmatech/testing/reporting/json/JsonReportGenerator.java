@@ -28,17 +28,17 @@ public class JsonReportGenerator {
     this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
   }
 
-  public void generateJsonReport(Path reportDir, String phase, TestExecutionTracker executionTracker,
+  public void generateJsonReport(Path reportDir, TestExecutionTracker executionTracker,
     SpringContextCacheAccessor.CacheStatistics cacheStats,
     ContextCacheTracker contextCacheTracker) {
     try {
       Files.createDirectories(reportDir);
 
       String uniqueId = UUID.randomUUID().toString();
-      String jsonFileName = String.format("spring-test-profiler-%s-%s.json", phase, uniqueId);
+      String jsonFileName = String.format("spring-test-profiler-%s.json", uniqueId);
       Path jsonFile = reportDir.resolve(jsonFileName);
 
-      ReportData reportData = new ReportData(phase, executionTracker, cacheStats, contextCacheTracker);
+      ReportData reportData = new ReportData(executionTracker, cacheStats, contextCacheTracker);
 
       objectMapper.writeValue(jsonFile.toFile(), reportData);
 
@@ -51,7 +51,6 @@ public class JsonReportGenerator {
   }
 
   private record ReportData(
-    String phase,
     TestExecutionTracker executionTracker,
     SpringContextCacheAccessor.CacheStatistics cacheStats,
     ContextCacheTracker contextCacheTracker) {

@@ -39,7 +39,7 @@ public class TestExecutionReporter {
     this.jsonReportGenerator = new JsonReportGenerator();
   }
 
-  public void generateReport(String phase, TestExecutionTracker executionTracker,
+  public void generateReport(TestExecutionTracker executionTracker,
     SpringContextCacheAccessor.CacheStatistics cacheStats,
     ContextCacheTracker contextCacheTracker) {
 
@@ -47,28 +47,26 @@ public class TestExecutionReporter {
     boolean jsonReportingEnabled = Boolean.parseBoolean(System.getProperty("spring.test.insight.json.beta", "false"));
 
     try {
-      Path reportDir = determineReportDirectory();
+      BuildToolDetection.BuildTool buildTool = BuildToolDetection.getDetectedBuildTool();
+      Path reportDir = determineReportDirectory(buildTool);
       Files.createDirectories(reportDir);
 
       if (jsonReportingEnabled) {
-        jsonReportGenerator.generateJsonReport(reportDir, phase, executionTracker, cacheStats, contextCacheTracker);
+        jsonReportGenerator.generateJsonReport(reportDir, executionTracker, cacheStats, contextCacheTracker);
       }
       else {
         // Original HTML reporting logic
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-        String reportFileName = phase.equals("default") ?
-          "test-profiler-report-" + timestamp + ".html" :
-          "test-profiler-report-" + phase + "-" + timestamp + ".html";
+        String reportFileName = "test-profiler-report-" + timestamp + ".html";
         Path reportFile = reportDir.resolve(reportFileName);
 
-        String htmlContent = generateHtmlWithThymeleaf(phase, executionTracker, cacheStats, contextCacheTracker);
+        String htmlContent = generateHtmlWithThymeleaf(buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
         Files.write(reportFile, htmlContent.getBytes());
 
-        logger.info("Spring Test Profiler report generated for {} phase: {}", phase, reportFile.toAbsolutePath());
+        logger.info("Spring Test Profiler report generated for {} build tool: {}", buildTool.name(), reportFile.toAbsolutePath());
 
         // Also create a latest.html symlink for easy access
-        String latestFileName = phase.equals("default") ? "latest.html" : "latest-" + phase + ".html";
-        Path latestLink = reportDir.resolve(latestFileName);
+        Path latestLink = reportDir.resolve("latest.html");
         Files.deleteIfExists(latestLink);
         Files.write(latestLink, htmlContent.getBytes());
       }
@@ -83,14 +81,13 @@ public class TestExecutionReporter {
    * Determines the report directory based on the build tool and system properties.
    * Supports custom directory via system property, or defaults to build tool conventions.
    */
-  private Path determineReportDirectory() {
-    // First check if user specified a custom directory
+  private Path determineReportDirectory(BuildToolDetection.BuildTool buildTool) {
     String customDir = System.getProperty("pragmatech.spring.test.insight.report.dir");
+
     if (customDir != null && !customDir.trim().isEmpty()) {
       return Paths.get(customDir);
     }
 
-    BuildToolDetection.BuildTool buildTool = BuildToolDetection.getDetectedBuildTool();
     String baseDir;
 
     switch (buildTool) {
@@ -132,14 +129,14 @@ public class TestExecutionReporter {
     return engine;
   }
 
-  private String generateHtmlWithThymeleaf(String phase, TestExecutionTracker executionTracker,
+  private String generateHtmlWithThymeleaf(String buildTool, TestExecutionTracker executionTracker,
     SpringContextCacheAccessor.CacheStatistics cacheStats,
     ContextCacheTracker contextCacheTracker) {
     try {
       Context context = new Context();
 
       // Basic template variables
-      context.setVariable("phase", phase);
+      context.setVariable("phase", buildTool);
       context.setVariable("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
       context.setVariable("executionTracker", executionTracker);
       context.setVariable("cacheStats", cacheStats);

@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
-import digital.pragmatech.testing.util.BuildToolDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -215,9 +214,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     if (!shutdownHookRegistered) {
       synchronized (SpringTestProfilerListener.class) {
         if (!shutdownHookRegistered) {
-          Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            generateReport(BuildToolDetection.getDetectedBuildTool().name());
-          }, "SpringTestProfilerReportGenerator"));
+          Runtime.getRuntime().addShutdownHook(new Thread(() -> generateReport(), "SpringTestProfilerReportGenerator"));
           shutdownHookRegistered = true;
           logger.debug("Registered shutdown hook for Spring Test Profiler report generation");
         }
@@ -228,10 +225,10 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
   /**
    * Called by the shutdown hook or manually to generate the final report.
    */
-  public static void generateReport(String phase) {
+  public static void generateReport() {
     synchronized (SpringTestProfilerListener.class) {
       if (!reportGenerated) {
-        logger.info("Generating Spring Test Insight report for {} phase...", phase);
+        logger.info("Generating Spring Test Insight");
         executionTracker.stopTracking();
 
         // Get context cache statistics including our custom tracking
@@ -239,7 +236,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
           getCacheStatistics();
 
         // Generate report with both execution and context cache data
-        reporter.generateReport(phase, executionTracker, springStats, contextCacheTracker);
+        reporter.generateReport(executionTracker, springStats, contextCacheTracker);
 
         // Clear data
         contextCacheTracker.clear();
