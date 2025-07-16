@@ -26,7 +26,7 @@ dependencies {
   runtimeOnly 'com.h2database:h2'
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
-  testImplementation 'digital.pragmatech.testing:spring-test-profiler:0.0.1'
+  testImplementation 'digital.pragmatech.testing:spring-test-profiler:0.0.3-SNAPSHOT'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
