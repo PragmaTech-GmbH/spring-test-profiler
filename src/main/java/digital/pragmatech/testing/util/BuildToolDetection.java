@@ -24,22 +24,15 @@ public class BuildToolDetection {
     UNKNOWN
   }
 
-  private static final ExecutionEnvironment detectedExecutionEnvironment;
   private static final BuildTool detectedBuildTool;
 
   // We use a static block to ensure this runs only once per classloader
   static {
-    detectedExecutionEnvironment = detectExecutionEnvironment();
     detectedBuildTool = detectBuildTool();
-    System.out.println("JUnit execution triggered by: " + detectedExecutionEnvironment);
   }
 
   public static BuildTool getDetectedBuildTool() {
     return detectedBuildTool;
-  }
-
-  public static ExecutionEnvironment getDetectedExecutionEnvironment() {
-    return detectedExecutionEnvironment;
   }
 
   private static BuildTool detectBuildTool() {
@@ -61,8 +54,7 @@ public class BuildToolDetection {
     }
   }
 
-
-  private static ExecutionEnvironment detectExecutionEnvironment() {
+  public static ExecutionEnvironment detectExecutionEnvironment(String className) {
     try {
       throw new RuntimeException("Execution Environment Detection");
     }
@@ -84,19 +76,29 @@ public class BuildToolDetection {
         return ExecutionEnvironment.NETBEANS;
       }
 
-      if (stackTrace.contains("failsafe")) {
-        return ExecutionEnvironment.MAVEN_FAILSAFE;
-      }
-
-      if (stackTrace.contains("surefire")) {
-        return ExecutionEnvironment.MAVEN_SUREFIRE;
+      if (stackTrace.contains("org.apache.maven")) {
+        if (isIntegrationTest(className)) {
+          return ExecutionEnvironment.MAVEN_FAILSAFE;
+        }
+        else {
+          return ExecutionEnvironment.MAVEN_SUREFIRE;
+        }
       }
 
       if (stackTrace.contains("org.gradle.api.internal.tasks.testing")) {
-        return ExecutionEnvironment.GRADLE_TEST;
+        if (isIntegrationTest(className)) {
+          return ExecutionEnvironment.GRADLE_TEST;
+        }
+        else {
+          return ExecutionEnvironment.GRADLE_INTEGRATION_TEST;
+        }
       }
 
       return ExecutionEnvironment.UNKNOWN;
     }
+  }
+
+  private static boolean isIntegrationTest(String className) {
+    return className.contains("IT") || className.contains("IntegrationTest");
   }
 }

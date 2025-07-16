@@ -216,7 +216,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
       synchronized (SpringTestProfilerListener.class) {
         if (!shutdownHookRegistered) {
           Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            generateReport(BuildToolDetection.getDetectedExecutionEnvironment().name());
+            generateReport(BuildToolDetection.getDetectedBuildTool().name());
           }, "SpringTestProfilerReportGenerator"));
           shutdownHookRegistered = true;
           logger.debug("Registered shutdown hook for Spring Test Profiler report generation");
