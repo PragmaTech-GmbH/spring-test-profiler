@@ -8,6 +8,10 @@ A Spring Test utility that provides visualization and insights for Spring Test e
 
 ## Features
 
+**Overall goal**: Identify optimization opportunities in your Spring Test suite to speed up your builds and ship faster 🚤
+
+This profiler helps you:
+
 - Track Spring Test context caching statistics for your test suite
 - Show context reuse metrics and cache hit/miss ratios
 - Identify tests that couldn't reuse contexts and explain why
@@ -22,7 +26,10 @@ This profiler works with Java 17+ and is compatible with Spring Framework 6.X (a
 
 ## Prototype Phase
 
-This project is highly work-in-progress. What's currently not working or missing:
+> [!WARNING]
+> This project is highly work-in-progress and should be considered a prototype to gather feedback and ideas for future development.
+
+What's currently not working or missing:
 
 - Support for parallel test execution
 - Fully-fledged visualization of the contexts on a timeline
