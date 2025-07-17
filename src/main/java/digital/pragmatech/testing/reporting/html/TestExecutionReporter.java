@@ -73,7 +73,7 @@ public class TestExecutionReporter {
 
     }
     catch (IOException e) {
-      logger.error("Failed to generate Spring Test Insight report", e);
+      logger.error("Failed to generate Spring Test Profiler report", e);
     }
   }
 

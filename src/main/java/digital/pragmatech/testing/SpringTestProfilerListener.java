@@ -52,7 +52,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     Class<?> testClass = testContext.getTestClass();
     String className = testClass.getName();
 
-    logger.debug("Starting Spring Test Insight for test class: {}", className);
+    logger.debug("Starting Spring Test Profiler for test class: {}", className);
 
     // Register shutdown hook once to generate report when JVM exits
     registerShutdownHook();
@@ -152,7 +152,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     String className = testClassNames.get(testContext);
     if (className != null) {
       executionTracker.recordTestClassEnd(className);
-      logger.debug("Completed Spring Test Insight for test class: {}", className);
+      logger.debug("Completed Spring Test Profiler for test class: {}", className);
     }
 
     // Clean up
@@ -228,7 +228,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
   public static void generateReport() {
     synchronized (SpringTestProfilerListener.class) {
       if (!reportGenerated) {
-        logger.info("Generating Spring Test Insight");
+        logger.info("Generating Spring Test Profiler");
         executionTracker.stopTracking();
 
         // Get context cache statistics including our custom tracking
