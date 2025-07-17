@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="container">
-  <h1 th:text="${'Spring Test Profiler Report' + (phase != 'default' ? ' (' + phase.toUpperCase() + ' Phase)' : '')}">
+  <h1 th:text="${'Spring Test Profiler Report'}">
     Spring Test Profiler Report</h1>
   <p>Understanding when and how many Spring ApplicationContexts are created in your test suite allows you to optimize
     build times by leveraging Spring TestContext's context caching feature, which reuses already started contexts.</p>
