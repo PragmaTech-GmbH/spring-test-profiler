@@ -1,19 +1,13 @@
 package digital.pragmatech.testing;
 
+import org.springframework.test.context.MergedContextConfiguration;
+
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import org.springframework.test.context.MergedContextConfiguration;
 
 /**
  * Entry representing a cached context configuration.
@@ -181,8 +175,10 @@ public class ContextCacheEntry {
 
       summary.put("properties", configuration.getPropertySourceProperties().length + " properties");
       summary.put("parentContext", configuration.getParent());
-      summary.put("contextCustomizers", configuration.getContextCustomizers());
-      summary.put("locations", String.join(",", configuration.getLocations()));
+      // contextCustomizers equality is based on Set. Convert to ordered String representation to simplify comparison
+      summary.put("contextCustomizers", prettyPrintCollection(toStringSortedSet(configuration.getContextCustomizers())));
+      // locations equality is based on String[], no ordering
+      summary.put("locations", String.join(",", prettyPrintCollection(Arrays.asList(configuration.getLocations()))));
 
       summary.put("contextInitializers", configuration.getContextInitializerClasses().stream()
         .map(Class::getSimpleName)
@@ -192,5 +188,37 @@ public class ContextCacheEntry {
     }
 
     return summary;
+  }
+
+  /**
+   * Convert collection of objects to SortedSet of String. This can be helpful for visually comparable representations.
+   *
+   * TODO move to string utility class
+   *
+   * @param elements
+   * @return
+   */
+  private static SortedSet<String> toStringSortedSet(Collection<?> elements) {
+    var set = new TreeSet<String>();
+    elements.forEach(e -> set.add(Objects.toString(e)));
+    return set;
+  }
+
+  /**
+   * Pretty format collection elements (new line for each element).
+   *
+   * TODO move to string utility class
+   *
+   * @param elements
+   * @return
+   */
+  private static String prettyPrintCollection(Collection<String> elements) {
+    if (elements == null) {
+      return "";
+    }
+    if (elements.isEmpty()) {
+      return "[]";
+    }
+    return "[\n" + String.join(",\n", elements) + "\n]";
   }
 }
