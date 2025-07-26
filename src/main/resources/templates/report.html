@@ -8,7 +8,7 @@
   <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
   <script src="https://d3js.org/d3.v7.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
-  <style th:utext="${cssContent}"></style>
+  <link rel="stylesheet" href="static/css/spring-test-profiler.css">
 </head>
 <body>
 <div class="container">
@@ -72,6 +72,6 @@
 </footer>
 
 <script type="application/json" id="context-statistics-json" th:utext="${contextStatisticsJson}">[]</script>
-<script th:utext="${jsContent}"></script>
+<script src="static/js/report.js"></script>
 </body>
 </html>

@@ -58,6 +58,9 @@ public class TestExecutionReporter {
         jsonReportGenerator.generateJsonReport(
             reportDir, executionTracker, cacheStats, contextCacheTracker);
       } else {
+        // Copy static assets before generating HTML
+        copyStaticAssets(reportDir);
+
         // Original HTML reporting logic
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
         String reportFileName = "test-profiler-report-" + timestamp + ".html";
@@ -199,13 +202,7 @@ public class TestExecutionReporter {
         context.setVariable("timelineData", timelineData);
       }
 
-      // Load CSS content
-      String cssContent = loadCssContent();
-      context.setVariable("cssContent", cssContent);
-
-      // Load JS content
-      String jsContent = loadJsContent();
-      context.setVariable("jsContent", jsContent);
+      // Static assets are now copied in generateReport method
 
       // Register helper beans for templates
       registerHelperBeans(context, contextCacheTracker);
@@ -246,36 +243,35 @@ public class TestExecutionReporter {
     context.setVariable("jsonHelper", new TemplateHelpers.JsonHelper());
   }
 
-  private String loadCssContent() {
+  private void copyStaticAssets(Path reportDir) {
     try {
-      // Use InputStream to read from classpath resource which works both in IDE and JAR
-      try (var inputStream =
-          getClass().getClassLoader().getResourceAsStream("static/css/spring-test-profiler.css")) {
-        if (inputStream == null) {
-          throw new RuntimeException(
-              "CSS file not found in classpath: static/css/spring-test-profiler.css");
-        }
-        return new String(inputStream.readAllBytes());
-      }
-    } catch (Exception e) {
-      logger.error("Could not load CSS file. Report generation will fail.", e);
-      throw new RuntimeException("CSS file not found", e);
+      // Create static directories
+      Path staticDir = reportDir.resolve("static");
+      Path cssDir = staticDir.resolve("css");
+      Path jsDir = staticDir.resolve("js");
+
+      Files.createDirectories(cssDir);
+      Files.createDirectories(jsDir);
+
+      // Copy CSS file
+      copyResourceToFile(
+          "static/css/spring-test-profiler.css", cssDir.resolve("spring-test-profiler.css"));
+
+      // Copy JS file
+      copyResourceToFile("static/js/report.js", jsDir.resolve("report.js"));
+
+    } catch (IOException e) {
+      logger.error("Failed to copy static assets to report directory", e);
+      throw new RuntimeException("Static asset copying failed", e);
     }
   }
 
-  private String loadJsContent() {
-    try {
-      // Use InputStream to read from classpath resource which works both in IDE and JAR
-      try (var inputStream =
-          getClass().getClassLoader().getResourceAsStream("static/js/report.js")) {
-        if (inputStream == null) {
-          throw new RuntimeException("JS file not found in classpath: static/js/report.js");
-        }
-        return new String(inputStream.readAllBytes());
+  private void copyResourceToFile(String resourcePath, Path targetFile) throws IOException {
+    try (var inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
+      if (inputStream == null) {
+        throw new RuntimeException("Resource not found in classpath: " + resourcePath);
       }
-    } catch (Exception e) {
-      logger.error("Could not load JS file. Report generation will fail.", e);
-      throw new RuntimeException("JS file not found", e);
+      Files.copy(inputStream, targetFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
   }
 }
