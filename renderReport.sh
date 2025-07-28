@@ -25,7 +25,7 @@ echo
 echo -e "${YELLOW}📦 Step 1: Building and installing Spring Test Profiler...${NC}"
 cd "$SCRIPT_DIR"
 
-if ./mvnw clean install -DskipTests -q; then
+if ./mvnw clean spotless:apply install -DskipTests -q; then
     echo -e "${GREEN}✅ Profiler built and installed successfully${NC}"
 else
     echo -e "${RED}❌ Failed to build and install profiler${NC}"

@@ -245,7 +245,6 @@ public class TestExecutionReporter {
 
   private void copyStaticAssets(Path reportDir) {
     try {
-      // Create static directories
       Path staticDir = reportDir.resolve("static");
       Path cssDir = staticDir.resolve("css");
       Path jsDir = staticDir.resolve("js");
@@ -253,16 +252,14 @@ public class TestExecutionReporter {
       Files.createDirectories(cssDir);
       Files.createDirectories(jsDir);
 
-      // Copy CSS file
       copyResourceToFile(
           "static/css/spring-test-profiler.css", cssDir.resolve("spring-test-profiler.css"));
 
-      // Copy JS file
       copyResourceToFile("static/js/report.js", jsDir.resolve("report.js"));
 
     } catch (IOException e) {
       logger.error("Failed to copy static assets to report directory", e);
-      throw new RuntimeException("Static asset copying failed", e);
+      throw new ReportGenerationException("Static asset copying failed", e);
     }
   }
 
