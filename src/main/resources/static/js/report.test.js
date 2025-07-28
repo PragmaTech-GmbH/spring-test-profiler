@@ -151,7 +151,7 @@ describe('Report Unit Tests', () => {
         value: ['classpath:test1.xml'],
         key: 'locations'
       });
-      expect(features[3]).toEqual({
+      expect(features[4]).toEqual({
         name: 'Active Profiles',
         value: ['test'],
         key: 'activeProfiles'
