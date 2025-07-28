@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import digital.pragmatech.testing.ContextCacheEntry;
 import digital.pragmatech.testing.ContextCacheTracker;
+import digital.pragmatech.testing.ContextIdGenerator;
 import digital.pragmatech.testing.SpringContextStatistics;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TestStatus;
@@ -207,7 +208,9 @@ public class TemplateHelpers {
       if (contextCacheTracker != null) {
         // Convert ContextCacheTracker entries to the format expected by the template
         for (ContextCacheEntry entry : contextCacheTracker.getAllEntries()) {
-          String configId = "config-" + Math.abs(entry.getConfiguration().hashCode());
+          String configId =
+              ContextIdGenerator.getContextId(entry.getConfiguration())
+                  .replace("context-", "config-");
 
           ContextConfigurationInfo configInfo = new ContextConfigurationInfo();
           configInfo.id = configId;
@@ -320,8 +323,8 @@ public class TemplateHelpers {
     private Map<String, Object> mapContextEntryToStatistics(ContextCacheEntry entry) {
       Map<String, Object> statistics = new HashMap<>();
 
-      // Generate unique context key based on configuration hash
-      String contextKey = "context-" + Math.abs(entry.getConfiguration().hashCode());
+      // Generate unique context key using incrementing counter
+      String contextKey = ContextIdGenerator.getContextId(entry.getConfiguration());
       statistics.put("contextKey", contextKey);
 
       // Load duration in milliseconds
@@ -411,11 +414,20 @@ public class TemplateHelpers {
         config.put(
             "parent",
             mergedConfig.getParent() != null
-                ? "context-" + Math.abs(mergedConfig.getParent().hashCode())
+                ? ContextIdGenerator.getContextId(mergedConfig.getParent())
                 : null);
       }
 
       return config;
     }
+  }
+
+  /** Gets the context ID for a given configuration using the ContextIdGenerator. */
+  public String getContextId(Object configuration) {
+    if (configuration instanceof org.springframework.test.context.MergedContextConfiguration) {
+      return ContextIdGenerator.getContextId(
+          (org.springframework.test.context.MergedContextConfiguration) configuration);
+    }
+    return "context-unknown";
   }
 }

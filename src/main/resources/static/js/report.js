@@ -42,6 +42,7 @@ class ContextComparator {
     this.contextData = window.contextStatistics || [];
     this.selectedContextA = null;
     this.selectedContextB = null;
+    this.selectedAttribute = null;
     this.init();
   }
 
@@ -145,6 +146,7 @@ class ContextComparator {
     }
 
     this.renderComparison();
+    this.autoSelectDifferentAttribute();
   }
 
   renderComparison() {
@@ -170,14 +172,20 @@ class ContextComparator {
       .style('font-weight', 'bold')
       .text('Spring Test Context Comparison');
 
+    // Add subtitle
+    svg.append('text')
+      .attr('x', width / 2)
+      .attr('y', 60)
+      .attr('text-anchor', 'middle')
+      .attr('class', 'comparison-title')
+      .style('font-size', '14px')
+      .text('Click on any attribute circle (green/red) around the contexts below to see detailed differences.');
+
     // Context A
     this.renderContext(svg, this.selectedContextA, 50, 100, 'Test Context A');
 
     // Context B
     this.renderContext(svg, this.selectedContextB, 550, 100, 'Test Context B');
-
-    // Render test classes lists below SVG
-    this.renderTestClassesLists();
   }
 
   renderContext(svg, context, x, y, title) {
@@ -247,16 +255,24 @@ class ContextComparator {
         .attr('transform', `translate(${featureX}, ${featureY})`);
 
       // Feature circle
-      featureGroup.append('circle')
+      const circle = featureGroup.append('circle')
         .attr('cx', 0)
         .attr('cy', 0)
         .attr('r', 25)
         .attr('fill', this.getFeatureColor(feature))
         .attr('stroke', '#34495e')
         .attr('stroke-width', 1)
+        .attr('data-clickable', 'true')
         .style('cursor', 'pointer')
-        .on('mouseover', (event) => this.showTooltip(event, feature, context))
-        .on('mouseout', () => this.hideTooltip());
+        .on('click', (event) => {
+          event.stopPropagation();
+          this.handleCircleClick(feature);
+        });
+
+      // Add selected class if this is the currently selected attribute
+      if (this.selectedAttribute && this.selectedAttribute.key === feature.key) {
+        circle.classed('selected', true);
+      }
 
       // Feature label
       featureGroup.append('text')
@@ -355,15 +371,93 @@ class ContextComparator {
     testClassesContainer.appendChild(contextBDiv);
   }
 
+  renderTestClassesInDetailedComparison(detailedContainer) {
+    // Remove any existing test classes container in detailed comparison
+    const existingTestClasses = detailedContainer.querySelector('.test-classes-comparison');
+    if (existingTestClasses) {
+      existingTestClasses.remove();
+    }
+
+    // Create test classes container for detailed comparison
+    const testClassesContainer = document.createElement('div');
+    testClassesContainer.className = 'test-classes-comparison';
+    testClassesContainer.style.cssText = 'margin-top: 20px; display: flex; gap: 20px;';
+
+    // Context A test classes
+    const contextADiv = document.createElement('div');
+    contextADiv.style.cssText = 'flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;';
+
+    const titleA = document.createElement('h4');
+    titleA.textContent = 'Test Context A - Test Classes';
+    titleA.style.cssText = 'margin: 0 0 10px 0; color: #2c3e50; font-size: 14px;';
+    contextADiv.appendChild(titleA);
+
+    const listA = document.createElement('ul');
+    listA.style.cssText = 'margin: 0; padding-left: 20px; font-family: monospace; font-size: 11px; line-height: 1.4;';
+
+    const testClassesA = this.selectedContextA.testClasses || [];
+    if (testClassesA.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'No test classes found';
+      li.style.color = '#7f8c8d';
+      listA.appendChild(li);
+    } else {
+      testClassesA.forEach(testClass => {
+        const li = document.createElement('li');
+        li.textContent = testClass.split('.').pop(); // Show simple class name
+        li.title = testClass; // Full name on hover
+        li.style.cssText = 'margin-bottom: 2px; color: #34495e;';
+        listA.appendChild(li);
+      });
+    }
+
+    contextADiv.appendChild(listA);
+    testClassesContainer.appendChild(contextADiv);
+
+    // Context B test classes
+    const contextBDiv = document.createElement('div');
+    contextBDiv.style.cssText = 'flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;';
+
+    const titleB = document.createElement('h4');
+    titleB.textContent = 'Test Context B - Test Classes';
+    titleB.style.cssText = 'margin: 0 0 10px 0; color: #2c3e50; font-size: 14px;';
+    contextBDiv.appendChild(titleB);
+
+    const listB = document.createElement('ul');
+    listB.style.cssText = 'margin: 0; padding-left: 20px; font-family: monospace; font-size: 11px; line-height: 1.4;';
+
+    const testClassesB = this.selectedContextB.testClasses || [];
+    if (testClassesB.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'No test classes found';
+      li.style.color = '#7f8c8d';
+      listB.appendChild(li);
+    } else {
+      testClassesB.forEach(testClass => {
+        const li = document.createElement('li');
+        li.textContent = testClass.split('.').pop(); // Show simple class name
+        li.title = testClass; // Full name on hover
+        li.style.cssText = 'margin-bottom: 2px; color: #34495e;';
+        listB.appendChild(li);
+      });
+    }
+
+    contextBDiv.appendChild(listB);
+    testClassesContainer.appendChild(contextBDiv);
+
+    // Append to the detailed comparison container
+    detailedContainer.appendChild(testClassesContainer);
+  }
+
   getContextFeatures(context) {
     const config = context.contextConfiguration;
     return [
       { name: 'Locations', value: config.locations, key: 'locations' },
+      { name: 'Property Source Properties', value: config.propertySourceProperties, key: 'propertySourceProperties' },
       { name: 'Classes', value: config.classes, key: 'classes' },
       { name: 'Context Initializer Classes', value: config.contextInitializerClasses, key: 'contextInitializerClasses' },
       { name: 'Active Profiles', value: config.activeProfiles, key: 'activeProfiles' },
       { name: 'Property Source Locations', value: config.propertySourceLocations, key: 'propertySourceLocations' },
-      { name: 'Property Source Properties', value: config.propertySourceProperties, key: 'propertySourceProperties' },
       { name: 'Context Customizers', value: config.contextCustomizers, key: 'contextCustomizers' },
       { name: 'Context Loader', value: [config.contextLoader], key: 'contextLoader' },
       { name: 'Parent', value: config.parent ? [config.parent] : [], key: 'parent' }
@@ -416,36 +510,147 @@ class ContextComparator {
     return this.truncateString(joinedString, maxLength);
   }
 
-  showTooltip(event, feature, context) {
-    const tooltip = document.getElementById('context-comparison-tooltip');
-    const tooltipContent = tooltip.querySelector('.tooltip-content');
+  autoSelectDifferentAttribute() {
+    if (!this.selectedContextA || !this.selectedContextB) return;
 
+    const features = this.getContextFeatures(this.selectedContextA);
+
+    // Find the first different attribute (red circle)
+    for (const feature of features) {
+      const valueA = this.getFeatureValue(this.selectedContextA.contextConfiguration, feature.key);
+      const valueB = this.getFeatureValue(this.selectedContextB.contextConfiguration, feature.key);
+
+      const arrayA = Array.isArray(valueA) ? valueA : [valueA];
+      const arrayB = Array.isArray(valueB) ? valueB : [valueB];
+
+      if (!this.arraysEqual(arrayA, arrayB)) {
+        // Found a different attribute, select it
+        this.handleCircleClick(feature);
+        return;
+      }
+    }
+
+    // If no different attributes found, select the first one
+    if (features.length > 0) {
+      this.handleCircleClick(features[0]);
+    }
+  }
+
+  handleCircleClick(feature) {
+    // Update selected attribute
+    this.selectedAttribute = feature;
+
+    // Update visual selection state
+    this.updateCircleSelection();
+
+    // Show detailed comparison
+    this.showDetailedComparison(feature);
+  }
+
+  updateCircleSelection() {
+    // Remove selected class from all circles
+    d3.selectAll('.comparison-visualization circle[data-clickable="true"]')
+      .classed('selected', false);
+
+    // Add selected class to clicked attribute circles (both contexts)
+    if (this.selectedAttribute) {
+      const selectedFeatureName = this.selectedAttribute.name;
+
+      // Find and select circles that correspond to the same feature in both contexts
+      d3.selectAll('.comparison-visualization g g').each(function() {
+        const group = d3.select(this);
+        const textElement = group.select('text');
+        if (textElement.text() === selectedFeatureName) {
+          group.select('circle[data-clickable="true"]').classed('selected', true);
+        }
+      });
+    }
+  }
+
+  showDetailedComparison(feature) {
+    const detailedContainer = document.getElementById('context-detailed-comparison');
+    const contextADetail = detailedContainer.querySelector('.context-a-detail .context-detail-value');
+    const contextBDetail = detailedContainer.querySelector('.context-b-detail .context-detail-value');
+    const titleElement = detailedContainer.querySelector('.detailed-comparison-title');
+
+    if (!detailedContainer || !contextADetail || !contextBDetail) return;
+
+    // Update title
+    titleElement.textContent = `${feature.name} - Detailed Comparison`;
+
+    // Get values for both contexts
     const valueA = this.getFeatureValue(this.selectedContextA.contextConfiguration, feature.key);
     const valueB = this.getFeatureValue(this.selectedContextB.contextConfiguration, feature.key);
 
     const arrayA = Array.isArray(valueA) ? valueA : [valueA];
     const arrayB = Array.isArray(valueB) ? valueB : [valueB];
 
-    let content = `<strong>${feature.name}</strong><br/>`;
+    // Format and display values
+    contextADetail.innerHTML = this.formatDetailedValue(feature.name, arrayA, arrayB, true);
+    contextBDetail.innerHTML = this.formatDetailedValue(feature.name, arrayB, arrayA, false);
 
-    if (this.arraysEqual(arrayA, arrayB)) {
-      content += `<span style="color: #27ae60;">✓ Same configuration</span><br/>`;
-      content += `Value: ${this.formatValueArray(arrayA)}`;
-    } else {
-      content += `<span style="color: #e74c3c;">✗ Different values</span><br/>`;
-      content += `Context A: ${this.formatValueArray(arrayA)}<br/>`;
-      content += `Context B: ${this.formatValueArray(arrayB)}`;
-    }
+    // Add test classes lists to the detailed comparison
+    this.renderTestClassesInDetailedComparison(detailedContainer);
 
-    tooltipContent.innerHTML = content;
-
-    tooltip.style.display = 'block';
-    tooltip.style.left = (event.pageX + 10) + 'px';
-    tooltip.style.top = (event.pageY - 10) + 'px';
+    // Show the detailed comparison container
+    detailedContainer.style.display = 'block';
   }
 
-  hideTooltip() {
-    document.getElementById('context-comparison-tooltip').style.display = 'none';
+  formatDetailedValue(attributeName, currentValues, comparisonValues, isContextA) {
+    const contextName = isContextA ? 'Context A' : 'Context B';
+    const areEqual = this.arraysEqual(currentValues, comparisonValues);
+
+    let html = `<div class="attribute-name">${attributeName}</div>`;
+
+    if (currentValues.length === 0 || (currentValues.length === 1 && !currentValues[0])) {
+      html += `<div style="color: #6c757d; font-style: italic; text-align: center; padding: 20px;">No values configured</div>`;
+    } else {
+      html += `<pre>`;
+      currentValues.forEach((value, index) => {
+        if (value) {
+          const highlightClass = areEqual ? 'highlight-same' : 'highlight-different';
+          // Format long strings with line breaks for better readability
+          const formattedValue = this.formatLongValue(value, attributeName);
+          html += `<span class="${highlightClass}">${this.escapeHtml(formattedValue)}</span>`;
+          if (index < currentValues.length - 1) {
+            html += '\n';
+          }
+        }
+      });
+      html += `</pre>`;
+
+      // Add comparison status
+      const statusIcon = areEqual ? '✓' : '✗';
+      const statusColor = areEqual ? '#27ae60' : '#e74c3c';
+      const statusText = areEqual ? 'Same as other context' : 'Different from other context';
+      html += `<div style="margin-top: 15px; padding: 10px; background: ${areEqual ? '#d4edda' : '#f8d7da'}; border-radius: 6px; border-left: 4px solid ${statusColor};">
+                 <span style="color: ${statusColor}; font-weight: bold;">${statusIcon} ${statusText}</span>
+               </div>`;
+    }
+
+    return html;
+  }
+
+  formatLongValue(value, attributeName) {
+    // For Context Customizers and other very long class names, add line breaks at package boundaries
+    if (attributeName === 'Context Customizers' && value.length > 80) {
+      // Insert line breaks before common package prefixes for better readability
+      return value.replace(/(org\.springframework\.|org\.junit\.|com\.)/g, '\n$1')
+                  .replace(/^[\s\n]+/, ''); // Remove leading whitespace/newlines
+    }
+
+    // For other long values, wrap at 120 characters maintaining word boundaries
+    if (value.length > 120) {
+      return value.replace(/(.{120})/g, '$1\n');
+    }
+
+    return value;
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 }
 

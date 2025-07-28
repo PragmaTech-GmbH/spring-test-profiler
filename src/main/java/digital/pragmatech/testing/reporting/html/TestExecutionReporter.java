@@ -241,6 +241,7 @@ public class TestExecutionReporter {
         "configurationHelper", new TemplateHelpers.ConfigurationHelper(contextCacheTracker));
     context.setVariable("testStatusCounter", new TemplateHelpers.TestStatusCounter());
     context.setVariable("jsonHelper", new TemplateHelpers.JsonHelper());
+    context.setVariable("helpers", new TemplateHelpers());
   }
 
   private void copyStaticAssets(Path reportDir) {

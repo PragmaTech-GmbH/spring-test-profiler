@@ -29,7 +29,7 @@
             <h3>Context Cache Entries</h3>
             <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry">
                 <div class="cache-entry-header">
-                    <span class="cache-id" th:text="${'Context ID: ' + entry.configuration.hashCode()}">Context ID: 12345</span>
+                    <span class="cache-id" th:text="${'Context ID: ' + helpers.getContextId(entry.configuration)}">Context ID: context-0</span>
                     <span class="bean-count" th:text="${entry.beanDefinitionCount + ' beans'}">0 beans</span>
                 </div>
                 <div class="context-stats">

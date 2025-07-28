@@ -1347,36 +1347,6 @@ h2 {
     gap: 40px;
 }
 
-.comparison-tooltip {
-    position: absolute;
-    background: #2c3e50;
-    color: white;
-    padding: 12px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    line-height: 1.4;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    max-width: 500px;
-    word-wrap: break-word;
-    pointer-events: none;
-}
-
-.comparison-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 20px;
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #2c3e50;
-}
-
-.tooltip-content {
-    margin: 0;
-}
 
 /* Responsive adjustments for context comparison */
 @media (max-width: 768px) {
@@ -1410,8 +1380,168 @@ h2 {
         overflow-x: auto;
     }
 
-    .comparison-tooltip {
-        font-size: 12px;
-        max-width: 400px;
+}
+
+/* Enhanced Context Comparison Styles */
+.detailed-comparison-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-top: 30px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+
+.detailed-comparison-title {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    margin: 0;
+    padding: 20px 30px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 3px solid #2980b9;
+}
+
+.detailed-comparison-content {
+    display: flex;
+    gap: 0;
+    min-height: 300px;
+}
+
+.context-detail-card {
+    flex: 1;
+    padding: 30px;
+    position: relative;
+}
+
+.context-detail-card:first-child {
+    border-right: 2px solid #ecf0f1;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+}
+
+.context-detail-card:last-child {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+}
+
+.context-detail-title {
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #3498db;
+    text-align: center;
+    position: relative;
+}
+
+.context-detail-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: #e74c3c;
+}
+
+.context-detail-value {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #2c3e50;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    word-break: break-word;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+.context-detail-value:empty {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.context-detail-value:empty::before {
+    content: 'Click on an attribute circle above to see detailed comparison';
+}
+
+.context-detail-value pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    min-width: 0;
+}
+
+.context-detail-value .highlight-same {
+    background: #d4edda;
+    color: #155724;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.context-detail-value .highlight-different {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.context-detail-value .attribute-name {
+    font-weight: 700;
+    color: #495057;
+    display: block;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Enhanced circle styles for clickable indicators */
+.comparison-visualization circle[data-clickable="true"] {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    stroke-width: 2;
+}
+
+.comparison-visualization circle[data-clickable="true"]:hover {
+    stroke-width: 3;
+    filter: drop-shadow(0 0 8px rgba(52, 152, 219, 0.4));
+    transform: scale(1.05);
+}
+
+.comparison-visualization circle[data-clickable="true"].selected {
+    stroke: #f39c12;
+    stroke-width: 4;
+    filter: drop-shadow(0 0 12px rgba(243, 156, 18, 0.6));
+}
+
+/* Responsive design for detailed comparison */
+@media (max-width: 768px) {
+    .detailed-comparison-content {
+        flex-direction: column;
+    }
+
+    .context-detail-card:first-child {
+        border-right: none;
+        border-bottom: 2px solid #ecf0f1;
+    }
+
+    .context-detail-card {
+        padding: 20px;
+    }
+
+    .detailed-comparison-title {
+        padding: 15px 20px;
+        font-size: 16px;
     }
 }

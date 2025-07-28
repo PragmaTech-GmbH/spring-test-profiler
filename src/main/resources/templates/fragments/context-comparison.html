@@ -7,7 +7,6 @@
 
 <div th:fragment="context-comparison-section" class="section">
   <h2>🔍 Spring Test Context Visualizer</h2>
-  <p>Compare test contexts and identify configuration differences for better context reuse</p>
 
   <div class="context-comparison-controls">
     <div class="dropdown-container">
@@ -38,22 +37,24 @@
       <span class="legend-color different-values"></span>
       <span>Different Values</span>
     </div>
-    <div class="legend-item">
-      <span class="legend-color only-in-a"></span>
-      <span>Only in Context A</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-color only-in-b"></span>
-      <span>Only in Context B</span>
-    </div>
   </div>
 
   <div id="context-comparison-visualization" class="comparison-visualization">
     <!-- D3.js visualization will be rendered here -->
   </div>
 
-  <div id="context-comparison-tooltip" class="comparison-tooltip" style="display: none;">
-    <div class="tooltip-content"></div>
+  <div id="context-detailed-comparison" class="detailed-comparison-container" style="display: none;">
+    <h3 class="detailed-comparison-title">Attribute Comparison Details</h3>
+    <div class="detailed-comparison-content">
+      <div class="context-detail-card context-a-detail">
+        <h4 class="context-detail-title">Test Context A</h4>
+        <div class="context-detail-value"></div>
+      </div>
+      <div class="context-detail-card context-b-detail">
+        <h4 class="context-detail-title">Test Context B</h4>
+        <div class="context-detail-value"></div>
+      </div>
+    </div>
   </div>
 </div>
 
