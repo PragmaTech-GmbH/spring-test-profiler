@@ -295,6 +295,44 @@ class ContextComparator {
     });
   }
 
+  createTestClassesList(testClasses, fontSize = '12px') {
+    const list = document.createElement('ul');
+    list.style.cssText = `margin: 0; padding-left: 20px; font-family: monospace; font-size: ${fontSize}; line-height: 1.4;`;
+
+    if (testClasses.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'No test classes found';
+      li.style.color = '#7f8c8d';
+      list.appendChild(li);
+    } else {
+      testClasses.forEach(testClass => {
+        const li = document.createElement('li');
+        li.textContent = testClass.split('.').pop(); // Show simple class name
+        li.title = testClass; // Full name on hover
+        li.style.cssText = 'margin-bottom: 2px; color: #34495e;';
+        list.appendChild(li);
+      });
+    }
+
+    return list;
+  }
+
+  createContextDiv(contextLetter, titleFontSize = '16px', listFontSize = '12px') {
+    const contextDiv = document.createElement('div');
+    contextDiv.style.cssText = 'flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;';
+
+    const title = document.createElement('h4');
+    title.textContent = `Test Context ${contextLetter} - Test Classes`;
+    title.style.cssText = `margin: 0 0 10px 0; color: #2c3e50; font-size: ${titleFontSize};`;
+    contextDiv.appendChild(title);
+
+    const testClasses = contextLetter === 'A' ? this.selectedContextA.testClasses || [] : this.selectedContextB.testClasses || [];
+    const list = this.createTestClassesList(testClasses, listFontSize);
+    contextDiv.appendChild(list);
+
+    return contextDiv;
+  }
+
   renderTestClassesLists() {
     const container = document.getElementById('context-comparison-visualization');
 
@@ -308,66 +346,11 @@ class ContextComparator {
     }
     testClassesContainer.innerHTML = '';
 
-    // Context A test classes
-    const contextADiv = document.createElement('div');
-    contextADiv.style.cssText = 'flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;';
+    // Create both context divs using the helper method
+    const contextADiv = this.createContextDiv('A', '16px', '12px');
+    const contextBDiv = this.createContextDiv('B', '16px', '12px');
 
-    const titleA = document.createElement('h4');
-    titleA.textContent = 'Test Context A - Test Classes';
-    titleA.style.cssText = 'margin: 0 0 10px 0; color: #2c3e50; font-size: 16px;';
-    contextADiv.appendChild(titleA);
-
-    const listA = document.createElement('ul');
-    listA.style.cssText = 'margin: 0; padding-left: 20px; font-family: monospace; font-size: 12px; line-height: 1.4;';
-
-    const testClassesA = this.selectedContextA.testClasses || [];
-    if (testClassesA.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'No test classes found';
-      li.style.color = '#7f8c8d';
-      listA.appendChild(li);
-    } else {
-      testClassesA.forEach(testClass => {
-        const li = document.createElement('li');
-        li.textContent = testClass.split('.').pop(); // Show simple class name
-        li.title = testClass; // Full name on hover
-        li.style.cssText = 'margin-bottom: 2px; color: #34495e;';
-        listA.appendChild(li);
-      });
-    }
-
-    contextADiv.appendChild(listA);
     testClassesContainer.appendChild(contextADiv);
-
-    // Context B test classes
-    const contextBDiv = document.createElement('div');
-    contextBDiv.style.cssText = 'flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;';
-
-    const titleB = document.createElement('h4');
-    titleB.textContent = 'Test Context B - Test Classes';
-    titleB.style.cssText = 'margin: 0 0 10px 0; color: #2c3e50; font-size: 16px;';
-    contextBDiv.appendChild(titleB);
-
-    const listB = document.createElement('ul');
-    listB.style.cssText = 'margin: 0; padding-left: 20px; font-family: monospace; font-size: 12px; line-height: 1.4;';
-
-    const testClassesB = this.selectedContextB.testClasses || [];
-    if (testClassesB.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'No test classes found';
-      li.style.color = '#7f8c8d';
-      listB.appendChild(li);
-    } else {
-      testClassesB.forEach(testClass => {
-        const li = document.createElement('li');
-        li.textContent = testClass.split('.').pop(); // Show simple class name
-        li.title = testClass; // Full name on hover
-        li.style.cssText = 'margin-bottom: 2px; color: #34495e;';
-        listB.appendChild(li);
-      });
-    }
-
-    contextBDiv.appendChild(listB);
     testClassesContainer.appendChild(contextBDiv);
   }
 
@@ -383,66 +366,11 @@ class ContextComparator {
     testClassesContainer.className = 'test-classes-comparison';
     testClassesContainer.style.cssText = 'margin-top: 20px; display: flex; gap: 20px;';
 
-    // Context A test classes
-    const contextADiv = document.createElement('div');
-    contextADiv.style.cssText = 'flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;';
+    // Create both context divs using the helper method with smaller font
+    const contextADiv = this.createContextDiv('A', '14px', '11px');
+    const contextBDiv = this.createContextDiv('B', '14px', '11px');
 
-    const titleA = document.createElement('h4');
-    titleA.textContent = 'Test Context A - Test Classes';
-    titleA.style.cssText = 'margin: 0 0 10px 0; color: #2c3e50; font-size: 14px;';
-    contextADiv.appendChild(titleA);
-
-    const listA = document.createElement('ul');
-    listA.style.cssText = 'margin: 0; padding-left: 20px; font-family: monospace; font-size: 11px; line-height: 1.4;';
-
-    const testClassesA = this.selectedContextA.testClasses || [];
-    if (testClassesA.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'No test classes found';
-      li.style.color = '#7f8c8d';
-      listA.appendChild(li);
-    } else {
-      testClassesA.forEach(testClass => {
-        const li = document.createElement('li');
-        li.textContent = testClass.split('.').pop(); // Show simple class name
-        li.title = testClass; // Full name on hover
-        li.style.cssText = 'margin-bottom: 2px; color: #34495e;';
-        listA.appendChild(li);
-      });
-    }
-
-    contextADiv.appendChild(listA);
     testClassesContainer.appendChild(contextADiv);
-
-    // Context B test classes
-    const contextBDiv = document.createElement('div');
-    contextBDiv.style.cssText = 'flex: 1; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;';
-
-    const titleB = document.createElement('h4');
-    titleB.textContent = 'Test Context B - Test Classes';
-    titleB.style.cssText = 'margin: 0 0 10px 0; color: #2c3e50; font-size: 14px;';
-    contextBDiv.appendChild(titleB);
-
-    const listB = document.createElement('ul');
-    listB.style.cssText = 'margin: 0; padding-left: 20px; font-family: monospace; font-size: 11px; line-height: 1.4;';
-
-    const testClassesB = this.selectedContextB.testClasses || [];
-    if (testClassesB.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'No test classes found';
-      li.style.color = '#7f8c8d';
-      listB.appendChild(li);
-    } else {
-      testClassesB.forEach(testClass => {
-        const li = document.createElement('li');
-        li.textContent = testClass.split('.').pop(); // Show simple class name
-        li.title = testClass; // Full name on hover
-        li.style.cssText = 'margin-bottom: 2px; color: #34495e;';
-        listB.appendChild(li);
-      });
-    }
-
-    contextBDiv.appendChild(listB);
     testClassesContainer.appendChild(contextBDiv);
 
     // Append to the detailed comparison container
