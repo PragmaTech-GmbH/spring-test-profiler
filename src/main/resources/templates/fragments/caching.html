@@ -26,6 +26,18 @@
 
         <!-- Detailed context information -->
         <div th:if="${contextCacheTracker != null and contextCacheTracker.getAllEntries().size() > 0}" class="context-cache-details">
+            <!-- Test Class Search -->
+            <div class="test-class-search-container">
+                <h4>🔍 Find Context by Test Class</h4>
+                <div class="search-input-container">
+                    <input type="text" id="test-class-search" class="test-class-search-input"
+                           placeholder="Search test classes (e.g., OrderIT)..." autocomplete="off">
+                    <div id="test-class-suggestions" class="test-class-suggestions"></div>
+                </div>
+                <p class="search-instructions">Start typing to search for test classes. Results will appear after entering 3 or more characters.</p>
+                <div id="test-class-search-results" class="test-class-search-results"></div>
+            </div>
+
             <h3>Context Cache Entries</h3>
             <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry">
                 <div class="cache-entry-header">

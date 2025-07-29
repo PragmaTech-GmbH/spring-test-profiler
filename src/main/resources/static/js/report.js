@@ -23,14 +23,222 @@ function toggleTheorySection() {
 
   if (!content || !icon) return;
 
-  if (content.style.display === 'none') {
+  // Check if content is currently hidden using computed style
+  const isHidden = window.getComputedStyle(content).display === 'none';
+
+  if (isHidden) {
+    // Content is hidden, so we're opening it - show down arrow
     content.style.display = 'block';
     icon.textContent = '▼';
     icon.classList.add('expanded');
   } else {
+    // Content is visible, so we're closing it - show right arrow
     content.style.display = 'none';
     icon.textContent = '▶';
     icon.classList.remove('expanded');
+  }
+}
+
+/**
+ * Test Class Search functionality
+ */
+class TestClassSearcher {
+  constructor() {
+    this.contextData = window.contextStatistics || [];
+    this.searchInput = null;
+    this.suggestionsContainer = null;
+    this.resultsContainer = null;
+    this.currentSearchTerm = '';
+    this.init();
+  }
+
+  init() {
+    this.searchInput = document.getElementById('test-class-search');
+    this.suggestionsContainer = document.getElementById('test-class-suggestions');
+    this.resultsContainer = document.getElementById('test-class-search-results');
+
+    if (!this.searchInput || !this.suggestionsContainer || !this.resultsContainer) {
+      return;
+    }
+
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    // Input event for real-time search
+    this.searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.trim();
+      this.currentSearchTerm = searchTerm;
+
+      if (searchTerm.length >= 3) {
+        this.performSearch(searchTerm);
+        this.showSuggestions(searchTerm);
+      } else {
+        this.clearResults();
+        this.hideSuggestions();
+      }
+    });
+
+    // Focus events
+    this.searchInput.addEventListener('focus', () => {
+      if (this.currentSearchTerm.length >= 3) {
+        this.showSuggestions(this.currentSearchTerm);
+      }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!this.searchInput.contains(e.target) && !this.suggestionsContainer.contains(e.target)) {
+        this.hideSuggestions();
+      }
+    });
+
+    // Keyboard navigation for suggestions
+    this.searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.hideSuggestions();
+        this.searchInput.blur();
+      }
+    });
+  }
+
+  performSearch(searchTerm) {
+    const matches = this.findMatches(searchTerm);
+    this.displayResults(matches, searchTerm);
+  }
+
+  findMatches(searchTerm) {
+    const searchTermLower = searchTerm.toLowerCase();
+    const matches = [];
+
+    this.contextData.forEach(context => {
+      if (context.testClasses && context.testClasses.length > 0) {
+        context.testClasses.forEach(testClass => {
+          const simpleClassName = testClass.split('.').pop();
+          const fullClassName = testClass;
+
+          // Check if search term matches either full name or simple name
+          if (fullClassName.toLowerCase().includes(searchTermLower) ||
+              simpleClassName.toLowerCase().includes(searchTermLower)) {
+            matches.push({
+              testClass: testClass,
+              simpleClassName: simpleClassName,
+              contextKey: context.contextKey,
+              contextBeans: context.numberOfBeans || 0
+            });
+          }
+        });
+      }
+    });
+
+    // Sort matches: exact simple class name matches first, then alphabetical
+    return matches.sort((a, b) => {
+      const aSimpleExact = a.simpleClassName.toLowerCase() === searchTermLower;
+      const bSimpleExact = b.simpleClassName.toLowerCase() === searchTermLower;
+
+      if (aSimpleExact && !bSimpleExact) return -1;
+      if (!aSimpleExact && bSimpleExact) return 1;
+
+      return a.simpleClassName.localeCompare(b.simpleClassName);
+    });
+  }
+
+  showSuggestions(searchTerm) {
+    const matches = this.findMatches(searchTerm);
+    const maxSuggestions = 5;
+
+    if (matches.length === 0) {
+      this.hideSuggestions();
+      return;
+    }
+
+    this.suggestionsContainer.innerHTML = '';
+
+    matches.slice(0, maxSuggestions).forEach(match => {
+      const suggestionItem = document.createElement('div');
+      suggestionItem.className = 'suggestion-item';
+
+      suggestionItem.innerHTML = `
+        <span class="suggestion-class-name">${match.simpleClassName}</span>
+        <span class="suggestion-context-id">${match.contextKey}</span>
+      `;
+
+      suggestionItem.addEventListener('click', () => {
+        this.searchInput.value = match.simpleClassName;
+        this.currentSearchTerm = match.simpleClassName;
+        this.performSearch(match.simpleClassName);
+        this.hideSuggestions();
+        this.scrollToContext(match.contextKey);
+      });
+
+      this.suggestionsContainer.appendChild(suggestionItem);
+    });
+
+    this.suggestionsContainer.classList.add('show');
+  }
+
+  hideSuggestions() {
+    this.suggestionsContainer.classList.remove('show');
+  }
+
+  displayResults(matches, searchTerm) {
+    if (matches.length === 0) {
+      this.resultsContainer.innerHTML = `
+        <div class="search-results-header">No test classes found matching "${searchTerm}"</div>
+      `;
+      this.resultsContainer.classList.add('show');
+      return;
+    }
+
+    const headerText = matches.length === 1
+      ? `Found 1 test class matching "${searchTerm}"`
+      : `Found ${matches.length} test classes matching "${searchTerm}"`;
+
+    let resultsHtml = `<div class="search-results-header">${headerText}</div>`;
+
+    matches.forEach(match => {
+      resultsHtml += `
+        <div class="search-result-item">
+          <span class="search-result-class" title="${match.testClass}">${match.simpleClassName}</span>
+          <span class="search-result-context" onclick="testClassSearcher.scrollToContext('${match.contextKey}')"
+                title="Click to scroll to context entry">${match.contextKey}</span>
+        </div>
+      `;
+    });
+
+    this.resultsContainer.innerHTML = resultsHtml;
+    this.resultsContainer.classList.add('show');
+  }
+
+  clearResults() {
+    this.resultsContainer.classList.remove('show');
+    this.resultsContainer.innerHTML = '';
+  }
+
+  scrollToContext(contextKey) {
+    // Find cache entry with matching context ID
+    const cacheEntries = document.querySelectorAll('.cache-entry');
+
+    for (const entry of cacheEntries) {
+      const cacheIdElement = entry.querySelector('.cache-id');
+      if (cacheIdElement && cacheIdElement.textContent.includes(contextKey.replace('context-', ''))) {
+        entry.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+
+        // Highlight the entry briefly
+        entry.style.transition = 'background-color 0.3s ease';
+        entry.style.backgroundColor = '#e3f2fd';
+
+        setTimeout(() => {
+          entry.style.backgroundColor = '';
+        }, 2000);
+
+        break;
+      }
+    }
   }
 }
 
@@ -597,7 +805,9 @@ function initializeReport() {
     window.contextStatistics = [];
   }
 
+  // Initialize test class searcher
   if (window.contextStatistics && window.contextStatistics.length > 0) {
+    window.testClassSearcher = new TestClassSearcher();
     new ContextComparator();
   }
 }
@@ -610,6 +820,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     toggleClass,
     toggleTheorySection,
+    TestClassSearcher,
     ContextComparator,
     initializeReport
   };
