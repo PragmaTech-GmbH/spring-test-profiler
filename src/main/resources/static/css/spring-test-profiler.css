@@ -230,6 +230,51 @@ h2 {
 .summary-card.disabled .value { color: #95a5a6; }
 .summary-card.aborted .value { color: #f39c12; }
 
+/* Help card styles */
+.summary-card.help-card {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+}
+
+.summary-card.help-card h3 {
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.help-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+}
+
+.help-link {
+    color: #2c3e50;
+    background: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 8px 12px;
+    border: 2px solid white;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    text-align: center;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.help-link:hover {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    color: #1a252f;
+}
+
 .cache-stats {
     background: white;
     border-radius: 8px;
