@@ -2,6 +2,185 @@
 
 @import 'default';
 
+:root {
+  --spring-green: #6DB33F;
+  --spring-dark-green: #5A9A35;
+  --spring-light-green: #8BC34A;
+  --dark-text: #2C3E50;
+  --light-text: #7F8C8D;
+  --accent-black: #2C3E50;
+  --warning-orange: #F39C12;
+  --success-green: #27AE60;
+}
+
+section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  color: var(--dark-text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 header {
   text-align: center;
+  font-size: 0.9em;
+  color: var(--light-text);
+  background: var(--spring-green);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 0 0 8px 8px;
+}
+
+footer {
+  text-align: center;
+  padding: 8px;
+}
+
+h1 {
+  color: var(--spring-green);
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 0.5em;
+}
+
+h2 {
+  color: var(--dark-text);
+  font-weight: 600;
+}
+
+h3 {
+  color: var(--dark-text);
+  font-weight: 500;
+}
+
+/* Code blocks */
+pre {
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+code {
+  background: var(--spring-light-green);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Lists */
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+li {
+  position: relative;
+  padding-left: 25px;
+  margin-bottom: 8px;
+}
+
+li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--spring-green);
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* Emphasis and strong text */
+strong {
+  color: var(--spring-green);
+  font-weight: 700;
+}
+
+em {
+  color: var(--accent-black);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+th {
+  background: var(--spring-green);
+  color: white;
+  padding: 12px;
+  text-align: left;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Special classes for slides */
+.hero-title {
+  font-size: 2.5em;
+  color: var(--spring-green);
+  text-align: center;
+  margin: 0.3em 0;
+}
+
+.subtitle {
+  font-size: 1.3em;
+  color: var(--light-text);
+  text-align: center;
+  font-weight: 300;
+}
+
+.problem-stat {
+  font-size: 1.8em;
+  color: var(--warning-orange);
+  font-weight: bold;
+  text-align: center;
+}
+
+.success-stat {
+  font-size: 2em;
+  color: var(--success-green);
+  font-weight: bold;
+  text-align: center;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.feature-item {
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-top: 4px solid var(--spring-green);
+}
+
+.cta-button {
+  background: var(--spring-green);
+  color: white;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 4px 12px rgba(109, 179, 63, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Background patterns */
+.bg-pattern {
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(109, 179, 63, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(109, 179, 63, 0.05) 0%, transparent 50%);
 }
