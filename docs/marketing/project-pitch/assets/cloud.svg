@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="450" fill="#0000"/>
+
+
+  <!-- Largest/Most common test types -->
+  <text x="400" y="100" font-family="Arial" font-size="40" font-weight="bold" fill="#3949ab" text-anchor="middle">Unit Tests</text>
+  <text x="400" y="160" font-family="Arial" font-size="36" font-weight="bold" fill="#5e35b1" text-anchor="middle">Integration Tests</text>
+  <text x="400" y="220" font-family="Arial" font-size="38" font-weight="bold" fill="#1e88e5" text-anchor="middle">E2E Tests</text>
+
+  <!-- Medium frequency test types -->
+  <text x="400" y="280" font-family="Arial" font-size="32" font-weight="bold" fill="#039be5" text-anchor="middle">Regression Test</text>
+  <text x="400" y="330" font-family="Arial" font-size="34" font-weight="bold" fill="#00acc1" text-anchor="middle">Functional Test</text>
+  <text x="400" y="380" font-family="Arial" font-size="30" font-weight="bold" fill="#00897b" text-anchor="middle">System Tests</text>
+  <text x="400" y="430" font-family="Arial" font-size="30" font-weight="bold" fill="#43a047" text-anchor="middle">Performance Tests</text>
+
+  <!-- Left column -->
+  <text x="150" y="100" font-family="Arial" font-size="28" font-weight="bold" fill="#7cb342" text-anchor="middle">Black Box Test</text>
+  <text x="150" y="150" font-family="Arial" font-size="28" font-weight="bold" fill="#c0ca33" text-anchor="middle">White Box Test</text>
+  <text x="150" y="200" font-family="Arial" font-size="26" font-weight="bold" fill="#fdd835" text-anchor="middle">User Acceptance Tests</text>
+  <text x="150" y="250" font-family="Arial" font-size="26" font-weight="bold" fill="#ffb300" text-anchor="middle">Smoke Tests</text>
+  <text x="150" y="300" font-family="Arial" font-size="24" font-weight="bold" fill="#fb8c00" text-anchor="middle">Load Tests</text>
+  <text x="150" y="350" font-family="Arial" font-size="24" font-weight="bold" fill="#f4511e" text-anchor="middle">Stress Tests</text>
+  <text x="150" y="400" font-family="Arial" font-size="22" font-weight="bold" fill="#e53935" text-anchor="middle">Exploratory Tests</text>
+
+  <!-- Right column -->
+  <text x="650" y="100" font-family="Arial" font-size="22" font-weight="bold" fill="#d81b60" text-anchor="middle">Integrated Test</text>
+  <text x="650" y="150" font-family="Arial" font-size="20" font-weight="bold" fill="#8e24aa" text-anchor="middle">Fast Test</text>
+  <text x="650" y="200" font-family="Arial" font-size="20" font-weight="bold" fill="#5e35b1" text-anchor="middle">Mutation Tests</text>
+  <text x="650" y="250" font-family="Arial" font-size="20" font-weight="bold" fill="#3949ab" text-anchor="middle">Contract Tests</text>
+  <text x="650" y="300" font-family="Arial" font-size="18" font-weight="bold" fill="#1e88e5" text-anchor="middle">Property-based Tests</text>
+  <text x="650" y="350" font-family="Arial" font-size="18" font-weight="bold" fill="#00acc1" text-anchor="middle">Boundary Value Testing</text>
+</svg>

@@ -1,0 +1,147 @@
+<svg width="450" height="500" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif" font-size="12">
+
+  <defs>
+    <style>
+      .title-text {
+      text-anchor: middle;
+      font-size: 16px;
+      font-weight: bold;
+      fill: #000;
+      }
+      .subtitle-text {
+      text-anchor: middle;
+      font-size: 13px;
+      font-weight: bold;
+      fill: #333;
+      }
+      .test-box {
+      stroke: #6c757d;
+      stroke-width: 1;
+      fill: #f8f9fa;
+      rx: 5;
+      ry: 5;
+      }
+      .test-text {
+      text-anchor: middle;
+      dominant-baseline: middle;
+      font-size: 11px;
+      font-weight: bold;
+      }
+      .config-text {
+      text-anchor: middle;
+      dominant-baseline: middle;
+      font-size: 10px;
+      font-style: italic;
+      fill: #007bff; /* Blue for config */
+      }
+      .cache-box {
+      stroke: #28a745; /* Green for cache */
+      stroke-width: 1.5;
+      fill: #e9f7ef;
+      rx: 8;
+      ry: 8;
+      }
+      .cache-label {
+      text-anchor: middle;
+      font-size: 12px;
+      font-weight: bold;
+      fill: #28a745;
+      }
+      .context-circle {
+      stroke: #555;
+      stroke-width: 1.5;
+      }
+      .context-text {
+      text-anchor: middle;
+      dominant-baseline: central;
+      font-size: 10px;
+      font-weight: bold;
+      }
+      .context1-fill { fill: #e2f0ff; } /* Light Blue Context */
+      .context2-fill { fill: #fff5e0; } /* Light Orange Context */
+
+      .arrow {
+      stroke: #333;
+      stroke-width: 1.5;
+      marker-end: url(#arrowhead);
+      }
+      .flow-text {
+      font-size: 10px;
+      fill: #555;
+      text-anchor: middle;
+      }
+      .action-create-text {
+      font-size: 10px;
+      fill: #dc3545; /* Red for expensive action */
+      font-weight: bold;
+      text-anchor: middle;
+      }
+      .action-reuse-text {
+      font-size: 10px;
+      fill: #28a745; /* Green for cheap action */
+      font-weight: bold;
+      text-anchor: middle;
+      }
+
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="225" y="25" class="title-text">Spring Test Context Caching</text>
+
+  <!-- Test Execution Flow -->
+  <g id="test-flow">
+    <text x="100" y="60" class="subtitle-text">Test Execution</text>
+
+    <!-- Test Class A -->
+    <rect x="25" y="80" width="150" height="50" class="test-box"/>
+    <text x="100" y="98" class="test-text">OrderIT</text>
+    <text x="100" y="115" class="config-text">(Requires Context Config X)</text>
+    <line x1="100" y1="130" x2="100" y2="150" class="arrow"/>
+    <text x="100" y="165" class="action-create-text">1. Create Context 1</text>
+
+    <!-- Test Class B -->
+    <rect x="25" y="200" width="150" height="50" class="test-box"/>
+    <text x="100" y="218" class="test-text">PaymentIT</text>
+    <text x="100" y="235" class="config-text">(Requires Context Config X)</text>
+    <line x1="100" y1="250" x2="100" y2="270" class="arrow"/>
+    <text x="100" y="285" class="action-reuse-text">2. Reuse Context 1</text>
+
+    <!-- Test Class C -->
+    <rect x="25" y="320" width="150" height="50" class="test-box"/>
+    <text x="100" y="338" class="test-text">FulfillmentIT</text>
+    <text x="100" y="355" class="config-text">(Requires Context Config Y)</text>
+    <line x1="100" y1="370" x2="100" y2="390" class="arrow"/>
+    <text x="100" y="405" class="action-create-text">3. Create Context 2</text>
+
+  </g>
+
+  <!-- Cache State -->
+  <g id="cache-state">
+    <text x="325" y="60" class="subtitle-text">Context Cache State</text>
+    <rect x="250" y="80" width="150" height="300" class="cache-box"/>
+    <text x="325" y="100" class="cache-label">TestContext Cache</text>
+
+    <!-- Context 1 in Cache -->
+    <circle cx="325" cy="155" r="35" class="context-circle context1-fill"/>
+    <text x="325" y="150" class="context-text">Context 1</text>
+    <text x="325" y="162" class="context-text" font-size="8">(for Config X)</text>
+    <text x="325" y="205" class="flow-text">(Created by OrderIT)</text>
+    <text x="325" y="220" class="flow-text">(Reused by PaymentIT)</text>
+
+
+    <!-- Context 2 in Cache -->
+    <circle cx="325" cy="275" r="35" class="context-circle context2-fill"/>
+    <text x="325" y="270" class="context-text">Context 2</text>
+    <text x="325" y="282" class="context-text" font-size="8">(for Config Y)</text>
+    <text x="325" y="330" class="flow-text">(Created by FulfillmentIT)</text>
+
+    <!-- Arrows indicating cache interaction -->
+    <path d="M 175 105 Q 250 105, 290 140" stroke="#333" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/> <!-- A to Context 1 -->
+    <path d="M 175 225 Q 250 225, 290 170" stroke="#28a745" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/> <!-- B to Context 1 (reuse) -->
+    <path d="M 175 345 Q 250 345, 290 290" stroke="#333" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/> <!-- C to Context 2 -->
+  </g>
+</svg>

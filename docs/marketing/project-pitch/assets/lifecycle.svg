@@ -1,0 +1,106 @@
+<svg width="350" height="500" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif" font-size="12">
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+    <style>
+      .phase-box {
+      stroke: #333;
+      stroke-width: 1;
+      rx: 5;
+      ry: 5;
+      }
+      .phase-text {
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: #000;
+      }
+      .connector {
+      stroke: #333;
+      stroke-width: 1.5;
+      marker-end: url(#arrowhead);
+      }
+      .highlight-surefire { fill: #cce5ff; } /* Light Blue */
+      .highlight-failsafe { fill: #fff0cc; } /* Light Orange */
+      .annotation-text {
+      font-size: 10px;
+      fill: #555;
+      font-style: italic;
+      }
+    </style>
+  </defs>
+
+  <text x="175" y="20" text-anchor="middle" font-size="16" font-weight="bold">Running ./mvnw verify</text>
+
+  <!-- Phases -->
+  <g id="phase-validate">
+    <rect x="25" y="50" width="150" height="30" class="phase-box" fill="#eee"/>
+    <text x="100" y="65" class="phase-text">validate</text>
+  </g>
+  <line x1="100" y1="80" x2="100" y2="90" class="connector"/>
+
+  <!-- Removed initialize phase -->
+
+  <g id="phase-compile">
+    <rect x="25" y="90" width="150" height="30" class="phase-box" fill="#eee"/>
+    <text x="100" y="105" class="phase-text">compile</text>
+  </g>
+  <line x1="100" y1="120" x2="100" y2="130" class="connector"/>
+
+  <g id="phase-test-compile">
+    <rect x="25" y="130" width="150" height="30" class="phase-box" fill="#eee"/>
+    <text x="100" y="145" class="phase-text">test-compile</text>
+  </g>
+  <line x1="100" y1="160" x2="100" y2="170" class="connector"/>
+
+  <g id="phase-test">
+    <rect x="25" y="170" width="150" height="30" class="phase-box highlight-surefire"/>
+    <text x="100" y="185" class="phase-text">test</text>
+    <text x="190" y="185" class="annotation-text">maven-surefire-plugin:test</text>
+    <text x="190" y="197" class="annotation-text">(Unit Tests)</text>
+  </g>
+  <line x1="100" y1="200" x2="100" y2="210" class="connector"/>
+
+  <g id="phase-package">
+    <rect x="25" y="210" width="150" height="30" class="phase-box" fill="#eee"/>
+    <text x="100" y="225" class="phase-text">package</text>
+  </g>
+  <line x1="100" y1="240" x2="100" y2="250" class="connector"/>
+
+  <g id="phase-pre-integration-test">
+    <rect x="25" y="250" width="150" height="30" class="phase-box" fill="#eee"/>
+    <text x="100" y="265" class="phase-text">pre-integration-test</text>
+  </g>
+  <line x1="100" y1="280" x2="100" y2="290" class="connector"/>
+
+  <g id="phase-integration-test">
+    <rect x="25" y="290" width="150" height="30" class="phase-box highlight-failsafe"/>
+    <text x="100" y="305" class="phase-text">integration-test</text>
+    <text x="190" y="305" class="annotation-text">maven-failsafe-plugin:integration-test</text>
+    <text x="190" y="317" class="annotation-text">(Runs Integration Tests)</text>
+  </g>
+  <line x1="100" y1="320" x2="100" y2="330" class="connector"/>
+
+  <g id="phase-post-integration-test">
+    <rect x="25" y="330" width="150" height="30" class="phase-box" fill="#eee"/>
+    <text x="100" y="345" class="phase-text">post-integration-test</text>
+  </g>
+  <line x1="100" y1="360" x2="100" y2="370" class="connector"/>
+
+  <g id="phase-verify">
+    <rect x="25" y="370" width="150" height="30" class="phase-box highlight-failsafe"/>
+    <text x="100" y="385" class="phase-text">verify</text>
+    <text x="190" y="385" class="annotation-text">maven-failsafe-plugin:verify</text>
+    <text x="190" y="397" class="annotation-text">(Checks Integration Test Results)</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(20, 440)">
+    <text font-weight="bold">Legend:</text>
+    <rect x="0" y="20" width="20" height="15" class="highlight-surefire"/>
+    <text x="30" y="28">Surefire Execution Phase</text>
+    <rect x="0" y="45" width="20" height="15" class="highlight-failsafe"/>
+    <text x="30" y="53">Failsafe Execution Phases</text>
+  </g>
+</svg>

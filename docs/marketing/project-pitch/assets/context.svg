@@ -1,0 +1,146 @@
+<svg width="650" height="480" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif" font-size="12">
+
+  <defs>
+    <style>
+      .context-circle {
+      stroke: #555;
+      stroke-width: 1.5;
+      fill: #f9f9f9;
+      }
+      .bean-circle {
+      stroke: #333;
+      stroke-width: 1;
+      }
+      .bean-text {
+      text-anchor: middle;
+      dominant-baseline: central;
+      font-size: 7px; /* Slightly smaller to fit consistently */
+      fill: #000;
+      font-weight: bold;
+      }
+      .title-text {
+      text-anchor: middle;
+      font-size: 14px;
+      font-weight: bold;
+      fill: #000;
+      }
+      .annotation-text {
+      font-size: 11px;
+      fill: #444;
+      }
+      .arrow {
+      stroke: #333;
+      stroke-width: 2;
+      marker-end: url(#arrowhead);
+      }
+      /* Bean Colors */
+      .bean-controller { fill: #cce5ff; } /* Light Blue */
+      .bean-service { fill: #d4edda; } /* Light Green */
+      .bean-repository { fill: #fff0cc; } /* Light Orange */
+      .bean-config { fill: #e9ecef; } /* Light Grey */
+      .bean-component { fill: #f5c6cb; } /* Light Red */
+      .bean-webconfig { fill: #d1e7dd; } /* Muted Teal/Green */
+      .bean-mocked { fill: #f8d7da; stroke: #d9534f; } /* Red fill/stroke for mocked/provided */
+
+      .mock-annotation-text {
+      font-size: 9px;
+      fill: #d9534f; /* Red color for emphasis */
+      font-style: italic;
+      }
+
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="325" y="25" text-anchor="middle" font-size="16" font-weight="bold">Spring Boot Sliced Context Test with @WebMvcTest</text>
+
+  <!-- Full Context Section -->
+  <g id="full-context">
+    <text x="150" y="60" class="title-text">Full Application Context</text>
+    <circle cx="150" cy="190" r="100" class="context-circle"/>
+
+    <!-- Beans in Full Context - Symmetrical Layout -->
+    <g transform="translate(150, 190)"> <!-- Center beans relative to context circle -->
+      <!-- Top -->
+      <circle cx="0" cy="-65" r="18" class="bean-circle bean-controller"/>
+      <text x="0" y="-65" class="bean-text">Service</text>
+
+      <!-- Middle Row -->
+      <circle cx="-55" cy="-10" r="18" class="bean-circle bean-service"/>
+      <text x="-55" y="-10" class="bean-text">Http Cl.</text>
+      <circle cx="0" cy="-10" r="18" class="bean-circle bean-webconfig"/>
+      <text x="0" y="-10" class="bean-text">Web</text>
+      <circle cx="55" cy="-10" r="18" class="bean-circle bean-repository"/>
+      <text x="55" y="-10" class="bean-text">Repo</text>
+
+      <!-- Bottom Row -->
+      <circle cx="-45" cy="55" r="18" class="bean-circle bean-component"/>
+      <text x="-45" y="55" class="bean-text">Comp</text>
+      <circle cx="0" cy="55" r="18" class="bean-circle bean-webconfig"/>
+      <text x="0" y="55" class="bean-text">Web</text>
+      <circle cx="45" cy="55" r="18" class="bean-circle bean-config"/>
+      <text x="45" y="55" class="bean-text">Config</text>
+    </g>
+    <text x="150" y="310" text-anchor="middle" class="annotation-text">Entire Application Context</text>
+  </g>
+
+  <!-- Arrow -->
+  <line x1="270" y1="190" x2="380" y2="190" class="arrow"/>
+  <text x="315" y="180" text-anchor="middle" font-size="11" font-style="italic">@WebMvcTest</text>
+  <text x="315" y="205" text-anchor="middle" font-size="11" font-style="italic">applied</text>
+
+
+  <!-- Sliced Context Section -->
+  <g id="sliced-context">
+    <text x="500" y="60" class="title-text">Sliced Context (@WebMvcTest)</text>
+    <circle cx="500" cy="190" r="100" class="context-circle"/>
+
+    <!-- Beans in Sliced Context - Symmetrical Layout -->
+    <g transform="translate(500, 190)"> <!-- Center beans relative to context circle -->
+      <!-- Top -->
+
+      <circle cx="0" cy="-35" r="18" class="bean-circle bean-mocked"/>
+      <text x="0" y="-35" class="bean-text">Service</text>
+      <!-- Annotation for the mocked bean -->
+      <text x="0" y="-70" class="mock-annotation-text" text-anchor="middle">Needs @MockitoBean or</text>
+      <text x="0" y="-60" class="mock-annotation-text" text-anchor="middle">@TestConfiguration</text>
+
+
+
+      <!-- Relevant Web Auto-Configuration Beans -->
+      <circle cx="-35" cy="15" r="18" class="bean-circle bean-webconfig"/>
+      <text x="-35" y="15" class="bean-text">Interceptor</text>
+      <circle cx="35" cy="15" r="18" class="bean-circle bean-webconfig"/>
+      <text x="35" y="15" class="bean-text">Controller</text>
+      <circle cx="0" cy="60" r="18" class="bean-circle bean-webconfig"/>
+      <text x="0" y="60" class="bean-text">Filter</text>
+
+      <!-- Indicate missing beans -->
+      <text x="0" y="120" class="annotation-text" font-style="italic" fill="#d9534f" text-anchor="middle">Service, Repo, Component,</text>
+      <text x="0" y="135" class="annotation-text" font-style="italic" fill="#d9534f" text-anchor="middle">Config beans excluded</text>
+
+    </g>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(20, 400)">
+    <text font-weight="bold">Bean Legend:</text>
+    <rect x="0" y="15" width="15" height="15" class="bean-circle bean-controller"/>
+    <text x="20" y="23">Service</text>
+    <rect x="0" y="35" width="15" height="15" class="bean-circle bean-service"/>
+    <text x="20" y="43">Http Cl.: Http Client</text>
+    <rect x="0" y="55" width="15" height="15" class="bean-circle bean-repository"/>
+    <text x="20" y="63">Repo: @Repository</text>
+
+    <rect x="150" y="15" width="15" height="15" class="bean-circle bean-component"/>
+    <text x="170" y="23">Comp: @Component</text>
+    <rect x="150" y="35" width="15" height="15" class="bean-circle bean-config"/>
+    <text x="170" y="43">Config: @Configuration</text>
+    <rect x="150" y="55" width="15" height="15" class="bean-circle bean-webconfig"/>
+    <text x="170" y="63">Web: @RestController, Filter, Converter</text>
+  </g>
+
+</svg>
