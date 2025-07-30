@@ -160,6 +160,13 @@ public class TestExecutionReporter {
 
       // Extension version info
       context.setVariable("extensionVersion", VersionInfo.getVersion());
+      String extensionVersion = VersionInfo.getVersion();
+      context.setVariable("extensionVersion", extensionVersion);
+      // UTM parameters for tracking
+      String utmParameters =
+          "?utm_source=spring-test-profiler&utm_medium=report&utm_campaign=spring-test-profiler-v"
+              + extensionVersion;
+      context.setVariable("utmParameters", utmParameters);
 
       // Pre-compute test status counts to avoid complex template expressions
       Map<String, TestExecutionTracker.TestClassMetrics> classMetrics =
