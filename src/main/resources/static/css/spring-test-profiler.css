@@ -995,6 +995,158 @@ h2 {
     }
 }
 
+/* Static Analysis Recommendations Styles */
+.static-analysis-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.static-analysis-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+.section-description {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.optimization-records {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.optimization-record-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+    padding: 20px;
+    transition: box-shadow 0.2s ease;
+}
+
+.optimization-record-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.record-header {
+    margin-bottom: 15px;
+}
+
+.record-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.record-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.severity-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.severity-badge.severity-low {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.severity-badge.severity-medium {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.severity-badge.severity-high {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.severity-badge.severity-critical {
+    background-color: #f5c6cb;
+    color: #491217;
+}
+
+.record-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.test-class-name {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    background-color: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.source-location {
+    color: #6c757d;
+}
+
+.record-content {
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+}
+
+.record-description {
+    margin-bottom: 15px;
+    color: #495057;
+    line-height: 1.5;
+}
+
+.record-recommendation {
+    background-color: #e7f3ff;
+    border-radius: 6px;
+    padding: 15px;
+    border-left: 3px solid #0366d6;
+}
+
+.record-recommendation h4 {
+    color: #0366d6;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.recommendation-text {
+    color: #24292e;
+    line-height: 1.4;
+}
+
+.recommendation-text ul {
+    margin-left: 20px;
+    margin-top: 8px;
+}
+
+.recommendation-text li {
+    margin-bottom: 4px;
+}
+
+/* Responsive adjustments for static analysis section */
+@media (max-width: 768px) {
+    .record-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .record-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
 /* Timeline Section Styles */
 .timeline-section {
     background: white;
