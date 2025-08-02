@@ -98,26 +98,22 @@ public class TestExecutionReporter {
       return Paths.get(customDir);
     }
 
-    String baseDir;
-
-    switch (buildTool) {
-      case MAVEN:
-        baseDir = "target";
-        break;
-      case GRADLE:
-        baseDir = "build";
-        break;
-      default:
-        // For unknown build tools, try to detect from current directory structure
-        if (Files.exists(Paths.get("target"))) {
-          baseDir = "target";
-        } else if (Files.exists(Paths.get("build"))) {
-          baseDir = "build";
-        } else {
-          // Fallback to creating in current directory
-          baseDir = ".";
-        }
-    }
+    String baseDir =
+        switch (buildTool) {
+          case MAVEN -> "target";
+          case GRADLE -> "build";
+          default -> {
+            // For unknown build tools, try to detect from current directory structure
+            if (Files.exists(Paths.get("target"))) {
+              yield "target";
+            } else if (Files.exists(Paths.get("build"))) {
+              yield "build";
+            } else {
+              // Fallback to creating in current directory
+              yield ".";
+            }
+          }
+        };
 
     return Paths.get(baseDir, REPORT_DIR_NAME);
   }
