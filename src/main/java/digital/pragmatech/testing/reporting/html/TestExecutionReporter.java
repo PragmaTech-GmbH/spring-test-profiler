@@ -31,6 +31,8 @@ public class TestExecutionReporter {
   private static final String REPORT_DIR_NAME = "spring-test-profiler";
   private static final DateTimeFormatter TIMESTAMP_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+  private static final String TARGET_DIRECTORY = "target";
+  private static final String BUILD_DIRECTORY = "build";
 
   private final TemplateEngine templateEngine;
   private final JsonReportGenerator jsonReportGenerator;
@@ -100,14 +102,14 @@ public class TestExecutionReporter {
 
     String baseDir =
         switch (buildTool) {
-          case MAVEN -> "target";
-          case GRADLE -> "build";
+          case MAVEN -> TARGET_DIRECTORY;
+          case GRADLE -> BUILD_DIRECTORY;
           default -> {
             // For unknown build tools, try to detect from current directory structure
-            if (Files.exists(Paths.get("target"))) {
-              yield "target";
-            } else if (Files.exists(Paths.get("build"))) {
-              yield "build";
+            if (Files.exists(Paths.get(TARGET_DIRECTORY))) {
+              yield TARGET_DIRECTORY;
+            } else if (Files.exists(Paths.get(BUILD_DIRECTORY))) {
+              yield BUILD_DIRECTORY;
             } else {
               // Fallback to creating in current directory
               yield ".";
