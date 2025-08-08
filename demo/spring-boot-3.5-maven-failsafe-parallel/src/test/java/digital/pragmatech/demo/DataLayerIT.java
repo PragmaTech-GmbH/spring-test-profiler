@@ -3,7 +3,9 @@ package digital.pragmatech.demo;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
@@ -36,7 +38,9 @@ public class DataLayerIT {
   @Test
   void testEntityPersistence() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(90);
+    Awaitility.await()
+      .pollDelay(90, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Hibernate in Action", "Christian Bauer", "978-1932394153",
       new BigDecimal("48.99"), BookCategory.TECHNOLOGY);
@@ -51,7 +55,9 @@ public class DataLayerIT {
   @Test
   void testFindByTitleContaining() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(110);
+    Awaitility.await()
+      .pollDelay(110, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book1 = new Book("Spring Framework Guide", "Author", "978-5555555555",
       new BigDecimal("35.00"), BookCategory.TECHNOLOGY);
@@ -74,7 +80,9 @@ public class DataLayerIT {
   @Test
   void testExistsById() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(70);
+    Awaitility.await()
+      .pollDelay(70, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("JPA Essentials", "Author", "978-8888888888",
       new BigDecimal("42.00"), BookCategory.TECHNOLOGY);
@@ -88,7 +96,9 @@ public class DataLayerIT {
   @Test
   void testDeleteByIsbn() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(130);
+    Awaitility.await()
+      .pollDelay(130, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Database Design", "Author", "978-9999999999",
       new BigDecimal("38.00"), BookCategory.TECHNOLOGY);

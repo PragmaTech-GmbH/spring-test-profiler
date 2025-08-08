@@ -2,7 +2,9 @@ package digital.pragmatech.demo;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.service.BookService;
@@ -29,9 +31,11 @@ class BookServiceIT {
   private BookService bookService;
 
   @Test
-  void testCreateBook() throws InterruptedException {
+  void testCreateBook() {
     // Simulate some processing time
-    Thread.sleep(90);
+    Awaitility.await()
+      .pollDelay(90, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Microservices Patterns", "Chris Richardson", "978-1617294549",
       new BigDecimal("54.99"), BookCategory.TECHNOLOGY);
@@ -43,9 +47,11 @@ class BookServiceIT {
   }
 
   @Test
-  void testFindByAuthor() throws InterruptedException {
+  void testFindByAuthor() {
     // Simulate some processing time
-    Thread.sleep(110);
+    Awaitility.await()
+      .pollDelay(110, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     String uniqueAuthor = "Craig Walls " + System.currentTimeMillis();
     Book book = new Book("Spring Boot in Action", uniqueAuthor, "978-1617292545",
@@ -59,9 +65,11 @@ class BookServiceIT {
   }
 
   @Test
-  void testFindByPriceRange() throws InterruptedException {
+  void testFindByPriceRange() {
     // Simulate some processing time
-    Thread.sleep(130);
+    Awaitility.await()
+      .pollDelay(130, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book1 = new Book("Affordable Book", "Author One", "978-1111111111",
       new BigDecimal("25.00"), BookCategory.TECHNOLOGY);
@@ -78,9 +86,11 @@ class BookServiceIT {
   }
 
   @Test
-  void testCountBooks() throws InterruptedException {
+  void testCountBooks() {
     // Simulate some processing time
-    Thread.sleep(70);
+    Awaitility.await()
+      .pollDelay(70, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book1 = new Book("Book One", "Author", "978-3333333333",
       new BigDecimal("30.00"), BookCategory.TECHNOLOGY);

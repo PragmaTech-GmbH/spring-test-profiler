@@ -2,7 +2,9 @@ package digital.pragmatech.demo;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
@@ -42,7 +44,9 @@ public class DatabaseParallelIT {
   @Test
   void testEntityManagerPersistenceParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(78);
+    Awaitility.await()
+      .pollDelay(78, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Effective Java 3rd Edition", "Joshua Bloch", "978-0134685991",
       new BigDecimal("54.99"), BookCategory.TECHNOLOGY);
@@ -56,7 +60,9 @@ public class DatabaseParallelIT {
   @Test
   void testRepositoryCountParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(92);
+    Awaitility.await()
+      .pollDelay(92, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book1 = new Book("Book A", "Author A", "978-1111111111",
       new BigDecimal("25.00"), BookCategory.FICTION);
@@ -74,7 +80,9 @@ public class DatabaseParallelIT {
   @Test
   void testQueryByExampleParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(108);
+    Awaitility.await()
+      .pollDelay(108, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book techBook1 = new Book("Spring Boot Guide", "Author", "978-3333333333",
       new BigDecimal("45.00"), BookCategory.TECHNOLOGY);
@@ -96,7 +104,9 @@ public class DatabaseParallelIT {
   @Test
   void testTransactionalBehaviorParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(135);
+    Awaitility.await()
+      .pollDelay(135, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Transaction Test", "Author", "978-6666666666",
       new BigDecimal("35.00"), BookCategory.TECHNOLOGY);

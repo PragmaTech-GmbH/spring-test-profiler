@@ -2,7 +2,9 @@ package digital.pragmatech.demo;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.service.BookService;
@@ -32,9 +34,11 @@ public class BookServiceParallelIT {
   private BookService bookService;
 
   @Test
-  void testCreateBookParallel() throws InterruptedException {
+  void testCreateBookParallel() {
     // Simulate some processing time
-    Thread.sleep(95);
+    Awaitility.await()
+      .pollDelay(95, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Domain-Driven Design", "Eric Evans", "978-0321125215",
       new BigDecimal("56.99"), BookCategory.TECHNOLOGY);
@@ -46,9 +50,11 @@ public class BookServiceParallelIT {
   }
 
   @Test
-  void testUpdateBookParallel() throws InterruptedException {
+  void testUpdateBookParallel() {
     // Simulate some processing time
-    Thread.sleep(85);
+    Awaitility.await()
+      .pollDelay(85, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Original Title", "Author", "978-4444444444",
       new BigDecimal("30.00"), BookCategory.TECHNOLOGY);
@@ -64,9 +70,11 @@ public class BookServiceParallelIT {
   }
 
   @Test
-  void testFindByTitleParallel() throws InterruptedException {
+  void testFindByTitleParallel() {
     // Simulate some processing time
-    Thread.sleep(105);
+    Awaitility.await()
+      .pollDelay(105, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Refactoring: Improving Design", "Martin Fowler", "978-0134757599",
       new BigDecimal("47.99"), BookCategory.TECHNOLOGY);
@@ -79,9 +87,11 @@ public class BookServiceParallelIT {
   }
 
   @Test
-  void testDeleteBookParallel() throws InterruptedException {
+  void testDeleteBookParallel() {
     // Simulate some processing time
-    Thread.sleep(75);
+    Awaitility.await()
+      .pollDelay(75, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Temporary Book", "Author", "978-5555555555",
       new BigDecimal("25.00"), BookCategory.TECHNOLOGY);

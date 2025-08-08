@@ -1,7 +1,9 @@
 package digital.pragmatech.demo;
 
 import java.math.BigDecimal;
+import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import org.junit.jupiter.api.Test;
@@ -35,7 +37,9 @@ public class WebLayerIT {
   @Test
   void testCreateBookEndpoint() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(100);
+    Awaitility.await()
+      .pollDelay(100, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     String uniqueIsbn = "978-0596529" + System.currentTimeMillis() % 1000;
     Book book = new Book("RESTful Web Services", "Leonard Richardson", uniqueIsbn,
@@ -51,7 +55,9 @@ public class WebLayerIT {
   @Test
   void testGetAllBooksEndpoint() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(120);
+    Awaitility.await()
+      .pollDelay(120, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     // First create a book
     String uniqueIsbn = "978-1617295" + System.currentTimeMillis() % 1000;
@@ -69,7 +75,9 @@ public class WebLayerIT {
   @Test
   void testGetBookCountEndpoint() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(80);
+    Awaitility.await()
+      .pollDelay(80, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     ResponseEntity<Long> response = testRestTemplate.getForEntity("/api/books/count", Long.class);
 
@@ -81,7 +89,9 @@ public class WebLayerIT {
   @Test
   void testSearchBooksEndpoint() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(140);
+    Awaitility.await()
+      .pollDelay(140, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     // Create a book first
     String uniqueAuthor = "Kent Beck " + System.currentTimeMillis();
