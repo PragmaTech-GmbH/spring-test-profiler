@@ -31,7 +31,7 @@ class BookServiceIT {
   private BookService bookService;
 
   @Test
-  void testCreateBook() throws InterruptedException {
+  void testCreateBook() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(90, TimeUnit.MILLISECONDS)
@@ -47,7 +47,7 @@ class BookServiceIT {
   }
 
   @Test
-  void testFindByAuthor() throws InterruptedException {
+  void testFindByAuthor() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(110, TimeUnit.MILLISECONDS)
@@ -65,7 +65,7 @@ class BookServiceIT {
   }
 
   @Test
-  void testFindByPriceRange() throws InterruptedException {
+  void testFindByPriceRange() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(130, TimeUnit.MILLISECONDS)
@@ -86,7 +86,7 @@ class BookServiceIT {
   }
 
   @Test
-  void testCountBooks() throws InterruptedException {
+  void testCountBooks() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(70, TimeUnit.MILLISECONDS)

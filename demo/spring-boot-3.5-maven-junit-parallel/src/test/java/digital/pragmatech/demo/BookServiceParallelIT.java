@@ -34,7 +34,7 @@ public class BookServiceParallelIT {
   private BookService bookService;
 
   @Test
-  void testCreateBookParallel() throws InterruptedException {
+  void testCreateBookParallel() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(95, TimeUnit.MILLISECONDS)
@@ -50,7 +50,7 @@ public class BookServiceParallelIT {
   }
 
   @Test
-  void testUpdateBookParallel() throws InterruptedException {
+  void testUpdateBookParallel() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(85, TimeUnit.MILLISECONDS)
@@ -70,7 +70,7 @@ public class BookServiceParallelIT {
   }
 
   @Test
-  void testFindByTitleParallel() throws InterruptedException {
+  void testFindByTitleParallel() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(105, TimeUnit.MILLISECONDS)
@@ -87,7 +87,7 @@ public class BookServiceParallelIT {
   }
 
   @Test
-  void testDeleteBookParallel() throws InterruptedException {
+  void testDeleteBookParallel() {
     // Simulate some processing time
     Awaitility.await()
       .pollDelay(75, TimeUnit.MILLISECONDS)
