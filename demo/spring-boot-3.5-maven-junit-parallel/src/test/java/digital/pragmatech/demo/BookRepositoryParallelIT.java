@@ -2,7 +2,9 @@ package digital.pragmatech.demo;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
@@ -33,7 +35,9 @@ public class BookRepositoryParallelIT {
   @Test
   void testSaveAndFindBookParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(120);
+    Awaitility.await()
+      .pollDelay(120, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Clean Architecture", "Robert C. Martin", "978-0134494166",
       new BigDecimal("48.99"), BookCategory.TECHNOLOGY);
@@ -48,7 +52,9 @@ public class BookRepositoryParallelIT {
   @Test
   void testFindByIsbnParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(100);
+    Awaitility.await()
+      .pollDelay(100, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Java: The Complete Reference", "Herbert Schildt", "978-1260440232",
       new BigDecimal("59.99"), BookCategory.TECHNOLOGY);
@@ -63,7 +69,9 @@ public class BookRepositoryParallelIT {
   @Test
   void testFindByAuthorParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(90);
+    Awaitility.await()
+      .pollDelay(90, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book1 = new Book("Spring Security in Action", "Laurentiu Spilca", "978-1617297731",
       new BigDecimal("49.99"), BookCategory.TECHNOLOGY);
@@ -81,7 +89,9 @@ public class BookRepositoryParallelIT {
   @Test
   void testFindByPriceBetweenParallel() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(110);
+    Awaitility.await()
+      .pollDelay(110, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book1 = new Book("Budget Book", "Author", "978-1111111111",
       new BigDecimal("15.00"), BookCategory.FICTION);

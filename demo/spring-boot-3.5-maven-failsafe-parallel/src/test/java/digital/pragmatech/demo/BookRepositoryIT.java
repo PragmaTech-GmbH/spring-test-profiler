@@ -2,7 +2,9 @@ package digital.pragmatech.demo;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
@@ -30,7 +32,9 @@ public class BookRepositoryIT {
   @Test
   void testSaveAndFindBook() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(100);
+    Awaitility.await()
+      .pollDelay(100, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Clean Code", "Robert C. Martin", "978-0132350884",
       new BigDecimal("45.99"), BookCategory.TECHNOLOGY);
@@ -45,7 +49,9 @@ public class BookRepositoryIT {
   @Test
   void testFindByIsbn() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(150);
+    Awaitility.await()
+      .pollDelay(150, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book = new Book("Effective Java", "Joshua Bloch", "978-0134685991",
       new BigDecimal("52.99"), BookCategory.TECHNOLOGY);
@@ -60,7 +66,9 @@ public class BookRepositoryIT {
   @Test
   void testFindByCategory() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(120);
+    Awaitility.await()
+      .pollDelay(120, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book techBook = new Book("Design Patterns", "Gang of Four", "978-0201633612",
       new BigDecimal("59.99"), BookCategory.TECHNOLOGY);
@@ -79,7 +87,9 @@ public class BookRepositoryIT {
   @Test
   void testCountByCategory() throws InterruptedException {
     // Simulate some processing time
-    Thread.sleep(80);
+    Awaitility.await()
+      .pollDelay(80, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     Book book1 = new Book("Java Concurrency", "Brian Goetz", "978-0321349606",
       new BigDecimal("49.99"), BookCategory.TECHNOLOGY);

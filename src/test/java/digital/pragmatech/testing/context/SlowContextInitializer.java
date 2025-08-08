@@ -1,5 +1,8 @@
 package digital.pragmatech.testing.context;
 
+import java.util.concurrent.TimeUnit;
+
+import org.awaitility.Awaitility;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -8,10 +11,8 @@ public class SlowContextInitializer
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
-    try {
-      Thread.sleep(2000); // Simulate a slow initialization
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    Awaitility.await()
+        .pollDelay(1, TimeUnit.SECONDS)
+        .until(() -> true); // Simulate a slow initialization
   }
 }

@@ -1,5 +1,8 @@
 package digital.pragmatech.demo;
 
+import java.util.concurrent.TimeUnit;
+
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -41,7 +44,9 @@ public class WebMvcParallelIT {
   @Test
   void testCreateBookMvcParallel() throws Exception {
     // Simulate some processing time
-    Thread.sleep(88);
+    Awaitility.await()
+      .pollDelay(88, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
@@ -65,7 +70,9 @@ public class WebMvcParallelIT {
   @Test
   void testGetAllBooksMvcParallel() throws Exception {
     // Simulate some processing time
-    Thread.sleep(115);
+    Awaitility.await()
+      .pollDelay(115, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
@@ -78,7 +85,9 @@ public class WebMvcParallelIT {
   @Test
   void testGetBookCountMvcParallel() throws Exception {
     // Simulate some processing time
-    Thread.sleep(65);
+    Awaitility.await()
+      .pollDelay(65, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
@@ -90,7 +99,9 @@ public class WebMvcParallelIT {
   @Test
   void testSearchBooksMvcParallel() throws Exception {
     // Simulate some processing time
-    Thread.sleep(125);
+    Awaitility.await()
+      .pollDelay(125, TimeUnit.MILLISECONDS)
+      .until(() -> true);
 
     mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
