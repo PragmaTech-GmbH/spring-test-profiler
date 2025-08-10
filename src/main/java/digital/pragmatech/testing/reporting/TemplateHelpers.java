@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -139,15 +138,13 @@ public class TemplateHelpers {
                 // Then by name
                 return a.getTestMethodName().compareTo(b.getTestMethodName());
               })
-          .collect(Collectors.toList());
+          .toList();
     }
   }
 
   public static class TestClassSorter {
     public List<TestClassExecutionData> sortTestClasses(List<TestClassExecutionData> testClasses) {
-      return testClasses.stream()
-          .sorted((a, b) -> a.className().compareTo(b.className()))
-          .collect(Collectors.toList());
+      return testClasses.stream().sorted((a, b) -> a.className().compareTo(b.className())).toList();
     }
   }
 
@@ -315,7 +312,7 @@ public class TemplateHelpers {
           contextCacheTracker.getAllEntries().stream()
               .filter(ContextCacheEntry::isCreated)
               .map(this::mapContextEntryToStatistics)
-              .collect(Collectors.toList());
+              .toList();
 
       return toJson(contextStatistics);
     }
@@ -373,17 +370,12 @@ public class TemplateHelpers {
 
         // Configuration classes
         config.put(
-            "classes",
-            Arrays.stream(mergedConfig.getClasses())
-                .map(Class::getName)
-                .collect(Collectors.toList()));
+            "classes", Arrays.stream(mergedConfig.getClasses()).map(Class::getName).toList());
 
         // Context initializer classes
         config.put(
             "contextInitializerClasses",
-            mergedConfig.getContextInitializerClasses().stream()
-                .map(Class::getName)
-                .collect(Collectors.toList()));
+            mergedConfig.getContextInitializerClasses().stream().map(Class::getName).toList());
 
         // Active profiles
         config.put("activeProfiles", Arrays.asList(mergedConfig.getActiveProfiles()));
@@ -401,7 +393,7 @@ public class TemplateHelpers {
             "contextCustomizers",
             mergedConfig.getContextCustomizers().stream()
                 .map(customizer -> customizer.getClass().getName())
-                .collect(Collectors.toList()));
+                .toList());
 
         // Context loader
         config.put(

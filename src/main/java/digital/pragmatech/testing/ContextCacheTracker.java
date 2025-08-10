@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import digital.pragmatech.testing.optimization.ContextOptimizationOpportunity;
 import digital.pragmatech.testing.reporting.ContextTimelineEvent;
@@ -273,9 +272,7 @@ public class ContextCacheTracker {
   /** Calculates optimization statistics based on context loading times and cache usage. */
   public OptimizationStatistics calculateOptimizationStatistics() {
     List<ContextCacheEntry> createdEntries =
-        cacheEntries.values().stream()
-            .filter(ContextCacheEntry::isCreated)
-            .collect(Collectors.toList());
+        cacheEntries.values().stream().filter(ContextCacheEntry::isCreated).toList();
 
     if (createdEntries.isEmpty()) {
       return new OptimizationStatistics(0, 0, 0, 0, Collections.emptyList());
@@ -351,7 +348,7 @@ public class ContextCacheTracker {
                   entry.getBeanDefinitionCount(),
                   recommendation);
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private String generateRecommendation(ContextCacheEntry entry) {
@@ -396,7 +393,7 @@ public class ContextCacheTracker {
                   }
                   return timeA.compareTo(timeB);
                 })
-            .collect(Collectors.toList());
+            .toList();
 
     if (createdEntries.isEmpty()) {
       return new TimelineData(Collections.emptyList(), null, null, Collections.emptyList());

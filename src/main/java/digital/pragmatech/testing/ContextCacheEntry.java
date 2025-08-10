@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.springframework.test.context.MergedContextConfiguration;
 
@@ -203,9 +202,7 @@ public class ContextCacheEntry {
 
       summary.put(
           "configurationClasses",
-          Arrays.stream(configuration.getClasses())
-              .map(Class::getSimpleName)
-              .collect(Collectors.toList()));
+          Arrays.stream(configuration.getClasses()).map(Class::getSimpleName).toList());
 
       summary.put("activeProfiles", Arrays.asList(configuration.getActiveProfiles()));
       summary.put("contextLoader", configuration.getContextLoader().getClass().getSimpleName());
@@ -217,9 +214,7 @@ public class ContextCacheEntry {
 
       summary.put(
           "contextInitializers",
-          configuration.getContextInitializerClasses().stream()
-              .map(Class::getSimpleName)
-              .collect(Collectors.toList()));
+          configuration.getContextInitializerClasses().stream().map(Class::getSimpleName).toList());
 
       summary.put("beanDefinitionCount", beanDefinitionCount);
     }
