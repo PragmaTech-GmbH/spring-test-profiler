@@ -30,4 +30,16 @@ public class ContextDiagnosticApplicationInitializer
           }
         });
   }
+
+  @Override
+  public boolean equals(Object that) {
+    // avoid double registration of the same bean when listener was discovered via
+    // spring.factories
+    return getClass() == that.getClass();
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
+  }
 }
