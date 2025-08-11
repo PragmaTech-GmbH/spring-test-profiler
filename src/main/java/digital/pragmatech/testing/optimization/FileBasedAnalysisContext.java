@@ -151,7 +151,13 @@ public class FileBasedAnalysisContext implements StaticAnalysisContext {
     Matcher matcher = pattern.matcher(content);
 
     while (matcher.find()) {
-      annotations.add(matcher.group(1));
+      String fullAnnotationName = matcher.group(1);
+      // Extract simple name if it's a fully qualified name
+      String simpleAnnotationName =
+          fullAnnotationName.contains(".")
+              ? fullAnnotationName.substring(fullAnnotationName.lastIndexOf('.') + 1)
+              : fullAnnotationName;
+      annotations.add(simpleAnnotationName);
     }
 
     return annotations;
@@ -165,22 +171,34 @@ public class FileBasedAnalysisContext implements StaticAnalysisContext {
     }
 
     Set<String> annotations = new HashSet<>();
-    // Find method and extract annotations before it
+    // Find the method by looking for its declaration with proper method pattern
+    // This pattern captures annotations that appear immediately before a method
     String methodPattern =
-        "(?:@[^\\n]*\\s+)*\\s*(?:public|private|protected)?\\s*(?:static)?\\s*(?:final)?\\s*\\w+\\s+"
+        "((?:^\\s*@[^\\r\\n]*[\\r\\n]+)*)"
+            + // Capture group for annotations
+            "\\s*(?:public|private|protected)?\\s*(?:static\\s+)?(?:final\\s+)?(?:void|\\w+(?:<[^>]*>)?)\\s+"
             + Pattern.quote(methodName)
             + "\\s*\\(";
-    Pattern pattern = Pattern.compile(methodPattern, Pattern.MULTILINE | Pattern.DOTALL);
+
+    Pattern pattern = Pattern.compile(methodPattern, Pattern.MULTILINE);
     Matcher matcher = pattern.matcher(content);
 
     if (matcher.find()) {
-      String methodDeclaration = matcher.group();
-      Pattern annotationPattern =
-          Pattern.compile("@([a-zA-Z_$][a-zA-Z0-9_$.]*(?:\\.[a-zA-Z_$][a-zA-Z0-9_$]*)*)");
-      Matcher annotationMatcher = annotationPattern.matcher(methodDeclaration);
+      String annotationsBlock = matcher.group(1);
+      if (annotationsBlock != null && !annotationsBlock.isEmpty()) {
+        Pattern annotationPattern =
+            Pattern.compile("@([a-zA-Z_$][a-zA-Z0-9_$.]*(?:\\.[a-zA-Z_$][a-zA-Z0-9_$]*)*)");
+        Matcher annotationMatcher = annotationPattern.matcher(annotationsBlock);
 
-      while (annotationMatcher.find()) {
-        annotations.add(annotationMatcher.group(1));
+        while (annotationMatcher.find()) {
+          String fullAnnotationName = annotationMatcher.group(1);
+          // Extract simple name if it's a fully qualified name
+          String simpleAnnotationName =
+              fullAnnotationName.contains(".")
+                  ? fullAnnotationName.substring(fullAnnotationName.lastIndexOf('.') + 1)
+                  : fullAnnotationName;
+          annotations.add(simpleAnnotationName);
+        }
       }
     }
 

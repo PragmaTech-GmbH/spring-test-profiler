@@ -125,7 +125,7 @@ public class DirtiesContextTestSmellDetector implements TestSmellDetector {
     // Pattern to find method declarations (public, private, protected methods with parameters)
     Pattern methodPattern =
         Pattern.compile(
-            "(?:public|private|protected)\\s+(?:static\\s+)?(?:final\\s+)?\\w+(?:<[^>]*>)?\\s+(\\w+)\\s*\\([^)]*\\)\\s*(?:throws\\s+[^{]*)?\\s*\\{",
+            "(?:public|private|protected)\\s+(?:static\\s+)?(?:final\\s+)?(?:void|\\w+(?:<[^>]*>)?)\\s+(\\w+)\\s*\\([^)]*\\)\\s*(?:throws\\s+[^{]*)?\\s*\\{",
             Pattern.MULTILINE | Pattern.DOTALL);
 
     Matcher matcher = methodPattern.matcher(classContent);
