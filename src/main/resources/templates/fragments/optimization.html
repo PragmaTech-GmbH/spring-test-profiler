@@ -3,7 +3,7 @@
 <body>
     <div th:fragment="optimization-section(optimizationStats, optimizationRecords)" class="optimization-section">
         <h2>⚡ Build Time Optimization Recommendations</h2>
-
+        <p class="section-description">(this feature is highly work in progress)</p>
         <div th:if="${optimizationStats != null and optimizationStats.totalContextsCreated > 0}" class="optimization-content">
             <!-- Optimization Summary -->
             <div class="optimization-summary">
@@ -129,7 +129,7 @@
 
                         <div class="record-recommendation">
                             <h4>💡 Recommendation:</h4>
-                            <div class="recommendation-text" th:utext="${#strings.replace(record.recommendation, '\\n', '<br/>')}">
+                            <div class="recommendation-text" style="white-space: pre-line;" th:text="${record.recommendation}">
                                 Optimization recommendation
                             </div>
                         </div>

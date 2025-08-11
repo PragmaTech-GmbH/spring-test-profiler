@@ -56,19 +56,85 @@ public class FileBasedAnalysisContext implements StaticAnalysisContext {
 
   @Override
   public boolean hasAnnotation(String className, String annotationName) {
+    return hasClassLevelAnnotation(className, annotationName);
+  }
+
+  public boolean hasClassLevelAnnotation(String className, String annotationName) {
     String content = getClassContent(className);
     if (content.isEmpty()) {
       return false;
     }
 
-    // Simple annotation detection - looks for @AnnotationName
+    // Get simple annotation name
     String simpleAnnotationName =
         annotationName.contains(".")
             ? annotationName.substring(annotationName.lastIndexOf('.') + 1)
             : annotationName;
 
-    Pattern pattern = Pattern.compile("@" + Pattern.quote(simpleAnnotationName) + "\\b");
-    return pattern.matcher(content).find();
+    // Look for class-level annotations only - annotations that appear before the class declaration
+    // First find the class declaration
+    String simpleClassName = extractSimpleClassName(className);
+    Pattern classPattern =
+        Pattern.compile(
+            "^\\s*(public\\s+)?(abstract\\s+|final\\s+)?class\\s+"
+                + Pattern.quote(simpleClassName)
+                + "\\b",
+            Pattern.MULTILINE);
+
+    Matcher classMatcher = classPattern.matcher(content);
+    if (!classMatcher.find()) {
+      return false;
+    }
+
+    int classStartPosition = classMatcher.start();
+    String beforeClassContent = content.substring(0, classStartPosition);
+
+    // Look for the annotation before the class declaration only
+    Pattern annotationPattern =
+        Pattern.compile("^\\s*@" + Pattern.quote(simpleAnnotationName) + "\\b", Pattern.MULTILINE);
+    return annotationPattern.matcher(beforeClassContent).find();
+  }
+
+  public boolean hasMethodLevelAnnotation(String className, String annotationName) {
+    String content = getClassContent(className);
+    if (content.isEmpty()) {
+      return false;
+    }
+
+    // Get simple annotation name
+    String simpleAnnotationName =
+        annotationName.contains(".")
+            ? annotationName.substring(annotationName.lastIndexOf('.') + 1)
+            : annotationName;
+
+    // Look for method-level annotations - annotations that appear before method declarations
+    // but not before the class declaration
+    String simpleClassName = extractSimpleClassName(className);
+    Pattern classPattern =
+        Pattern.compile(
+            "^\\s*(public\\s+)?(abstract\\s+|final\\s+)?class\\s+"
+                + Pattern.quote(simpleClassName)
+                + "\\b",
+            Pattern.MULTILINE);
+
+    Matcher classMatcher = classPattern.matcher(content);
+    if (!classMatcher.find()) {
+      return false;
+    }
+
+    int classEndPosition = classMatcher.end();
+    String afterClassContent = content.substring(classEndPosition);
+
+    // Look for the annotation in the class body (after class declaration)
+    Pattern annotationPattern =
+        Pattern.compile("^\\s*@" + Pattern.quote(simpleAnnotationName) + "\\b", Pattern.MULTILINE);
+    return annotationPattern.matcher(afterClassContent).find();
+  }
+
+  private String extractSimpleClassName(String fullyQualifiedClassName) {
+    return fullyQualifiedClassName.contains(".")
+        ? fullyQualifiedClassName.substring(fullyQualifiedClassName.lastIndexOf('.') + 1)
+        : fullyQualifiedClassName;
   }
 
   @Override

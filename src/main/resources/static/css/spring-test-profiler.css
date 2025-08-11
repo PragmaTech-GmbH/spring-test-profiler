@@ -614,6 +614,10 @@ h2 {
     margin-bottom: 30px;
 }
 
+.test-classes-comparison {
+  padding: 20px;
+}
+
 .context-config-item {
     border: 1px solid #ecf0f1;
     border-radius: 6px;
@@ -1086,7 +1090,6 @@ h2 {
 
 .test-class-name {
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-    background-color: #e9ecef;
     padding: 2px 6px;
     border-radius: 3px;
 }
@@ -1587,6 +1590,7 @@ h2 {
     margin-top: 30px;
     overflow: hidden;
     border: 1px solid #e9ecef;
+    margin-bottom: 20px;
 }
 
 .detailed-comparison-title {

@@ -2,6 +2,7 @@ package digital.pragmatech.testing.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,51 +36,82 @@ public class DirtiesContextTestSmellDetector implements TestSmellDetector {
 
   private void analyzeClass(
       String testClass, StaticAnalysisContext context, List<OptimizationRecord> optimizations) {
-    String classContent = context.getClassContent(testClass);
-    if (classContent.isEmpty()) {
+    // Check for class-level annotation using reflection to call the right methods
+    boolean hasClassLevel = false;
+    boolean hasMethodLevel = false;
+
+    try {
+      // Try to call hasClassLevelAnnotation if it exists
+      var classLevelMethod =
+          context.getClass().getMethod("hasClassLevelAnnotation", String.class, String.class);
+      hasClassLevel =
+          (Boolean) classLevelMethod.invoke(context, testClass, ANNOTATION_NAME)
+              || (Boolean) classLevelMethod.invoke(context, testClass, FULL_ANNOTATION_NAME);
+
+      // Try to call hasMethodLevelAnnotation if it exists
+      var methodLevelMethod =
+          context.getClass().getMethod("hasMethodLevelAnnotation", String.class, String.class);
+      hasMethodLevel =
+          (Boolean) methodLevelMethod.invoke(context, testClass, ANNOTATION_NAME)
+              || (Boolean) methodLevelMethod.invoke(context, testClass, FULL_ANNOTATION_NAME);
+
+    } catch (Exception e) {
+      // Fallback to original logic for contexts that don't support class/method distinction
+      if (context.hasAnnotation(testClass, ANNOTATION_NAME)
+          || context.hasAnnotation(testClass, FULL_ANNOTATION_NAME)) {
+        String sourceLocation = testClass + ":class-level";
+        optimizations.add(createOptimizationRecord(testClass, "class-level", sourceLocation));
+      }
+
+      List<String> methodsWithDirtiesContext =
+          findMethodsWithDirtiesContextUsingAnnotations(testClass, context);
+
+      for (String methodName : methodsWithDirtiesContext) {
+        String sourceLocation = testClass + ":" + methodName;
+        optimizations.add(
+            createOptimizationRecord(testClass, "method-level on " + methodName, sourceLocation));
+      }
       return;
     }
 
-    // Check for class-level @DirtiesContext
-    if (hasClassLevelDirtiesContext(classContent)) {
-      String sourceLocation = findAnnotationLocation(classContent, testClass, true);
+    // Handle class-level annotations
+    if (hasClassLevel) {
+      String sourceLocation = testClass + ":class-level";
       optimizations.add(createOptimizationRecord(testClass, "class-level", sourceLocation));
     }
 
-    // Check for method-level @DirtiesContext
-    List<String> methodsWithDirtiesContext = findMethodsWithDirtiesContext(classContent);
-    for (String methodName : methodsWithDirtiesContext) {
-      String sourceLocation = findAnnotationLocation(classContent, methodName, false);
-      optimizations.add(
-          createOptimizationRecord(testClass, "method-level on " + methodName, sourceLocation));
+    // Handle method-level annotations
+    if (hasMethodLevel) {
+      List<String> methodsWithDirtiesContext =
+          findMethodsWithDirtiesContextUsingAnnotations(testClass, context);
+
+      for (String methodName : methodsWithDirtiesContext) {
+        String sourceLocation = testClass + ":" + methodName;
+        optimizations.add(
+            createOptimizationRecord(testClass, "method-level on " + methodName, sourceLocation));
+      }
     }
   }
 
-  private boolean hasClassLevelDirtiesContext(String classContent) {
-    // Look for @DirtiesContext before class declaration
-    Pattern classPattern =
-        Pattern.compile(
-            "(?:@[^\\n]*\\s+)*@" + ANNOTATION_NAME + ".*?\\s+(?:public\\s+)?class\\s+\\w+",
-            Pattern.DOTALL | Pattern.MULTILINE);
-    return classPattern.matcher(classContent).find();
-  }
-
-  private List<String> findMethodsWithDirtiesContext(String classContent) {
+  private List<String> findMethodsWithDirtiesContextUsingAnnotations(
+      String testClass, StaticAnalysisContext context) {
     List<String> methods = new ArrayList<>();
 
-    // Pattern to find methods with @DirtiesContext annotation
-    Pattern pattern =
-        Pattern.compile(
-            "(?:@[^\\n]*\\s+)*@"
-                + ANNOTATION_NAME
-                + "[^\\n]*\\s+(?:[^\\n]*\\s+)*"
-                + "(?:public|private|protected)?\\s*(?:static)?\\s*(?:final)?\\s*\\w+\\s+(\\w+)\\s*\\(",
-            Pattern.MULTILINE | Pattern.DOTALL);
+    // Since we don't have direct access to method names from the context interface,
+    // we need to parse the class content to find method names, then check their annotations
+    String classContent = context.getClassContent(testClass);
+    if (classContent.isEmpty()) {
+      return methods;
+    }
 
-    Matcher matcher = pattern.matcher(classContent);
-    while (matcher.find()) {
-      String methodName = matcher.group(1);
-      if (methodName != null && !methodName.isEmpty()) {
+    // Extract method names from the class content
+    List<String> methodNames = extractMethodNames(classContent);
+
+    // Check each method for @DirtiesContext annotation
+    for (String methodName : methodNames) {
+      Set<String> methodAnnotations = context.getMethodAnnotations(testClass, methodName);
+      if (methodAnnotations.contains(ANNOTATION_NAME)
+          || methodAnnotations.contains(FULL_ANNOTATION_NAME)) {
         methods.add(methodName);
       }
     }
@@ -87,23 +119,24 @@ public class DirtiesContextTestSmellDetector implements TestSmellDetector {
     return methods;
   }
 
-  private String findAnnotationLocation(String classContent, String target, boolean isClass) {
-    String[] lines = classContent.split("\\n");
-    String searchPattern =
-        isClass ? "class\\s+" + target.substring(target.lastIndexOf('.') + 1) : target;
+  private List<String> extractMethodNames(String classContent) {
+    List<String> methodNames = new ArrayList<>();
 
-    for (int i = 0; i < lines.length; i++) {
-      if (lines[i].contains("@" + ANNOTATION_NAME)) {
-        // Look ahead for the class or method declaration
-        for (int j = i; j < Math.min(i + 5, lines.length); j++) {
-          if (Pattern.compile(searchPattern).matcher(lines[j]).find()) {
-            return target + ":" + (i + 1); // Line numbers are 1-based
-          }
-        }
+    // Pattern to find method declarations (public, private, protected methods with parameters)
+    Pattern methodPattern =
+        Pattern.compile(
+            "(?:public|private|protected)\\s+(?:static\\s+)?(?:final\\s+)?\\w+(?:<[^>]*>)?\\s+(\\w+)\\s*\\([^)]*\\)\\s*(?:throws\\s+[^{]*)?\\s*\\{",
+            Pattern.MULTILINE | Pattern.DOTALL);
+
+    Matcher matcher = methodPattern.matcher(classContent);
+    while (matcher.find()) {
+      String methodName = matcher.group(1);
+      if (methodName != null && !methodName.isEmpty() && !methodName.equals("class")) {
+        methodNames.add(methodName);
       }
     }
 
-    return target + ":unknown";
+    return methodNames;
   }
 
   private OptimizationRecord createOptimizationRecord(
@@ -116,7 +149,7 @@ public class DirtiesContextTestSmellDetector implements TestSmellDetector {
                 + "increasing test execution time.",
             testClass);
 
-    String recommendation = buildRecommendation(level);
+    String recommendation = buildRecommendation();
 
     return new OptimizationRecord(
         testClass,
@@ -128,27 +161,21 @@ public class DirtiesContextTestSmellDetector implements TestSmellDetector {
         sourceLocation);
   }
 
-  private String buildRecommendation(String level) {
-    if (level.startsWith("class-level")) {
-      return "Consider the following alternatives:\n"
-          + "• Remove @DirtiesContext and redesign tests to be more isolated\n"
-          + "• Use @MockBean or @SpyBean instead of modifying application state\n"
-          + "• Move context-modifying operations to separate test classes\n"
-          + "• Use @Transactional with @Rollback for database operations\n"
-          + "• Consider using TestContainers for integration tests";
-    } else {
-      return "Consider the following alternatives:\n"
-          + "• Remove @DirtiesContext from individual methods\n"
-          + "• Use @MockBean or @SpyBean for method-specific mocking\n"
-          + "• Use @Transactional with @Rollback for database state changes\n"
-          + "• Refactor to avoid modifying shared application state\n"
-          + "• Group context-modifying tests into separate test classes";
-    }
+  private String buildRecommendation() {
+    return """
+        Consider the following alternatives:
+        • Remove @DirtiesContext and redesign tests to be more isolated
+        • Use @MockitoBean instead of modifying application state
+        • Move context-modifying operations to separate test classes
+        • Use @Transactional with @Rollback for database operations
+      """;
   }
 
   private OptimizationRecord.Severity determineSeverity(String level) {
-    return level.startsWith("class-level")
-        ? OptimizationRecord.Severity.HIGH
-        : OptimizationRecord.Severity.MEDIUM;
+    if (level.contains("method-level")) {
+      return OptimizationRecord.Severity.MEDIUM;
+    } else {
+      return OptimizationRecord.Severity.HIGH;
+    }
   }
 }
