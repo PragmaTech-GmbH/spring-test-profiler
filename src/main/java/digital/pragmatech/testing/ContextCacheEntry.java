@@ -14,6 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.test.context.MergedContextConfiguration;
 
+import static digital.pragmatech.testing.util.CollectionFormatUtils.prettyPrintCollection;
+import static digital.pragmatech.testing.util.CollectionFormatUtils.toStringSortedSet;
+
 /** Entry representing a cached context configuration. */
 public class ContextCacheEntry {
   private final MergedContextConfiguration configuration;
@@ -199,22 +202,33 @@ public class ContextCacheEntry {
     Map<String, Object> summary = new LinkedHashMap<>();
 
     if (configuration != null) {
-
+      // configurationClasses equality is based on ordered Class<?>[]
       summary.put(
           "configurationClasses",
-          Arrays.stream(configuration.getClasses()).map(Class::getSimpleName).toList());
+          prettyPrintCollection(
+              Arrays.stream(configuration.getClasses()).map(Class::getName).toList()));
 
-      summary.put("activeProfiles", Arrays.asList(configuration.getActiveProfiles()));
+      // activeProfiles equality is based on ordered String[]
+      summary.put(
+          "activeProfiles",
+          prettyPrintCollection(Arrays.asList(configuration.getActiveProfiles())));
       summary.put("contextLoader", configuration.getContextLoader().getClass().getSimpleName());
-
       summary.put("properties", configuration.getPropertySourceProperties().length + " properties");
       summary.put("parentContext", configuration.getParent());
-      summary.put("contextCustomizers", configuration.getContextCustomizers());
-      summary.put("locations", String.join(",", configuration.getLocations()));
+      // contextCustomizers equality is based on Set. Convert to ordered String representation to
+      // simplify comparison
+      summary.put(
+          "contextCustomizers",
+          prettyPrintCollection(toStringSortedSet(configuration.getContextCustomizers())));
+      // locations equality is based on ordered String[]
+      summary.put("locations", prettyPrintCollection(Arrays.asList(configuration.getLocations())));
 
+      // contextInitializers equality is based on Set. Convert to ordered String representation to
+      // simplify comparison
       summary.put(
           "contextInitializers",
-          configuration.getContextInitializerClasses().stream().map(Class::getSimpleName).toList());
+          prettyPrintCollection(
+              configuration.getContextInitializerClasses().stream().map(Class::getName).toList()));
 
       summary.put("beanDefinitionCount", beanDefinitionCount);
     }
