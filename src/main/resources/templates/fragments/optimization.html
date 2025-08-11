@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="optimization-section(optimizationStats)" class="optimization-section">
+    <div th:fragment="optimization-section(optimizationStats, optimizationRecords)" class="optimization-section">
         <h2>⚡ Build Time Optimization Recommendations</h2>
-        
+        <p class="section-description">(this feature is highly work in progress)</p>
         <div th:if="${optimizationStats != null and optimizationStats.totalContextsCreated > 0}" class="optimization-content">
             <!-- Optimization Summary -->
             <div class="optimization-summary">
@@ -102,9 +102,45 @@
             </div>
         </div>
 
+        <!-- Static Analysis Recommendations -->
+        <div th:if="${optimizationRecords != null and optimizationRecords.size() > 0}" class="static-analysis-section">
+            <h3>🔍 Static Analysis Recommendations</h3>
+            <p class="section-description">Code analysis identified potential issues that may impact Spring context caching and test performance.</p>
+
+            <div class="optimization-records">
+                <div th:each="record : ${optimizationRecords}" class="optimization-record-card">
+                    <div class="record-header">
+                        <div class="record-title-row">
+                            <span class="record-title" th:text="${record.title}">Optimization Title</span>
+                            <span class="severity-badge"
+                                  th:class="${'severity-badge severity-' + record.severity.name().toLowerCase()}"
+                                  th:text="${record.severity.name()}">HIGH</span>
+                        </div>
+                        <div class="record-meta">
+                            <span class="test-class-name" th:text="${record.testClass}">TestClass</span>
+                            <span class="source-location" th:text="${record.sourceLocation}">location</span>
+                        </div>
+                    </div>
+
+                    <div class="record-content">
+                        <div class="record-description" th:text="${record.description}">
+                            Description of the optimization opportunity
+                        </div>
+
+                        <div class="record-recommendation">
+                            <h4>💡 Recommendation:</h4>
+                            <div class="recommendation-text" style="white-space: pre-line;" th:text="${record.recommendation}">
+                                Optimization recommendation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- No optimization data available -->
-        <div th:if="${optimizationStats == null or optimizationStats.totalContextsCreated == 0}" class="no-optimization-data">
-            <p>No context timing data available for optimization analysis. Ensure context loading measurements are enabled.</p>
+        <div th:if="${(optimizationStats == null or optimizationStats.totalContextsCreated == 0) and (optimizationRecords == null or optimizationRecords.size() == 0)}" class="no-optimization-data">
+            <p>No optimization data available. Ensure context loading measurements are enabled and static analysis is running.</p>
         </div>
     </div>
 </body>

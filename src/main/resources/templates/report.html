@@ -32,7 +32,7 @@
   <div th:replace="~{fragments/context-comparison :: context-comparison-section}"></div>
 
   <!-- Optimization Recommendations Fragment -->
-  <!--  <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>-->
+  <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats}, ${optimizationRecords})}"></div>
 
   <!-- Timeline Visualization Fragment -->
   <!--  <div th:replace="~{fragments/timeline :: timeline-section(${timelineData}, ${jsonHelper})}"></div>-->

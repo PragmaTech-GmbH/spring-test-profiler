@@ -1,12 +1,16 @@
 package digital.pragmatech.testing;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import digital.pragmatech.testing.diagnostic.ContextDiagnostic;
+import digital.pragmatech.testing.optimization.FileBasedAnalysisContext;
+import digital.pragmatech.testing.optimization.OptimizationRecord;
+import digital.pragmatech.testing.optimization.StaticAnalysisEngine;
 import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -263,13 +267,32 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         // Get context cache statistics including our custom tracking
         SpringContextCacheAccessor.CacheStatistics springStats = getCacheStatistics();
 
-        // Generate report with both execution and context cache data
-        reporter.generateReport(executionTracker, springStats, contextCacheTracker);
+        // Run static analysis on test classes
+        List<OptimizationRecord> optimizationRecords = runStaticAnalysis();
+
+        // Generate report with execution data, cache data, and optimization recommendations
+        reporter.generateReport(
+            executionTracker, springStats, contextCacheTracker, optimizationRecords);
 
         // Clear data
         contextCacheTracker.clear();
         reportGenerated = true;
       }
+    }
+  }
+
+  private static List<OptimizationRecord> runStaticAnalysis() {
+    try {
+      logger.debug("Running static analysis on test classes");
+      StaticAnalysisEngine engine = new StaticAnalysisEngine();
+      FileBasedAnalysisContext context =
+          new FileBasedAnalysisContext(executionTracker.getTestClasses());
+      List<OptimizationRecord> records = engine.analyze(context);
+      logger.info("Static analysis completed. Found {} optimization opportunities", records.size());
+      return records;
+    } catch (Exception e) {
+      logger.warn("Static analysis failed: {}", e.getMessage(), e);
+      return List.of();
     }
   }
 

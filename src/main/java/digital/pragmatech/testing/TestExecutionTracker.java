@@ -60,6 +60,10 @@ public class TestExecutionTracker {
     return Collections.unmodifiableMap(classMetrics);
   }
 
+  public Set<String> getTestClasses() {
+    return Collections.unmodifiableSet(classMetrics.keySet());
+  }
+
   public int getTotalTestClasses() {
     return totalTestClasses.get();
   }

@@ -3,6 +3,7 @@ package digital.pragmatech.testing.reporting.json;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
+import digital.pragmatech.testing.optimization.OptimizationRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,15 @@ public class JsonReportGenerator {
       TestExecutionTracker executionTracker,
       SpringContextCacheAccessor.CacheStatistics cacheStats,
       ContextCacheTracker contextCacheTracker) {
+    generateJsonReport(reportDir, executionTracker, cacheStats, contextCacheTracker, List.of());
+  }
+
+  public void generateJsonReport(
+      Path reportDir,
+      TestExecutionTracker executionTracker,
+      SpringContextCacheAccessor.CacheStatistics cacheStats,
+      ContextCacheTracker contextCacheTracker,
+      List<OptimizationRecord> optimizationRecords) {
     try {
       Files.createDirectories(reportDir);
 
@@ -39,7 +50,8 @@ public class JsonReportGenerator {
       String jsonFileName = String.format("spring-test-profiler-%s.json", uniqueId);
       Path jsonFile = reportDir.resolve(jsonFileName);
 
-      ReportData reportData = new ReportData(executionTracker, cacheStats, contextCacheTracker);
+      ReportData reportData =
+          new ReportData(executionTracker, cacheStats, contextCacheTracker, optimizationRecords);
 
       objectMapper.writeValue(jsonFile.toFile(), reportData);
 
@@ -53,5 +65,6 @@ public class JsonReportGenerator {
   private record ReportData(
       TestExecutionTracker executionTracker,
       SpringContextCacheAccessor.CacheStatistics cacheStats,
-      ContextCacheTracker contextCacheTracker) {}
+      ContextCacheTracker contextCacheTracker,
+      List<OptimizationRecord> optimizationRecords) {}
 }
