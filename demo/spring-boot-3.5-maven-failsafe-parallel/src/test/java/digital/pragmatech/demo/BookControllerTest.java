@@ -82,8 +82,6 @@ class BookControllerTest {
 
   @Test
   void testCreateBook() throws Exception {
-    Book inputBook = new Book("New Book", "New Author", "978-1234567890",
-      new BigDecimal("29.99"), BookCategory.FICTION);
     Book createdBook = new Book("New Book", "New Author", "978-1234567890",
       new BigDecimal("29.99"), BookCategory.FICTION);
     createdBook.setId(1L);
