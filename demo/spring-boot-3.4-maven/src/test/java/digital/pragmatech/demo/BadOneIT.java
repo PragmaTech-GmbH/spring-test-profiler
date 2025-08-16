@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
   "logging.level.org.springframework.web=DEBUG"  // Different logging config
 })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) // BAD: Forces context reload
-public class BadOneIT {
+class BadOneIT {
 
   @Autowired
   private BookRepository bookRepository;

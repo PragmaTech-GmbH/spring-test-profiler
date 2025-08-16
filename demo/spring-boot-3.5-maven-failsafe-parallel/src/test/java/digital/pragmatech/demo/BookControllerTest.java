@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * This creates a minimal Spring context with only web layer components
  */
 @WebMvcTest(BookController.class)
-public class BookControllerTest {
+class BookControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -82,8 +82,6 @@ public class BookControllerTest {
 
   @Test
   void testCreateBook() throws Exception {
-    Book inputBook = new Book("New Book", "New Author", "978-1234567890",
-      new BigDecimal("29.99"), BookCategory.FICTION);
     Book createdBook = new Book("New Book", "New Author", "978-1234567890",
       new BigDecimal("29.99"), BookCategory.FICTION);
     createdBook.setId(1L);

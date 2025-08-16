@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
   "spring.jpa.show-sql=true", // Different JPA setting
   "management.endpoints.web.exposure.include=health,info" // Additional property
 })
-public class AnotherBadIT {
+class AnotherBadIT {
 
   @Autowired
   private BookService bookService;

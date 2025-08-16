@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Simple Spring unit test to demonstrate surefire phase report generation.
  * Unit tests (not ending with IT) are run by maven-surefire-plugin.
  */
-public class SimpleUnitTest {
+class SimpleUnitTest {
 
   @Test
   void testSimpleAssertion() {

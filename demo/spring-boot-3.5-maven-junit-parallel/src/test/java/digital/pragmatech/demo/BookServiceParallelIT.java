@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @Transactional
 @Execution(ExecutionMode.CONCURRENT)
-public class BookServiceParallelIT {
+class BookServiceParallelIT {
 
   @Autowired
   private BookService bookService;

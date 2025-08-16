@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
   "server.servlet.context-path=/api/v1", // BAD: Different context path
   "spring.jackson.property-naming-strategy=SNAKE_CASE" // BAD: Different Jackson config
 })
-public class ThirdBadIT {
+class ThirdBadIT {
 
   @Autowired
   private TestRestTemplate testRestTemplate;

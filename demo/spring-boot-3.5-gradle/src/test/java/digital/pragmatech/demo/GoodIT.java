@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional // GOOD: Rolls back after each test, no context recreation needed
-public class GoodIT {
+class GoodIT {
 
   @Autowired
   private BookRepository bookRepository;

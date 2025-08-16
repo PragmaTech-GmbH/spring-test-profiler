@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
   "spring.datasource.url=jdbc:h2:mem:datatest;DB_CLOSE_DELAY=-1",
   "spring.jpa.hibernate.ddl-auto=create-drop"
 })
-public class DataLayerIT {
+class DataLayerIT {
 
   @Autowired
   private BookRepository bookRepository;

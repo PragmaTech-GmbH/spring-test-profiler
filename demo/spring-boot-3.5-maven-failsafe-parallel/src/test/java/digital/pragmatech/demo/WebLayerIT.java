@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
   "spring.datasource.url=jdbc:h2:mem:weblayertest;DB_CLOSE_DELAY=-1",
   "server.port=0"  // Different configuration creates new context
 })
-public class WebLayerIT {
+class WebLayerIT {
 
   @Autowired
   private TestRestTemplate testRestTemplate;
