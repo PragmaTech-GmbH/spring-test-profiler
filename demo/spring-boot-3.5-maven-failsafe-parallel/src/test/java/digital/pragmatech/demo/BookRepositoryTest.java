@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * This creates a minimal Spring context with only JPA components
  */
 @DataJpaTest
-public class BookRepositoryTest {
+class BookRepositoryTest {
 
   @Autowired
   private TestEntityManager entityManager;

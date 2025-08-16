@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
  * This is a pure unit test without Spring context
  */
 @ExtendWith(MockitoExtension.class)
-public class BookServiceTest {
+class BookServiceTest {
 
   @Mock
   private BookRepository bookRepository;

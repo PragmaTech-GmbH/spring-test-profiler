@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class BookRepositoryIT {
+class BookRepositoryIT {
 
   @Autowired
   private BookRepository bookRepository;

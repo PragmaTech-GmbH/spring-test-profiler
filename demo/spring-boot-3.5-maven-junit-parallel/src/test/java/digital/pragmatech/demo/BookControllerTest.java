@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @Disabled("MockBean has concurrency issues during parallel execution with JUnit")
 @WebMvcTest(BookController.class)
-public class BookControllerTest {
+class BookControllerTest {
 
   @Autowired
   private MockMvc mockMvc;

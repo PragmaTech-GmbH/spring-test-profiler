@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * This creates a minimal Spring context with only web layer components
  */
 @WebMvcTest(BookController.class)
-public class BookControllerTest {
+class BookControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
