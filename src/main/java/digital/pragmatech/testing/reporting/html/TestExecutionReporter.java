@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 import digital.pragmatech.testing.ContextCacheTracker;
@@ -14,6 +15,7 @@ import digital.pragmatech.testing.OptimizationStatistics;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TimelineData;
+import digital.pragmatech.testing.optimization.OptimizationRecord;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
 import digital.pragmatech.testing.reporting.json.JsonReportGenerator;
 import digital.pragmatech.testing.util.BuildToolDetection;
@@ -46,6 +48,14 @@ public class TestExecutionReporter {
       TestExecutionTracker executionTracker,
       SpringContextCacheAccessor.CacheStatistics cacheStats,
       ContextCacheTracker contextCacheTracker) {
+    generateReport(executionTracker, cacheStats, contextCacheTracker, List.of());
+  }
+
+  public void generateReport(
+      TestExecutionTracker executionTracker,
+      SpringContextCacheAccessor.CacheStatistics cacheStats,
+      ContextCacheTracker contextCacheTracker,
+      List<OptimizationRecord> optimizationRecords) {
 
     // Beta feature flag for JSON reporting
     boolean jsonReportingEnabled =
@@ -58,7 +68,7 @@ public class TestExecutionReporter {
 
       if (jsonReportingEnabled) {
         jsonReportGenerator.generateJsonReport(
-            reportDir, executionTracker, cacheStats, contextCacheTracker);
+            reportDir, executionTracker, cacheStats, contextCacheTracker, optimizationRecords);
       } else {
         // Copy static assets before generating HTML
         copyStaticAssets(reportDir);
@@ -70,7 +80,11 @@ public class TestExecutionReporter {
 
         String htmlContent =
             generateHtmlWithThymeleaf(
-                buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
+                buildTool.name(),
+                executionTracker,
+                cacheStats,
+                contextCacheTracker,
+                optimizationRecords);
         Files.write(reportFile, htmlContent.getBytes());
 
         logger.info(
@@ -138,7 +152,8 @@ public class TestExecutionReporter {
       String buildTool,
       TestExecutionTracker executionTracker,
       SpringContextCacheAccessor.CacheStatistics cacheStats,
-      ContextCacheTracker contextCacheTracker) {
+      ContextCacheTracker contextCacheTracker,
+      List<OptimizationRecord> optimizationRecords) {
     try {
       Context context = new Context();
 
@@ -206,6 +221,10 @@ public class TestExecutionReporter {
         TimelineData timelineData = contextCacheTracker.getTimelineData();
         context.setVariable("timelineData", timelineData);
       }
+
+      // Add static analysis optimization recommendations
+      context.setVariable(
+          "optimizationRecords", optimizationRecords != null ? optimizationRecords : List.of());
 
       // Static assets are now copied in generateReport method
 

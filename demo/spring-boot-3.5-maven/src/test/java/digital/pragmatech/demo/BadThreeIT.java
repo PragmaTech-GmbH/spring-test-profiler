@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -64,6 +65,7 @@ class BadThreeIT {
   }
 
   @Test
+  @DirtiesContext
   void testGetBookCountViaRestApi() {
     ResponseEntity<Long> response = testRestTemplate.getForEntity("/api/books/count", Long.class);
 
