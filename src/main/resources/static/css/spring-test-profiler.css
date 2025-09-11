@@ -1504,7 +1504,6 @@ h2 {
     max-height: 400px;
     overflow-y: auto;
     overflow-x: auto;
-    white-space: pre-wrap;
 }
 
 .context-detail-value:empty {
@@ -1749,4 +1748,74 @@ h2 {
         align-items: flex-start;
         gap: 5px;
     }
+}
+
+.diff-container {
+    border: 1px solid #d0d7de;
+    overflow: hidden;
+    font-size: 12px;
+}
+
+.difference-container {
+    display: flex;
+    gap: 20px;
+}
+
+.diff-column {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fefefe;
+    padding: 5px;
+    font-family: monospace;
+    flex: 1;
+}
+
+.symbol {
+    text-align: center;
+    font-weight: bold;
+}
+
+.num {
+    display: flex;
+    justify-content: flex-end;
+    width: 40px;
+    color: #656d76;
+    margin-right: 8px;
+    padding: 0 8px;
+    flex-shrink: 0;
+    border-right: 1px solid #d0d7de;
+    min-width: 30px;
+    text-align: right;
+}
+
+.code {
+    flex: 1;
+    padding: 2px 6px;
+}
+
+.same {
+    display: flex;
+    background-color: #f6f8fa;
+    border-left: 3px solid #d0d7de;
+    min-height: 20px;
+}
+
+.different {
+    display: flex;
+    align-items: center;
+    background-color: #f6f8fa;
+    border-left: 3px solid #d0d7de;
+    min-height: 20px;
+}
+
+.empty {
+    background: #fefefe;
+}
+
+.empty-line {
+    background-color: #f8f9fa;
+    border-left: 3px solid #dee2e6;
+    min-height: 20px;
 }

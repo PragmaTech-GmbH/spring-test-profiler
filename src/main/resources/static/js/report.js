@@ -722,8 +722,8 @@ class ContextComparator {
     const arrayB = Array.isArray(valueB) ? valueB : [valueB];
 
     // Format and display values
-    contextADetail.innerHTML = this.formatDetailedValue(feature.name, arrayA, arrayB, true);
-    contextBDetail.innerHTML = this.formatDetailedValue(feature.name, arrayB, arrayA, false);
+    contextADetail.innerHTML = this.formatDetailedValue(feature.name, arrayA, arrayB);
+    contextBDetail.innerHTML = this.formatDetailedValue(feature.name, arrayB, arrayA);
 
     // Add test classes lists to the detailed comparison
     this.renderTestClassesInDetailedComparison(detailedContainer);
@@ -732,39 +732,75 @@ class ContextComparator {
     detailedContainer.style.display = 'block';
   }
 
-  formatDetailedValue(attributeName, currentValues, comparisonValues, isContextA) {
-    const contextName = isContextA ? 'Context A' : 'Context B';
-    const areEqual = this.arraysEqual(currentValues, comparisonValues);
-
+  formatDetailedValue(attributeName, currentValues, comparisonValues) {
     let html = `<div class="attribute-name">${attributeName}</div>`;
 
     if (currentValues.length === 0 || (currentValues.length === 1 && !currentValues[0])) {
       html += `<div style="color: #6c757d; font-style: italic; text-align: center; padding: 20px;">No values configured</div>`;
-    } else {
-      html += `<pre>`;
-      currentValues.forEach((value, index) => {
-        if (value) {
-          const highlightClass = areEqual ? 'highlight-same' : 'highlight-different';
-          // Format long strings with line breaks for better readability
-          const formattedValue = this.formatLongValue(value, attributeName);
-          html += `<span class="${highlightClass}">${this.escapeHtml(formattedValue)}</span>`;
-          if (index < currentValues.length - 1) {
-            html += '\n';
-          }
-        }
-      });
-      html += `</pre>`;
-
-      // Add comparison status
-      const statusIcon = areEqual ? '✓' : '✗';
-      const statusColor = areEqual ? '#27ae60' : '#e74c3c';
-      const statusText = areEqual ? 'Same as other context' : 'Different from other context';
-      html += `<div style="margin-top: 15px; padding: 10px; background: ${areEqual ? '#d4edda' : '#f8d7da'}; border-radius: 6px; border-left: 4px solid ${statusColor};">
-                 <span style="color: ${statusColor}; font-weight: bold;">${statusIcon} ${statusText}</span>
-               </div>`;
+      return html;
     }
 
+    // Use diff.js to get the differences
+    const currentText = currentValues.join('\n');
+    const comparisonText = comparisonValues.join('\n');
+    const diff = Diff.diffLines(comparisonText, currentText);
+
+    // Create main container
+    html += `<div class="diff-container">`;
+
+    let lineNumber = 1;
+    let differentLines = 0;
+
+    diff.forEach(part => {
+      const lines = part.value.split('\n').filter(line => line.length > 0);
+
+      lines.forEach(line => {
+        if (part.added) {
+          //Line exists in this context
+          html += this.createDiffLine(lineNumber++, '+', line, '#d4f8d4', 'different');
+          differentLines++;
+        } else if (part.removed) {
+          //Line does not exist in this context - show empty span
+          html += this.createEmptyLine();
+          differentLines++;
+        } else {
+          // Identical line in both contexts
+          html += this.createDiffLine(lineNumber++, ' ', line, '#f6f8fa', 'same');
+        }
+      });
+    });
+
+    html += `</div>`;
+
+    html += `
+    <div style="margin-top: 10px; padding: 8px 12px; background: #f6f8fa; border-radius: 6px; font-size: 12px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <span style="color: ${differentLines > 0 ? '#d1242f' : '#2ea043'}; font-weight: bold;">
+            ${differentLines > 0 ? '✗ Different from other context' : '✓ Same as other context'}
+        </span>
+    </div>`;
+
     return html;
+  }
+
+  createDiffLine(lineNum, symbol, content, bgColor, containerClassName) {
+    const symbolColor = symbol === '+' ? '#2ea043' : (symbol === '-' ? '#d1242f' : '#656d76');
+    const formattedContent = this.escapeHtml(this.formatLongValue(content, ''));
+
+    return `
+    <div class="${containerClassName}">
+        <span class="num" style="background-color: ${bgColor};">${lineNum}</span>
+        <span class="symbol" style="color: ${symbolColor}; background-color: ${bgColor};">${symbol}</span>
+        <span class="code" style="flex: 1; background-color: ${bgColor}; white-space: pre-wrap; word-break: break-word;">${formattedContent}</span>
+    </div>`;
+  }
+
+  createEmptyLine() {
+    return `
+    <div class="empty-line" >
+        <span class="num" style="background-color: #f8f9fa;">&nbsp;</span>
+        <span>&nbsp;</span>
+        <span class="code empty" style="background-color: #f8f9fa;">&nbsp;</span>
+    </div>`;
   }
 
   formatLongValue(value, attributeName) {
