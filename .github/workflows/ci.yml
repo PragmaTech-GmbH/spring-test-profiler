@@ -55,6 +55,7 @@ jobs:
         demo:
           - spring-boot-3.4-maven
           - spring-boot-3.5-maven
+          - spring-boot-4.0-maven
 #          - spring-boot-3.5-maven-failsafe-parallel
 #          - spring-boot-3.5-maven-junit-parallel
 

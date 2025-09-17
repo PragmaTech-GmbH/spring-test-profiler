@@ -8,16 +8,16 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.0</version>
+    <version>4.0.0-M2</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
   <groupId>digital.pragmatech</groupId>
-  <artifactId>spring-test-profiler-demo-spring-boot-3.5-maven</artifactId>
+  <artifactId>spring-test-profiler-demo-spring-boot-4.0-maven</artifactId>
   <version>0.0.1</version>
   <packaging>jar</packaging>
 
-  <name>Spring Test Insight Demo - Spring Boot 3.5</name>
+  <name>Spring Test Insight Demo - Spring Boot 4.0</name>
   <description>Demo project for Spring Profiler Insight Extension</description>
 
   <properties>
@@ -32,7 +32,17 @@
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webclient</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-restclient</artifactId>
     </dependency>
 
     <dependency>
