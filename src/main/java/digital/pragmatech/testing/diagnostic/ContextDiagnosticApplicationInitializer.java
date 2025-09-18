@@ -21,12 +21,15 @@ public class ContextDiagnosticApplicationInitializer
 
     applicationContext.addApplicationListener(
         event -> {
-          if (event instanceof ContextRefreshedEvent) {
-            ContextDiagnostic completedDiagnostic = contextDiagnostic.completed();
-            applicationContext
-                .getBeanFactory()
-                .registerSingleton("contextDiagnostic", completedDiagnostic);
-            LOG.debug("Context Diagnostic Completed: {}", completedDiagnostic);
+          if (event instanceof ContextRefreshedEvent contextEvent) {
+            if (contextEvent.getApplicationContext().getParent() == null
+                && !applicationContext.getBeanFactory().containsSingleton("contextDiagnostic")) {
+              ContextDiagnostic completedDiagnostic = contextDiagnostic.completed();
+              applicationContext
+                  .getBeanFactory()
+                  .registerSingleton("contextDiagnostic", completedDiagnostic);
+              LOG.debug("Context Diagnostic Completed: {}", completedDiagnostic);
+            }
           }
         });
   }
