@@ -757,14 +757,16 @@ class ContextComparator {
       lines.forEach(line => {
         if (part.added) {
           //Line exists in this context
-          leftHtml += this.createEmptyLine();
-          rightHtml += this.createDiffLine(lineNumber++, '+', line, '#d4f8d4', 'different');
+          leftHtml += this.createEmptyLine(lineNumber);
+          rightHtml += this.createDiffLine(lineNumber, '+', line, '#d4f8d4', 'different');
           differentLines++;
+          lineNumber += 1
         } else if (part.removed) {
           //Line does not exist in this context - show empty span
-          leftHtml += this.createDiffLine(lineNumber++, '+', line, '#d4f8d4', 'different');
-          rightHtml += this.createEmptyLine();
+          leftHtml += this.createDiffLine(lineNumber, '+', line, '#d4f8d4', 'different');
+          rightHtml += this.createEmptyLine(lineNumber);
           differentLines++;
+          lineNumber += 1
         } else {
           // Identical line in both contexts
           leftHtml += this.createDiffLine(lineNumber, ' ', line, '#f6f8fa', 'same');
@@ -795,10 +797,10 @@ class ContextComparator {
     </div>`;
   }
 
-  createEmptyLine() {
+  createEmptyLine(lineNumber) {
     return `
     <div class="empty-line" >
-        <span class="num" style="background-color: #f8f9fa;">&nbsp;</span>
+        <span class="num" style="background-color: #f8f9fa;">${lineNumber}</span>
         <span>&nbsp;</span>
         <span class="code empty" style="background-color: #f8f9fa;">&nbsp;</span>
     </div>`;
