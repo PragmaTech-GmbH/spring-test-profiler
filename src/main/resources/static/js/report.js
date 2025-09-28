@@ -754,7 +754,7 @@ class ContextComparator {
     diff.forEach(part => {
       const lines = part.value.filter(line => line.length > 0);
 
-      lines.forEach(line => {
+      for (const line of lines) {
         if (part.added) {
           //Line exists in this context
           leftHtml += this.createEmptyLine(lineNumber);
@@ -771,7 +771,7 @@ class ContextComparator {
           rightHtml += this.createDiffLine(lineNumber, ' ', line, '#f6f8fa', 'same');
         }
         lineNumber += 1
-      });
+      }
     });
 
     leftHtml += `</div>`;
