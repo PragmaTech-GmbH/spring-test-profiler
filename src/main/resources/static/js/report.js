@@ -760,19 +760,17 @@ class ContextComparator {
           leftHtml += this.createEmptyLine(lineNumber);
           rightHtml += this.createDiffLine(lineNumber, '+', line, '#d4f8d4', 'different');
           differentLines++;
-          lineNumber += 1
         } else if (part.removed) {
           //Line does not exist in this context - show empty span
           leftHtml += this.createDiffLine(lineNumber, '+', line, '#d4f8d4', 'different');
           rightHtml += this.createEmptyLine(lineNumber);
           differentLines++;
-          lineNumber += 1
         } else {
           // Identical line in both contexts
           leftHtml += this.createDiffLine(lineNumber, ' ', line, '#f6f8fa', 'same');
           rightHtml += this.createDiffLine(lineNumber, ' ', line, '#f6f8fa', 'same');
-          lineNumber += 1
         }
+        lineNumber += 1
       });
     });
 
