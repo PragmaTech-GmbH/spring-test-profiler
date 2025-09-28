@@ -751,7 +751,7 @@ class ContextComparator {
     let lineNumber = 1;
     let differentLines = 0;
 
-    diff.forEach(part => {
+    for (const part of diff) {
       const lines = part.value.filter(line => line.length > 0);
 
       for (const line of lines) {
@@ -772,7 +772,7 @@ class ContextComparator {
         }
         lineNumber += 1
       }
-    });
+    }
 
     leftHtml += `</div>`;
     rightHtml += `</div>`;
