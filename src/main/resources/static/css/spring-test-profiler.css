@@ -1818,4 +1818,6 @@ h2 {
     background-color: #f8f9fa;
     border-left: 3px solid #dee2e6;
     min-height: 20px;
+    display: flex;
+    gap: 8px;
 }
