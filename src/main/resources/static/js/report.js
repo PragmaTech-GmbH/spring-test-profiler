@@ -751,28 +751,28 @@ class ContextComparator {
     let lineNumber = 1;
     let differentLines = 0;
 
-    diff.forEach(part => {
+    for (const part of diff) {
       const lines = part.value.filter(line => line.length > 0);
 
-      lines.forEach(line => {
+      for (const line of lines) {
         if (part.added) {
           //Line exists in this context
-          leftHtml += this.createEmptyLine();
-          rightHtml += this.createDiffLine(lineNumber++, '+', line, '#d4f8d4', 'different');
+          leftHtml += this.createEmptyLine(lineNumber);
+          rightHtml += this.createDiffLine(lineNumber, '+', line, '#d4f8d4', 'different');
           differentLines++;
         } else if (part.removed) {
           //Line does not exist in this context - show empty span
-          leftHtml += this.createDiffLine(lineNumber++, '+', line, '#d4f8d4', 'different');
-          rightHtml += this.createEmptyLine();
+          leftHtml += this.createDiffLine(lineNumber, '+', line, '#d4f8d4', 'different');
+          rightHtml += this.createEmptyLine(lineNumber);
           differentLines++;
         } else {
           // Identical line in both contexts
           leftHtml += this.createDiffLine(lineNumber, ' ', line, '#f6f8fa', 'same');
           rightHtml += this.createDiffLine(lineNumber, ' ', line, '#f6f8fa', 'same');
-          lineNumber += 1
         }
-      });
-    });
+        lineNumber += 1
+      }
+    }
 
     leftHtml += `</div>`;
     rightHtml += `</div>`;
@@ -795,10 +795,10 @@ class ContextComparator {
     </div>`;
   }
 
-  createEmptyLine() {
+  createEmptyLine(lineNumber) {
     return `
     <div class="empty-line" >
-        <span class="num" style="background-color: #f8f9fa;">&nbsp;</span>
+        <span class="num" style="background-color: #f8f9fa;">${lineNumber}</span>
         <span>&nbsp;</span>
         <span class="code empty" style="background-color: #f8f9fa;">&nbsp;</span>
     </div>`;
