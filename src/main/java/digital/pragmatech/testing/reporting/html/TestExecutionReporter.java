@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.OptimizationStatistics;
@@ -165,24 +164,6 @@ public class TestExecutionReporter {
           "?utm_source=spring-test-profiler&utm_medium=report&utm_campaign=spring-test-profiler-v"
               + extensionVersion;
       context.setVariable("utmParameters", utmParameters);
-
-      // Pre-compute test status counts to avoid complex template expressions
-      Map<String, TestExecutionTracker.TestClassMetrics> classMetrics =
-          executionTracker.getClassMetrics();
-      long passedTests = TemplateHelpers.countTestsByStatus(classMetrics, "PASSED");
-      long failedTests = TemplateHelpers.countTestsByStatus(classMetrics, "FAILED");
-      long disabledTests = TemplateHelpers.countTestsByStatus(classMetrics, "DISABLED");
-      long abortedTests = TemplateHelpers.countTestsByStatus(classMetrics, "ABORTED");
-
-      context.setVariable("passedTests", passedTests);
-      context.setVariable("failedTests", failedTests);
-      context.setVariable("disabledTests", disabledTests);
-      context.setVariable("abortedTests", abortedTests);
-
-      // Pre-compute success rate
-      int totalTestMethods = executionTracker.getTotalTestMethods();
-      double successRate = totalTestMethods > 0 ? (passedTests * 100.0) / totalTestMethods : 0.0;
-      context.setVariable("successRate", successRate);
 
       // Extract available processors from any context entry (they're all the same)
       Integer availableProcessors = null;
