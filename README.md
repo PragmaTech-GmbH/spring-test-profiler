@@ -1,10 +1,12 @@
-# Profile Your Tests. Speed Up Your Tests. Ship Faster 🚤
+# Profile Your Tests. Speed Up Your Build. Ship Faster 🚤
 
 <p align="center">
   <img src="docs/resources/spring-test-profiler-logo-three-256x256.png" alt="Spring Test Profiler Logo" />
 </p>
 
-A Spring Test utility that provides visualization and insights for Spring Test execution, with a focus on Spring context caching statistics.
+The Spring Test Profiler is a Spring Test utility that provides visualization and insights for Spring Test execution, with a focus on Spring context caching.
+
+It helps you identify optimization opportunities in your Spring Test suite to speed up your builds and ship to production faster and with more confidence.
 
 Find [more information](https://pragmatech.digital/products/spring-test-profiler/) about the profiler on our website.
 
