@@ -30,7 +30,9 @@
         <div class="config-details">
           <div th:each="entry : ${configInfo.configuration.entrySet()}" class="config-detail-item">
             <div class="config-detail-key" th:text="${entry.key + ':'}">Key:</div>
-            <div class="config-detail-value" th:text="${entry.value}">Value</div>
+            <div class="config-detail-value">
+              <pre th:text="${entry.value}"></pre>
+            </div>
           </div>
         </div>
 
