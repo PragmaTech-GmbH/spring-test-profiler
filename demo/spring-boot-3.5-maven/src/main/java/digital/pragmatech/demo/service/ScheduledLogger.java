@@ -17,7 +17,7 @@ public class ScheduledLogger {
     this.applicationContext = applicationContext;
   }
 
-  @Scheduled(fixedDelay = 100L)
+  // @Scheduled(fixedDelay = 100L)
   public void log() {
     LOG.info("Scheduled task executed within context '{}'.", applicationContext.hashCode());
   }
