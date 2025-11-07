@@ -24,6 +24,7 @@ public class ScheduledLogger {
     LOG.info("Scheduled task executed within context '{}'.", applicationContext.hashCode());
   }
 
+  // New event in Spring Framework 7.0
   @EventListener(ContextPausedEvent.class)
   public void contextPaused(ContextPausedEvent event) {
     LOG.info("Application context '{}' has been paused.", event.getApplicationContext().hashCode());
