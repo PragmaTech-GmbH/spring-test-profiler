@@ -1,11 +1,13 @@
 package digital.pragmatech.demo;
 
-import org.junit.jupiter.api.Test; // Junit 6 - yay
+import digital.pragmatech.demo.service.OtherService;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -20,6 +22,9 @@ public class MigrationIT {
 
   @Autowired
   private RestTestClient restClient;
+
+  @MockitoBean
+  private OtherService otherService;
 
   @Test
   void shouldReturnSuccessfulHealthCheckRestTemplate() {
