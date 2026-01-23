@@ -1,31 +1,21 @@
 package digital.pragmatech.testing.reporting.json;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
+import digital.pragmatech.testing.util.SimpleJsonWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JsonReportGenerator {
 
   private static final Logger logger = LoggerFactory.getLogger(JsonReportGenerator.class);
-
-  private final ObjectMapper objectMapper;
-
-  public JsonReportGenerator() {
-    this.objectMapper = new ObjectMapper();
-    this.objectMapper.registerModule(new JavaTimeModule());
-    this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-  }
 
   public void generateJsonReport(
       Path reportDir,
@@ -41,7 +31,8 @@ public class JsonReportGenerator {
 
       ReportData reportData = new ReportData(executionTracker, cacheStats, contextCacheTracker);
 
-      objectMapper.writeValue(jsonFile.toFile(), reportData);
+      String json = SimpleJsonWriter.toJsonPretty(reportData);
+      Files.writeString(jsonFile, json, StandardCharsets.UTF_8);
 
       logger.info("Successfully generated JSON report: {}", jsonFile.toAbsolutePath());
 
