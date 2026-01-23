@@ -19,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * causing a context cache MISS because the configuration is different
  * from other tests, even though the difference is minimal.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-  properties = "server.port=8081") // BAD: Different port
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"test", "integration"}) // BAD: Different profiles
 @TestPropertySource(properties = {
+  "management.server.port=",
   "spring.datasource.url=jdbc:h2:mem:badtest2;DB_CLOSE_DELAY=-1", // Different DB name
   "spring.jpa.hibernate.ddl-auto=create-drop",
   "spring.jpa.show-sql=true", // Different JPA setting
