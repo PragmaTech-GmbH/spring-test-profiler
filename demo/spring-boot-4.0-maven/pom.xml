@@ -90,7 +90,7 @@
     <dependency>
       <groupId>digital.pragmatech.testing</groupId>
       <artifactId>spring-test-profiler</artifactId>
-      <version>0.0.15-SNAPSHOT</version>
+      <version>0.0.16-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
