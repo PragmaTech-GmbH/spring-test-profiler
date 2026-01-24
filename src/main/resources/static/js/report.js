@@ -837,6 +837,291 @@ class ContextComparator {
 }
 
 /**
+ * Gantt-style timeline visualization for Spring Test context lifecycle
+ * Uses D3.js to render horizontal context lanes with test execution markers
+ */
+class GanttTimeline {
+  constructor(containerId, data) {
+    this.containerId = containerId;
+    this.data = data;
+    this.margin = { top: 40, right: 30, bottom: 60, left: 120 };
+    this.laneHeight = 50;
+    this.testMarkerHeight = 14;
+    this.tooltip = null;
+
+    this.init();
+  }
+
+  init() {
+    const container = document.getElementById(this.containerId);
+    if (!container || !this.data || !this.data.contextLanes || this.data.contextLanes.length === 0) {
+      return;
+    }
+
+    // Calculate dimensions
+    this.width = Math.max(container.clientWidth - this.margin.left - this.margin.right, 600);
+    this.height = this.data.contextLanes.length * this.laneHeight;
+
+    // Create SVG
+    this.svg = d3.select(`#${this.containerId}`)
+      .append('svg')
+      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr('height', this.height + this.margin.top + this.margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+
+    // Create scales
+    this.createScales();
+
+    // Render components
+    this.renderAxes();
+    this.renderContextLanes();
+    this.renderContextBars();
+    this.renderTestMarkers();
+
+    // Setup tooltip
+    this.setupTooltip();
+  }
+
+  createScales() {
+    // X-axis: time in milliseconds
+    this.xScale = d3.scaleLinear()
+      .domain([0, this.data.totalDurationMs])
+      .range([0, this.width]);
+
+    // Y-axis: context lanes
+    this.yScale = d3.scaleBand()
+      .domain(this.data.contextLanes.map(lane => lane.contextId))
+      .range([0, this.height])
+      .padding(0.15);
+  }
+
+  renderAxes() {
+    // X-axis (time)
+    const xAxis = d3.axisBottom(this.xScale)
+      .tickFormat(d => this.formatDuration(d))
+      .ticks(Math.min(10, Math.ceil(this.data.totalDurationMs / 1000)));
+
+    this.svg.append('g')
+      .attr('class', 'x-axis')
+      .attr('transform', `translate(0,${this.height})`)
+      .call(xAxis);
+
+    // X-axis label
+    this.svg.append('text')
+      .attr('class', 'axis-label')
+      .attr('x', this.width / 2)
+      .attr('y', this.height + 45)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '12px')
+      .style('fill', '#7f8c8d')
+      .text('Time (relative to test suite start)');
+
+    // Y-axis (context labels)
+    const yAxis = d3.axisLeft(this.yScale)
+      .tickFormat(contextId => {
+        const lane = this.data.contextLanes.find(l => l.contextId === contextId);
+        const label = lane ? lane.contextLabel : contextId;
+        // Truncate long labels
+        return label.length > 20 ? label.substring(0, 18) + '...' : label;
+      });
+
+    this.svg.append('g')
+      .attr('class', 'y-axis')
+      .call(yAxis);
+  }
+
+  renderContextLanes() {
+    // Background lanes (alternating colors)
+    this.svg.selectAll('.lane-bg')
+      .data(this.data.contextLanes)
+      .enter()
+      .append('rect')
+      .attr('class', 'lane-bg')
+      .attr('x', 0)
+      .attr('y', d => this.yScale(d.contextId))
+      .attr('width', this.width)
+      .attr('height', this.yScale.bandwidth())
+      .attr('fill', (d, i) => i % 2 === 0 ? '#f8f9fa' : '#ffffff');
+  }
+
+  renderContextBars() {
+    const self = this;
+    const barHeight = this.yScale.bandwidth() - 16;
+
+    // Context bars extending from load start to end of timeline (context stays active)
+    this.svg.selectAll('.context-bar')
+      .data(this.data.contextLanes)
+      .enter()
+      .append('rect')
+      .attr('class', 'context-bar')
+      .attr('x', d => this.xScale(d.loadStartMs))
+      .attr('y', d => this.yScale(d.contextId) + 8)
+      .attr('width', d => this.xScale(this.data.totalDurationMs) - this.xScale(d.loadStartMs))
+      .attr('height', barHeight)
+      .attr('rx', 4)
+      .attr('ry', 4)
+      .attr('fill', d => d.color)
+      .attr('opacity', 0.3)
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        d3.select(this).attr('opacity', 0.5).attr('stroke', '#2c3e50').attr('stroke-width', 2);
+        self.showContextTooltip(event, d);
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('opacity', 0.3).attr('stroke', 'none');
+        self.hideTooltip();
+      });
+
+    // Loading phase indicator (darker portion showing actual load time)
+    this.svg.selectAll('.context-load-indicator')
+      .data(this.data.contextLanes)
+      .enter()
+      .append('rect')
+      .attr('class', 'context-load-indicator')
+      .attr('x', d => this.xScale(d.loadStartMs))
+      .attr('y', d => this.yScale(d.contextId) + 8)
+      .attr('width', d => Math.max(4, this.xScale(d.loadEndMs) - this.xScale(d.loadStartMs)))
+      .attr('height', barHeight)
+      .attr('rx', 4)
+      .attr('ry', 4)
+      .attr('fill', d => d.color)
+      .attr('opacity', 0.7)
+      .style('pointer-events', 'none');
+
+    // Context bar labels (load time)
+    this.svg.selectAll('.context-bar-label')
+      .data(this.data.contextLanes)
+      .enter()
+      .append('text')
+      .attr('class', 'context-bar-label')
+      .attr('x', d => this.xScale(d.loadStartMs) + 6)
+      .attr('y', d => this.yScale(d.contextId) + 8 + barHeight / 2 + 4)
+      .attr('fill', 'white')
+      .attr('font-size', '10px')
+      .attr('font-weight', 'bold')
+      .text(d => d.loadDurationMs >= 100 ? this.formatDuration(d.loadDurationMs) : '');
+  }
+
+  renderTestMarkers() {
+    const self = this;
+    const barHeight = this.yScale.bandwidth() - 16;
+
+    // Flatten test executions with lane reference
+    const allTests = [];
+    this.data.contextLanes.forEach(lane => {
+      if (lane.testExecutions) {
+        lane.testExecutions.forEach(test => {
+          allTests.push({ ...test, lane });
+        });
+      }
+    });
+
+    if (allTests.length === 0) return;
+
+    // Create groups for each test marker
+    const testGroups = this.svg.selectAll('.test-marker-group')
+      .data(allTests)
+      .enter()
+      .append('g')
+      .attr('class', 'test-marker-group')
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        d3.select(this).select('.test-marker-bar').attr('stroke', '#2c3e50').attr('stroke-width', 2);
+        self.showTestTooltip(event, d);
+      })
+      .on('mouseout', function() {
+        d3.select(this).select('.test-marker-bar').attr('stroke', '#fff').attr('stroke-width', 1);
+        self.hideTooltip();
+      });
+
+    // Vertical bar for each test
+    testGroups.append('rect')
+      .attr('class', 'test-marker-bar')
+      .attr('x', d => this.xScale(d.startMs) - 1)
+      .attr('y', d => this.yScale(d.lane.contextId) + 8)
+      .attr('width', 3)
+      .attr('height', barHeight)
+      .attr('fill', d => d.statusColor)
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1);
+
+    // Test class label (rotated or horizontal depending on space)
+    testGroups.append('text')
+      .attr('class', 'test-marker-label')
+      .attr('x', d => this.xScale(d.startMs) + 6)
+      .attr('y', d => this.yScale(d.lane.contextId) + 8 + barHeight / 2 + 4)
+      .attr('fill', '#2c3e50')
+      .attr('font-size', '9px')
+      .attr('font-weight', '500')
+      .text(d => {
+        // Extract simple class name
+        const className = d.testClassName.split('.').pop();
+        return className;
+      });
+
+    // Add small duration indicator below the label
+    testGroups.append('text')
+      .attr('class', 'test-marker-duration')
+      .attr('x', d => this.xScale(d.startMs) + 6)
+      .attr('y', d => this.yScale(d.lane.contextId) + 8 + barHeight / 2 + 14)
+      .attr('fill', '#7f8c8d')
+      .attr('font-size', '8px')
+      .text(d => this.formatDuration(d.durationMs));
+  }
+
+  setupTooltip() {
+    this.tooltip = d3.select('#timeline-tooltip');
+  }
+
+  showContextTooltip(event, data) {
+    const tooltipContent = `
+      <strong>${data.contextLabel}</strong><br/>
+      <span class="tooltip-label">Context ID:</span> ${data.contextId}<br/>
+      <span class="tooltip-label">Load Start:</span> ${this.formatDuration(data.loadStartMs)}<br/>
+      <span class="tooltip-label">Load Duration:</span> ${this.formatDuration(data.loadDurationMs)}<br/>
+      <span class="tooltip-label">Beans:</span> ${data.beanCount}<br/>
+      <span class="tooltip-label">Test Classes:</span> ${data.testClassCount}<br/>
+      <span class="tooltip-label">Test Methods:</span> ${data.testMethodCount}
+    `;
+
+    this.tooltip
+      .style('display', 'block')
+      .style('left', (event.pageX + 15) + 'px')
+      .style('top', (event.pageY - 15) + 'px')
+      .html(tooltipContent);
+  }
+
+  showTestTooltip(event, data) {
+    const tooltipContent = `
+      <strong>${data.displayName}</strong><br/>
+      <span class="tooltip-label">Class:</span> ${data.testClassName.split('.').pop()}<br/>
+      <span class="tooltip-label">Method:</span> ${data.testMethodName}<br/>
+      <span class="tooltip-label">Start:</span> ${this.formatDuration(data.startMs)}<br/>
+      <span class="tooltip-label">Duration:</span> ${this.formatDuration(data.durationMs)}<br/>
+      <span class="tooltip-label">Status:</span>
+      <span style="color: ${data.statusColor}; font-weight: bold;">${data.status}</span>
+    `;
+
+    this.tooltip
+      .style('display', 'block')
+      .style('left', (event.pageX + 15) + 'px')
+      .style('top', (event.pageY - 15) + 'px')
+      .html(tooltipContent);
+  }
+
+  hideTooltip() {
+    this.tooltip.style('display', 'none');
+  }
+
+  formatDuration(ms) {
+    if (ms < 1000) return `${Math.round(ms)}ms`;
+    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+    return `${(ms / 60000).toFixed(1)}m`;
+  }
+}
+
+/**
  * Initialize the report functionality when DOM is loaded
  */
 function initializeReport() {
@@ -856,6 +1141,19 @@ function initializeReport() {
     window.testClassSearcher = new TestClassSearcher();
     new ContextComparator();
   }
+
+  // Initialize Gantt Timeline
+  try {
+    const ganttDataElement = document.getElementById('gantt-timeline-json');
+    if (ganttDataElement) {
+      const ganttData = JSON.parse(ganttDataElement.textContent || 'null');
+      if (ganttData && ganttData.contextLanes && ganttData.contextLanes.length > 0) {
+        new GanttTimeline('gantt-timeline-container', ganttData);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to initialize Gantt timeline:', e);
+  }
 }
 
 // Initialize when DOM is loaded
@@ -868,6 +1166,7 @@ if (typeof module !== 'undefined' && module.exports) {
     toggleTheorySection,
     TestClassSearcher,
     ContextComparator,
+    GanttTimeline,
     initializeReport
   };
 }

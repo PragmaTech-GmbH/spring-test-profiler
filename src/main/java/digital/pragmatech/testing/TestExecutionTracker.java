@@ -75,6 +75,10 @@ public class TestExecutionTracker {
     return Duration.ZERO;
   }
 
+  public Instant getOverallStartTime() {
+    return overallStartTime;
+  }
+
   /** Metrics for a single test class. */
   public static class TestClassMetrics {
     private final String className;
@@ -107,6 +111,14 @@ public class TestExecutionTracker {
 
     public String getClassName() {
       return className;
+    }
+
+    public Instant getStartTime() {
+      return startTime;
+    }
+
+    public Instant getEndTime() {
+      return endTime;
     }
 
     public Duration getDuration() {
@@ -159,6 +171,14 @@ public class TestExecutionTracker {
 
     public String getMethodName() {
       return methodName;
+    }
+
+    public Instant getStartTime() {
+      return startTime;
+    }
+
+    public Instant getEndTime() {
+      return endTime;
     }
 
     public Duration getDuration() {
