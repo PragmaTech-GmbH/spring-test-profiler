@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import digital.pragmatech.testing.ContextCacheEntry;
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.ContextIdGenerator;
@@ -19,6 +17,7 @@ import digital.pragmatech.testing.SpringContextStatistics;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TestStatus;
 import digital.pragmatech.testing.TimelineData;
+import digital.pragmatech.testing.util.SimpleJsonWriter;
 
 /** Helper classes for Thymeleaf templates to format data and provide utility methods. */
 public class TemplateHelpers {
@@ -280,17 +279,9 @@ public class TemplateHelpers {
   }
 
   public static class JsonHelper {
-    private static final ObjectMapper objectMapper = createObjectMapper();
-
-    private static ObjectMapper createObjectMapper() {
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.registerModule(new JavaTimeModule());
-      return mapper;
-    }
-
     public String toJson(Object object) {
       try {
-        return objectMapper.writeValueAsString(object);
+        return SimpleJsonWriter.toJson(object);
       } catch (Exception e) {
         return "[]";
       }

@@ -678,6 +678,7 @@ h2 {
 .config-detail-value {
     color: #2c3e50;
     word-break: break-word;
+    white-space: pre-line;
 }
 
 .context-test-classes {

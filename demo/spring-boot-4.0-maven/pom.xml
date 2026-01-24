@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.0-M2</version>
+    <version>4.0.0-RC2</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
@@ -61,10 +61,28 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- Test dependencies -->
+    <!-- Test dependencies, now more modular in Spring Boot 4.0  -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webclient-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-restclient-test</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -92,6 +110,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.3</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -105,6 +127,10 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
+        </configuration>
       </plugin>
     </plugins>
   </build>

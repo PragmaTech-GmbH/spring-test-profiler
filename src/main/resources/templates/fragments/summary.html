@@ -2,9 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <div th:fragment="summary-section(executionTracker, cacheStats)" th:with="
-        totalTestClasses=${executionTracker.getTotalTestClasses()},
-        totalTestMethods=${executionTracker.getTotalTestMethods()},
-        totalDurationMs=${executionTracker.getOverallDuration().toMillis()}">
+        totalDurationMs=${executionTracker.getOverallDuration().toMillis()},
+        cacheSize=${cacheStats != null ? cacheStats.size() : 0},
+        cacheHits=${cacheStats != null ? cacheStats.hitCount() : 0},
+        cacheMisses=${cacheStats != null ? cacheStats.missCount() : 0},
+        totalCacheAccess=${cacheStats != null ? (cacheStats.hitCount() + cacheStats.missCount()) : 0},
+        cacheHitRate=${totalCacheAccess > 0 ? (cacheHits * 100.0 / totalCacheAccess) : 0.0}">
 
         <h2>Test Execution Summary</h2>
         <div class="execution-info">
@@ -20,36 +23,24 @@
         </div>
         <div class="summary-grid">
             <div class="summary-card">
-                <h3>Test Classes</h3>
-                <div class="value" th:text="${totalTestClasses}">0</div>
+                <h3>Cache Size</h3>
+                <div class="value" th:text="${cacheSize}">0</div>
             </div>
             <div class="summary-card">
-                <h3>Total Tests</h3>
-                <div class="value" th:text="${totalTestMethods}">0</div>
+                <h3>Cache Hits</h3>
+                <div class="value" th:text="${cacheHits}">0</div>
             </div>
-            <div class="summary-card passed">
-                <h3>Passed</h3>
-                <div class="value" th:text="${passedTests}">0</div>
+            <div class="summary-card">
+                <h3>Cache Misses</h3>
+                <div class="value" th:text="${cacheMisses}">0</div>
             </div>
-            <div class="summary-card failed">
-                <h3>Failed</h3>
-                <div class="value" th:text="${failedTests}">0</div>
-            </div>
-            <div class="summary-card disabled">
-                <h3>Disabled</h3>
-                <div class="value" th:text="${disabledTests}">0</div>
-            </div>
-            <div class="summary-card aborted">
-                <h3>Aborted</h3>
-                <div class="value" th:text="${abortedTests}">0</div>
+            <div class="summary-card">
+                <h3>Cache Hit Rate</h3>
+                <div class="value" style="font-size: 24px;" th:text="${#numbers.formatDecimal(cacheHitRate, 1, 1) + '%'}">0%</div>
             </div>
             <div class="summary-card">
                 <h3>Total Runtime</h3>
                 <div class="value" style="font-size: 24px;" th:text="${durationFormatter.format(totalDurationMs)}">0ms</div>
-            </div>
-            <div class="summary-card">
-                <h3>Success Rate</h3>
-                <div class="value" style="font-size: 24px;" th:text="${#numbers.formatDecimal(successRate, 1, 1) + '%'}">0%</div>
             </div>
             <div th:if="${availableProcessors != null and availableProcessors > 0}" class="summary-card">
                 <h3>Available Processors</h3>

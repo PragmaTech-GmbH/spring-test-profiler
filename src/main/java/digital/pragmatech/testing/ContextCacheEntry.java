@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.springframework.test.context.MergedContextConfiguration;
 
@@ -209,7 +210,12 @@ public class ContextCacheEntry {
 
       summary.put("properties", configuration.getPropertySourceProperties().length + " properties");
       summary.put("parentContext", configuration.getParent());
-      summary.put("contextCustomizers", configuration.getContextCustomizers());
+      summary.put(
+          "contextCustomizers",
+          configuration.getContextCustomizers().stream()
+              .map(customizer -> customizer.getClass().getSimpleName())
+              .sorted()
+              .collect(Collectors.joining("\n")));
       summary.put("locations", String.join(",", configuration.getLocations()));
 
       summary.put(

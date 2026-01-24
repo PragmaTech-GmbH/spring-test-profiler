@@ -2,9 +2,9 @@ package digital.pragmatech.testing.diagnostic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
@@ -21,14 +21,17 @@ public class ContextDiagnosticApplicationInitializer
 
     applicationContext.addApplicationListener(
         event -> {
-          if (event instanceof ContextRefreshedEvent contextEvent) {
-            if (contextEvent.getApplicationContext().getParent() == null
+          if (event instanceof ApplicationReadyEvent readyEvent) {
+            if (readyEvent.getApplicationContext().getParent() == null
                 && !applicationContext.getBeanFactory().containsSingleton("contextDiagnostic")) {
               ContextDiagnostic completedDiagnostic = contextDiagnostic.completed();
               applicationContext
                   .getBeanFactory()
                   .registerSingleton("contextDiagnostic", completedDiagnostic);
-              LOG.debug("Context Diagnostic Completed: {}", completedDiagnostic);
+              LOG.debug(
+                  "Context Diagnostic Completed: {} in {}",
+                  completedDiagnostic,
+                  completedDiagnostic.getContextLoadDuration() / 1000);
             }
           }
         });

@@ -96,6 +96,8 @@
           <excludes>
             <exclude>**/*IT.java</exclude>
           </excludes>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
         </configuration>
       </plugin>
       <!-- Failsafe for integration tests with parallel execution -->
@@ -111,6 +113,8 @@
           <threadCount>4</threadCount>
           <forkCount>2</forkCount>
           <reuseForks>true</reuseForks>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
         </configuration>
         <executions>
           <execution>
