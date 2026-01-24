@@ -28,12 +28,14 @@
   </scm>
 
   <properties>
-    <spring.version>6.2.7</spring.version>
+    <spring.version>7.0.3</spring.version>
+    <spring-boot.version>4.0.2</spring-boot.version>
+
     <thymeleaf.version>3.1.3.RELEASE</thymeleaf.version>
     <logback-classic.version>1.5.18</logback-classic.version>
 
-    <junit-jupiter.version>5.13.2</junit-jupiter.version>
-    <assertj.version>3.26.3</assertj.version>
+    <junit-jupiter.version>6.0.2</junit-jupiter.version>
+    <assertj.version>3.27.6</assertj.version>
     <awaitility.version>4.3.0</awaitility.version>
 
     <maven.compiler.source>17</maven.compiler.source>
@@ -76,13 +78,6 @@
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>${spring.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <version>${spring.version}</version>
       <scope>provided</scope>
@@ -90,7 +85,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot</artifactId>
-      <version>3.5.6</version>
+      <version>${spring-boot.version}</version>
       <scope>provided</scope>
     </dependency>
 
