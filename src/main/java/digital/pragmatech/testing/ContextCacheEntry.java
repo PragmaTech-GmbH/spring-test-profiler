@@ -214,7 +214,8 @@ public class ContextCacheEntry {
           "contextCustomizers",
           configuration.getContextCustomizers().stream()
               .map(customizer -> customizer.getClass().getSimpleName())
-              .collect(Collectors.joining(", ")));
+              .sorted()
+              .collect(Collectors.joining("\n")));
       summary.put("locations", String.join(",", configuration.getLocations()));
 
       summary.put(

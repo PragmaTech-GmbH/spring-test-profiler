@@ -91,6 +91,8 @@
               junit.jupiter.execution.parallel.config.dynamic.factor=2
             </configurationParameters>
           </properties>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
         </configuration>
       </plugin>
       <!-- Failsafe for integration tests with JUnit Jupiter parallel execution -->
@@ -109,6 +111,8 @@
               junit.jupiter.execution.parallel.config.dynamic.factor=2
             </configurationParameters>
           </properties>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
         </configuration>
         <executions>
           <execution>

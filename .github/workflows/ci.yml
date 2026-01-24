@@ -79,6 +79,13 @@ jobs:
         working-directory: demo/${{ matrix.demo }}
         run: ./mvnw verify
 
+      - name: Log test output on failure
+        if: failure() || cancelled()
+        working-directory: demo/${{ matrix.demo }}
+        run: |
+          echo "=== Test Output Logs for ${{ matrix.demo }} ==="
+          find . -type f -path "*test-reports/*-output.txt" -exec tail -n +1 {} +
+
       - name: Upload demo test results
         uses: actions/upload-artifact@v4
         if: always() && hashFiles('demo/${{ matrix.demo }}/target/spring-test-profiler/latest.html') != ''
