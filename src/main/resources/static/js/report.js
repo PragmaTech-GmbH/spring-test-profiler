@@ -243,6 +243,118 @@ class TestClassSearcher {
 }
 
 /**
+ * Annotation-based context filter for the caching section.
+ * Only renders when 2+ distinct annotation types exist.
+ */
+class AnnotationFilter {
+  constructor() {
+    this.contextData = window.contextStatistics || [];
+    this.annotationTypes = this.extractAnnotationTypes();
+    this.activeFilter = 'all';
+    this.init();
+  }
+
+  extractAnnotationTypes() {
+    const types = new Set();
+    this.contextData.forEach(context => {
+      if (context.primaryAnnotationType) {
+        types.add(context.primaryAnnotationType);
+      }
+    });
+    return Array.from(types).sort();
+  }
+
+  init() {
+    if (this.annotationTypes.length < 2) {
+      return;
+    }
+
+    const container = document.getElementById('annotation-filter-container');
+    const buttonsContainer = document.getElementById('annotation-filter-buttons');
+    if (!container || !buttonsContainer) {
+      return;
+    }
+
+    this.renderButtons(buttonsContainer);
+    container.style.display = 'block';
+    this.updateSummary();
+  }
+
+  renderButtons(container) {
+    // "All" button
+    const allBtn = document.createElement('button');
+    allBtn.className = 'annotation-filter-btn filter-all active';
+    allBtn.textContent = 'All';
+    allBtn.addEventListener('click', () => this.setFilter('all'));
+    container.appendChild(allBtn);
+
+    // One button per annotation type
+    this.annotationTypes.forEach(type => {
+      const btn = document.createElement('button');
+      btn.className = `annotation-filter-btn filter-${type}`;
+      btn.textContent = type;
+      btn.addEventListener('click', () => this.setFilter(type));
+      container.appendChild(btn);
+    });
+  }
+
+  setFilter(type) {
+    this.activeFilter = type;
+
+    // Update button states
+    document.querySelectorAll('.annotation-filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    if (type === 'all') {
+      document.querySelector('.annotation-filter-btn.filter-all').classList.add('active');
+    } else {
+      const targetBtn = document.querySelector(`.annotation-filter-btn.filter-${type}`);
+      if (targetBtn) {
+        targetBtn.classList.add('active');
+      }
+    }
+
+    this.applyFilter();
+    this.updateSummary();
+  }
+
+  applyFilter() {
+    const cacheEntries = document.querySelectorAll('.cache-entry[data-annotation-type]');
+
+    cacheEntries.forEach(entry => {
+      const entryType = entry.getAttribute('data-annotation-type');
+      if (this.activeFilter === 'all' || entryType === this.activeFilter) {
+        entry.style.display = '';
+      } else {
+        entry.style.display = 'none';
+      }
+    });
+  }
+
+  updateSummary() {
+    const summaryEl = document.getElementById('annotation-filter-summary');
+    if (!summaryEl) return;
+
+    const totalEntries = document.querySelectorAll('.cache-entry[data-annotation-type]').length;
+    const visibleEntries = document.querySelectorAll('.cache-entry[data-annotation-type]');
+    let visibleCount = 0;
+
+    visibleEntries.forEach(entry => {
+      if (entry.style.display !== 'none') {
+        visibleCount++;
+      }
+    });
+
+    if (this.activeFilter === 'all') {
+      summaryEl.textContent = `Showing all ${totalEntries} contexts`;
+    } else {
+      summaryEl.textContent = `Showing ${visibleCount} of ${totalEntries} contexts (${this.activeFilter})`;
+    }
+  }
+}
+
+/**
  * Context Comparison Visualizer using D3.js
  */
 class ContextComparator {
@@ -851,9 +963,10 @@ function initializeReport() {
     window.contextStatistics = [];
   }
 
-  // Initialize test class searcher
+  // Initialize test class searcher, annotation filter, and context comparator
   if (window.contextStatistics && window.contextStatistics.length > 0) {
     window.testClassSearcher = new TestClassSearcher();
+    new AnnotationFilter();
     new ContextComparator();
   }
 }
@@ -867,6 +980,7 @@ if (typeof module !== 'undefined' && module.exports) {
     toggleClass,
     toggleTheorySection,
     TestClassSearcher,
+    AnnotationFilter,
     ContextComparator,
     initializeReport
   };

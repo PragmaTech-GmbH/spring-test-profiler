@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import digital.pragmatech.testing.diagnostic.ContextDiagnostic;
 import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
+import digital.pragmatech.testing.util.TestAnnotationDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -84,6 +85,10 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
 
     // Track the association between context configuration and test class
     contextCacheTracker.recordTestClassForContext(mergedConfig, className);
+
+    // Detect and record the test annotation type for filtering
+    String annotationType = TestAnnotationDetector.detectTestAnnotationType(testClass);
+    contextCacheTracker.recordTestAnnotationType(mergedConfig, annotationType);
 
     logger.info("Test class {} uses context cache key {}", className, cacheKey);
   }

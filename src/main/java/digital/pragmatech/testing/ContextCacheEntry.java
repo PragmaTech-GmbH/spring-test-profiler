@@ -34,6 +34,9 @@ public class ContextCacheEntry {
   private volatile long heapMemoryUsedBytes = 0;
   private volatile int availableProcessors = 0;
 
+  // Annotation type tracking for filtering
+  private final Set<String> testAnnotationTypes = ConcurrentHashMap.newKeySet();
+
   // Timeline tracking for future visualization
   private final List<Instant> accessTimes = new CopyOnWriteArrayList<>();
 
@@ -43,6 +46,34 @@ public class ContextCacheEntry {
 
   public void addTestClass(String testClassName) {
     testClasses.add(testClassName);
+  }
+
+  public void addTestAnnotationType(String annotationType) {
+    if (annotationType != null) {
+      testAnnotationTypes.add(annotationType);
+    }
+  }
+
+  public Set<String> getTestAnnotationTypes() {
+    return Collections.unmodifiableSet(testAnnotationTypes);
+  }
+
+  /**
+   * Returns the primary annotation type for this context. If all test classes share the same
+   * annotation type, returns that type. Otherwise returns the first non-"Unknown" type, or
+   * "Unknown" if none found.
+   */
+  public String getPrimaryAnnotationType() {
+    if (testAnnotationTypes.isEmpty()) {
+      return "Unknown";
+    }
+    if (testAnnotationTypes.size() == 1) {
+      return testAnnotationTypes.iterator().next();
+    }
+    return testAnnotationTypes.stream()
+        .filter(type -> !"Unknown".equals(type))
+        .findFirst()
+        .orElse("Unknown");
   }
 
   public void addTestMethod(String testClassName, String methodName) {
