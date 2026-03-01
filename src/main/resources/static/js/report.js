@@ -736,13 +736,19 @@ class ContextComparator {
 
   formatDetailedValue(attributeName, currentValues, comparisonValues) {
 
-    if (currentValues.length === 0 || (currentValues.length === 1 && !currentValues[0])) {
-      const noValuesHtml= `<div style="color: #6c757d; font-style: italic; text-align: center; padding: 20px;">No values configured</div>`;
+    const isEmptyA = currentValues.length === 0 || (currentValues.length === 1 && !currentValues[0]);
+    const isEmptyB = comparisonValues.length === 0 || (comparisonValues.length === 1 && !comparisonValues[0]);
+
+    if (isEmptyA && isEmptyB) {
+      const noValuesHtml = `<div style="color: #6c757d; font-style: italic; text-align: center; padding: 20px;">No values configured</div>`;
       return { leftHtml: noValuesHtml, rightHtml: noValuesHtml };
     }
 
     // Use diff.js to get the differences
-    const diff = Diff.diffArrays(currentValues, comparisonValues);
+    // Normalise falsy single-element arrays so the diff library receives clean inputs
+    const effectiveCurrentValues = isEmptyA ? [] : currentValues;
+    const effectiveComparisonValues = isEmptyB ? [] : comparisonValues;
+    const diff = Diff.diffArrays(effectiveCurrentValues, effectiveComparisonValues);
 
     // Create main container
     let leftHtml = `<div class="attribute-name">${attributeName}</div><div class="diff-container">`;
