@@ -6,7 +6,7 @@
         <div class="execution-overview">
             <p>Click on any test class below to expand and see detailed information about individual test methods, including execution times and failure details.</p>
         </div>
-        
+
         <div th:each="classEntry : ${executionTracker.getClassMetrics()}"
              th:with="className=${classEntry.key},
                       classMetrics=${classEntry.value},
@@ -15,9 +15,9 @@
                       failedMethods=${classMetrics.getFailedMethods()},
                       totalMethods=${classMetrics.getTotalMethods()}"
              class="test-class">
-            
-            <div class="test-class-header" 
-                 onclick="toggleClass(this)" 
+
+            <div class="test-class-header"
+                 onclick="toggleClass(this)"
                  th:style="${'border-left: 4px solid ' + (failedMethods > 0 ? '#e74c3c' : '#27ae60') + ';'}">
                 <div>
                     <div class="test-class-name" th:text="${classNameHelper.getSimpleClassName(className)}">TestClass</div>
@@ -26,7 +26,7 @@
                 <div class="test-class-stats">
                     <span>⏱️ <span th:text="${durationFormatter.format(classExecutionTimeMs)}">0ms</span></span>
                     <span>📊 <span th:text="${totalMethods + ' tests'}">0 tests</span></span>
-                    
+
                     <span th:if="${passedMethods > 0}" style="color: #27ae60;">
                         ✅ <span th:text="${passedMethods}">0</span>
                     </span>
@@ -36,10 +36,10 @@
                     <!-- Disabled and aborted tests would require additional counting logic -->
                 </div>
             </div>
-            
+
             <div class="test-methods">
                 <!-- Context info is now handled globally via cache statistics -->
-                
+
                 <!-- Test methods -->
                 <div th:each="methodEntry : ${classMetrics.getMethodMetrics()}"
                      th:with="methodName=${methodEntry.key},
@@ -47,14 +47,14 @@
                               statusClass=${methodMetrics.getStatus() != null ? #strings.toLowerCase(methodMetrics.getStatus()) : 'unknown'},
                               statusIcon=${statusIconHelper.getStatusIcon(methodMetrics.getStatus())}"
                      th:class="${'test-method ' + statusClass}">
-                    
+
                     <div class="test-method-header">
                         <span class="test-method-name">
-                            <span th:text="${statusIcon}">✅</span> 
+                            <span th:text="${statusIcon}">✅</span>
                             <span th:text="${methodName}">testMethod</span>
                         </span>
                         <div class="test-method-info">
-                            <span class="test-duration" 
+                            <span class="test-duration"
                                   th:text="${durationFormatter.format(methodMetrics.getDuration().toMillis())}">0ms</span>
                             <span class="test-status" th:text="${methodMetrics.getStatus()}">PASSED</span>
                         </div>

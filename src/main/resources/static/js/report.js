@@ -15,6 +15,37 @@ function toggleClass(element) {
 }
 
 /**
+ * Sort context cache entries by load time, number of tests, or default order
+ * @param {string} criteria - Sort criteria: 'default', 'time', or 'tests'
+ */
+function sortCacheEntries(criteria) {
+  const entries = Array.from(document.querySelectorAll('.cache-entry'));
+  if (entries.length === 0) return;
+
+  const parent = entries[0].parentNode;
+
+  if (!window.cacheEntryOriginalOrder) {
+    window.cacheEntryOriginalOrder = entries.map(el => el);
+  }
+
+  if (criteria === 'default') {
+    window.cacheEntryOriginalOrder.forEach(el => parent.appendChild(el));
+  } else {
+    entries.sort((a, b) => {
+      if (criteria === 'time') {
+        return (parseInt(b.dataset.loadTimeMs, 10) || 0) - (parseInt(a.dataset.loadTimeMs, 10) || 0);
+      }
+      return (parseInt(b.dataset.testCount, 10) || 0) - (parseInt(a.dataset.testCount, 10) || 0);
+    });
+    entries.forEach(el => parent.appendChild(el));
+  }
+
+  document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+  const clickedBtn = document.querySelector(`.sort-btn[onclick="sortCacheEntries('${criteria}')"]`);
+  if (clickedBtn) clickedBtn.classList.add('active');
+}
+
+/**
  * Toggle the theory section visibility
  */
 function toggleTheorySection() {
