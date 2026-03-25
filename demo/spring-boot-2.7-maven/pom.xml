@@ -97,6 +97,8 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
+          <!-- Required for Thymeleaf 3.0.x OGNL on Java 17+ -->
+          <argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
         </configuration>
       </plugin>
     </plugins>

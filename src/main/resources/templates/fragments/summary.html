@@ -15,7 +15,7 @@
                 <strong>Executed via:</strong> <span th:text="${executionEnvironment}">Unknown</span>
             </div>
             <div class="execution-detail">
-                <strong>Execution Time:</strong> <span th:text="${#temporals.format(executionTimestamp, 'yyyy-MM-dd HH:mm:ss')}">2025-01-01 12:00:00</span>
+                <strong>Execution Time:</strong> <span th:text="${generatedAt}">2025-01-01 12:00:00</span>
             </div>
             <div class="execution-detail">
                 <strong>Time Zone:</strong> <span th:text="${timeZone}">UTC</span>
