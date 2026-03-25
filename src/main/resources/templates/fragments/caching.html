@@ -53,9 +53,7 @@
                 <button class="sort-btn" onclick="sortCacheEntries('tests')">Number of Tests</button>
             </div>
             <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry"
-                 th:attr="data-load-time-ms=${entry.contextLoadTimeMs},data-test-count=${entry.testClasses.size()}">
-            <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry"
-                 th:attr="data-annotation-type=${entry.primaryAnnotationType}">
+                 th:attr="data-annotation-type=${entry.primaryAnnotationType},data-load-time-ms=${entry.contextLoadTimeMs},data-test-count=${entry.testClasses.size()}">
                 <div class="cache-entry-header">
                     <span class="cache-id" th:text="${'Context ID: ' + helpers.getContextId(entry.configuration)}">Context ID: context-0</span>
                     <span class="annotation-badge"
