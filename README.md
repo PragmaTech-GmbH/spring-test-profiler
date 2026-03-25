@@ -50,7 +50,7 @@ What's currently not working or missing:
 
 ## Usage
 
-[![](https://img.shields.io/badge/Latest%20Version-0.0.16-orange)](/spring-test-profiler-extension/pom.xml)
+[![](https://img.shields.io/badge/Latest%20Version-0.0.17-orange)](/spring-test-profiler-extension/pom.xml)
 
 ### 1. Add the Dependency
 
@@ -62,7 +62,7 @@ Add the dependency to your project:
 <dependency>
   <groupId>digital.pragmatech.testing</groupId>
   <artifactId>spring-test-profiler</artifactId>
-  <version>0.0.16</version>
+  <version>0.0.17</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -72,7 +72,7 @@ Add the dependency to your project:
 Add the dependency to your project:
 
 ```groovy
-testImplementation('digital.pragmatech.testing:spring-test-profiler:0.0.16')
+testImplementation('digital.pragmatech.testing:spring-test-profiler:0.0.17')
 ```
 
 
