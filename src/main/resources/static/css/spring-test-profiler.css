@@ -312,6 +312,195 @@ h2 {
     padding-bottom: 20px;
 }
 
+/* Annotation Filter Styles */
+.annotation-filter-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #9b59b6;
+}
+
+.annotation-filter-container h4 {
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.annotation-filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.annotation-filter-btn {
+    padding: 6px 16px;
+    border: 2px solid #bdc3c7;
+    border-radius: 20px;
+    background: white;
+    color: #2c3e50;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.annotation-filter-btn:hover {
+    border-color: #7f8c8d;
+    background: #ecf0f1;
+}
+
+.annotation-filter-btn.active {
+    color: white;
+    border-color: transparent;
+}
+
+.annotation-filter-btn.filter-all.active {
+    background: #2c3e50;
+    border-color: #2c3e50;
+}
+
+.annotation-filter-btn.filter-SpringBootTest.active {
+    background: #27ae60;
+    border-color: #27ae60;
+}
+
+.annotation-filter-btn.filter-WebMvcTest.active {
+    background: #3498db;
+    border-color: #3498db;
+}
+
+.annotation-filter-btn.filter-DataJpaTest.active {
+    background: #e67e22;
+    border-color: #e67e22;
+}
+
+.annotation-filter-btn.filter-DataMongoTest.active {
+    background: #8e44ad;
+    border-color: #8e44ad;
+}
+
+.annotation-filter-btn.filter-JdbcTest.active {
+    background: #16a085;
+    border-color: #16a085;
+}
+
+.annotation-filter-btn.filter-JsonTest.active {
+    background: #d35400;
+    border-color: #d35400;
+}
+
+.annotation-filter-btn.filter-RestClientTest.active {
+    background: #2980b9;
+    border-color: #2980b9;
+}
+
+.annotation-filter-btn.filter-WebFluxTest.active {
+    background: #1abc9c;
+    border-color: #1abc9c;
+}
+
+.annotation-filter-btn.filter-GraphQlTest.active {
+    background: #e91e63;
+    border-color: #e91e63;
+}
+
+.annotation-filter-btn.filter-ContextConfiguration.active {
+    background: #607d8b;
+    border-color: #607d8b;
+}
+
+.annotation-filter-btn.filter-Unknown.active {
+    background: #95a5a6;
+    border-color: #95a5a6;
+}
+
+.annotation-filter-summary {
+    font-size: 13px;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* Annotation Badge Styles */
+.annotation-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0.3px;
+}
+
+.annotation-SpringBootTest {
+    background: #d5f4e6;
+    color: #1e7e34;
+}
+
+.annotation-WebMvcTest {
+    background: #d6eaf8;
+    color: #1a5276;
+}
+
+.annotation-DataJpaTest {
+    background: #fde8d0;
+    color: #a04000;
+}
+
+.annotation-DataMongoTest {
+    background: #e8daef;
+    color: #6c3483;
+}
+
+.annotation-JdbcTest {
+    background: #d1f2eb;
+    color: #0e6655;
+}
+
+.annotation-JsonTest {
+    background: #f6ddcc;
+    color: #a04000;
+}
+
+.annotation-RestClientTest {
+    background: #d4e6f1;
+    color: #1a5276;
+}
+
+.annotation-WebFluxTest {
+    background: #d1f2eb;
+    color: #0b5345;
+}
+
+.annotation-GraphQlTest {
+    background: #fadbd8;
+    color: #943126;
+}
+
+.annotation-ContextConfiguration {
+    background: #d5d8dc;
+    color: #2c3e50;
+}
+
+.annotation-Unknown {
+    background: #eaecee;
+    color: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .annotation-filter-buttons {
+        gap: 6px;
+    }
+
+    .annotation-filter-btn {
+        padding: 5px 12px;
+        font-size: 12px;
+    }
+}
+
 .context-cache-details h3 {
     margin-bottom: 15px;
     color: #2c3e50;

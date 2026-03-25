@@ -65,6 +65,14 @@ public class ContextCacheTracker {
         .addTestClass(testClassName);
   }
 
+  /** Records the test annotation type for a context configuration. */
+  public void recordTestAnnotationType(MergedContextConfiguration config, String annotationType) {
+    ContextCacheEntry entry = cacheEntries.get(config);
+    if (entry != null) {
+      entry.addTestAnnotationType(annotationType);
+    }
+  }
+
   /** Records that a test method uses a specific context. */
   public void recordTestMethodForContext(
       MergedContextConfiguration config, String testClassName, String methodName) {

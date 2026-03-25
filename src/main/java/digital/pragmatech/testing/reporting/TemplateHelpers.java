@@ -212,6 +212,7 @@ public class TemplateHelpers {
           configInfo.id = configId;
           configInfo.testClasses = new HashSet<>(entry.getTestClasses());
           configInfo.configuration = entry.getConfigurationSummary();
+          configInfo.primaryAnnotationType = entry.getPrimaryAnnotationType();
 
           configurations.put(configId, configInfo);
         }
@@ -224,6 +225,7 @@ public class TemplateHelpers {
       public String id;
       public Set<String> testClasses;
       public Map<String, Object> configuration;
+      public String primaryAnnotationType;
     }
   }
 
@@ -337,6 +339,10 @@ public class TemplateHelpers {
 
       // Context configuration details
       statistics.put("contextConfiguration", mapContextConfiguration(entry));
+
+      // Annotation type information for filtering
+      statistics.put("testAnnotationTypes", new ArrayList<>(entry.getTestAnnotationTypes()));
+      statistics.put("primaryAnnotationType", entry.getPrimaryAnnotationType());
 
       return statistics;
     }
