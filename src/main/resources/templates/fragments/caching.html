@@ -38,6 +38,13 @@
                 <div id="test-class-search-results" class="test-class-search-results"></div>
             </div>
 
+            <!-- Annotation Type Filter (populated by JS when 2+ types exist) -->
+            <div id="annotation-filter-container" class="annotation-filter-container" style="display: none;">
+                <h4>Filter by Annotation Type</h4>
+                <div id="annotation-filter-buttons" class="annotation-filter-buttons"></div>
+                <div id="annotation-filter-summary" class="annotation-filter-summary"></div>
+            </div>
+
             <h3>Context Cache Entries</h3>
             <div class="sort-controls">
                 <span>Sort by:</span>
@@ -47,8 +54,13 @@
             </div>
             <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry"
                  th:attr="data-load-time-ms=${entry.contextLoadTimeMs},data-test-count=${entry.testClasses.size()}">
+            <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry"
+                 th:attr="data-annotation-type=${entry.primaryAnnotationType}">
                 <div class="cache-entry-header">
                     <span class="cache-id" th:text="${'Context ID: ' + helpers.getContextId(entry.configuration)}">Context ID: context-0</span>
+                    <span class="annotation-badge"
+                          th:classappend="${'annotation-' + entry.primaryAnnotationType}"
+                          th:text="${entry.primaryAnnotationType}">Unknown</span>
                     <span class="bean-count" th:text="${entry.beanDefinitionCount + ' beans'}">0 beans</span>
                 </div>
                 <div class="context-stats">
