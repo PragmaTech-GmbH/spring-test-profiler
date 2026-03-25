@@ -39,7 +39,14 @@
             </div>
 
             <h3>Context Cache Entries</h3>
-            <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry">
+            <div class="sort-controls">
+                <span>Sort by:</span>
+                <button class="sort-btn active" onclick="sortCacheEntries('default')">Default</button>
+                <button class="sort-btn" onclick="sortCacheEntries('time')">Load Time</button>
+                <button class="sort-btn" onclick="sortCacheEntries('tests')">Number of Tests</button>
+            </div>
+            <div th:each="entry : ${contextCacheTracker.getAllEntries()}" class="cache-entry"
+                 th:attr="data-load-time-ms=${entry.contextLoadTimeMs},data-test-count=${entry.testClasses.size()}">
                 <div class="cache-entry-header">
                     <span class="cache-id" th:text="${'Context ID: ' + helpers.getContextId(entry.configuration)}">Context ID: context-0</span>
                     <span class="bean-count" th:text="${entry.beanDefinitionCount + ' beans'}">0 beans</span>

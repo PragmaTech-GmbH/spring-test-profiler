@@ -127,3 +127,20 @@ MARKETING.md
 ### JS ###
 coverage/
 node_modules
+
+# ── GSD baseline (auto-generated) ──
+.gsd
+*.code-workspace
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+dist/
+__pycache__/
+*.pyc
+.venv/
+venv/
+vendor/
+.cache/
+tmp/
