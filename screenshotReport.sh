@@ -28,13 +28,6 @@ echo
 # Step 1: Check prerequisites
 echo -e "${YELLOW}🔍 Step 1: Checking prerequisites...${NC}"
 
-if [ ! -f "$REPORT_FILE" ]; then
-    echo -e "${RED}❌ Report not found at: $REPORT_FILE${NC}"
-    echo -e "${YELLOW}   Run the Spring Boot 4.0 demo tests first:${NC}"
-    echo -e "${BLUE}   cd demo/spring-boot-4.0-maven && mvn test${NC}"
-    exit 1
-fi
-
 if ! command -v node > /dev/null 2>&1; then
     echo -e "${RED}❌ Node.js is required but not found${NC}"
     exit 1
@@ -54,16 +47,43 @@ fi
 echo -e "${GREEN}✅ All prerequisites met${NC}"
 echo
 
-# Step 2: Install Playwright
-echo -e "${YELLOW}📦 Step 2: Installing Playwright...${NC}"
+# Step 2: Build profiler and run demo tests to generate a fresh report
+echo -e "${YELLOW}🧪 Step 2: Building profiler and running demo tests...${NC}"
+
 cd "$SCRIPT_DIR"
+if ./mvnw clean install -DskipTests -q; then
+    echo -e "${GREEN}✅ Profiler built and installed${NC}"
+else
+    echo -e "${RED}❌ Failed to build profiler${NC}"
+    exit 1
+fi
+
+DEMO_DIR="$SCRIPT_DIR/demo/spring-boot-4.0-maven"
+cd "$DEMO_DIR"
+if ./mvnw clean verify -q; then
+    echo -e "${GREEN}✅ Demo tests completed, report generated${NC}"
+else
+    echo -e "${RED}❌ Demo tests failed${NC}"
+    exit 1
+fi
+
+if [ ! -f "$REPORT_FILE" ]; then
+    echo -e "${RED}❌ Report not found at: $REPORT_FILE${NC}"
+    exit 1
+fi
+
+echo
+cd "$SCRIPT_DIR"
+
+# Step 3: Install Playwright
+echo -e "${YELLOW}📦 Step 3: Installing Playwright...${NC}"
 npm install --no-save playwright > /dev/null 2>&1
 npx playwright install chromium > /dev/null 2>&1
 echo -e "${GREEN}✅ Playwright ready${NC}"
 echo
 
-# Step 3: Take full-page screenshot
-echo -e "${YELLOW}📸 Step 3: Capturing full-page screenshot...${NC}"
+# Step 4: Take full-page screenshot
+echo -e "${YELLOW}📸 Step 4: Capturing full-page screenshot...${NC}"
 
 SCREENSHOT_SCRIPT="$SCRIPT_DIR/.screenshot-capture.mjs"
 cat > "$SCREENSHOT_SCRIPT" << 'NODESCRIPT'
@@ -126,8 +146,8 @@ fi
 echo -e "${GREEN}✅ Full-page screenshot captured${NC}"
 echo
 
-# Step 4: Split screenshot into top and bottom halves
-echo -e "${YELLOW}✂️  Step 4: Splitting screenshot into two halves...${NC}"
+# Step 5: Split screenshot into top and bottom halves
+echo -e "${YELLOW}✂️  Step 5: Splitting screenshot into two halves...${NC}"
 
 HEIGHT=$(magick identify -format '%h' "$FULL_SCREENSHOT")
 HALF_HEIGHT=$((HEIGHT / 2))
