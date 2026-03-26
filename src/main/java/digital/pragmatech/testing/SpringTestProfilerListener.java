@@ -95,18 +95,24 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
 
   @Override
   public void prepareTestInstance(@NonNull TestContext testContext) throws Exception {
-    // After test instance is prepared, the context should be loaded
     String className = testClassNames.get(testContext);
-    Instant contextLoadEndTime = Instant.now();
 
     if (className != null) {
       try {
+        // Force context loading BEFORE capturing end time.
+        // This listener runs with HIGHEST_PRECEDENCE (before
+        // DependencyInjectionTestExecutionListener),
+        // so the context has not been loaded yet when prepareTestInstance is called.
+        // Calling getApplicationContext() triggers lazy context creation.
+        org.springframework.context.ApplicationContext applicationContext =
+            testContext.getApplicationContext();
+        Instant contextLoadEndTime = Instant.now();
+
         Class<?> testClass = testContext.getTestClass();
         TestContextBootstrapper bootstrapper = resolveBootstrapper(testClass);
         MergedContextConfiguration mergedConfig = bootstrapper.buildMergedContextConfiguration();
-        int cacheKey = mergedConfig.hashCode();
 
-        // Calculate context loading time
+        // Calculate context loading time (listener-level measurement)
         Instant contextLoadStartTime = contextLoadStartTimes.get(testContext);
         long contextLoadDurationMs = 0;
         if (contextLoadStartTime != null) {
@@ -116,17 +122,18 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
 
         // Try to get enhanced profile data from ApplicationContextInitializer
         ContextProfileData profileData = null;
-        if (testContext.getApplicationContext()
-            instanceof org.springframework.context.ConfigurableApplicationContext) {
+        if (applicationContext
+            instanceof org.springframework.context.ConfigurableApplicationContext configurableCtx) {
           profileData =
-              TimingTrackingApplicationContextInitializer.getContextProfileData(
-                  (org.springframework.context.ConfigurableApplicationContext)
-                      testContext.getApplicationContext());
+              TimingTrackingApplicationContextInitializer.getContextProfileData(configurableCtx);
         }
 
-        if (profileData != null) {
+        // Prefer initializer's precise timing (initialize() -> ContextRefreshedEvent)
+        // over the listener's coarser measurement (beforeTestClass -> prepareTestInstance)
+        if (profileData != null && profileData.getTotalLoadTimeMs() > 0) {
+          contextLoadDurationMs = profileData.getTotalLoadTimeMs();
           logger.debug(
-              "Enhanced context profiling available for test class {} - Total time: {}ms, Memory: {}MB, Beans: {}",
+              "Using initializer timing for test class {} - Total time: {}ms, Memory: {}MB, Beans: {}",
               className,
               profileData.getTotalLoadTimeMs(),
               profileData.getMemoryUsedMB(),
@@ -145,8 +152,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         } else {
           // Try to get ContextDiagnostic information using getBeanProvider
           org.springframework.context.ConfigurableApplicationContext configurableContext =
-              (org.springframework.context.ConfigurableApplicationContext)
-                  testContext.getApplicationContext();
+              (org.springframework.context.ConfigurableApplicationContext) applicationContext;
           ContextDiagnostic contextDiagnostic =
               configurableContext.getBeanProvider(ContextDiagnostic.class).getIfAvailable();
 
@@ -161,7 +167,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
           }
 
           // Capture bean definitions for context complexity analysis
-          String[] beanNames = testContext.getApplicationContext().getBeanDefinitionNames();
+          String[] beanNames = applicationContext.getBeanDefinitionNames();
           contextCacheTracker.recordBeanDefinitions(mergedConfig, beanNames);
           logger.debug(
               "New context created for test class {} with {} bean definitions ({}ms)",
