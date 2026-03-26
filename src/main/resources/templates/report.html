@@ -24,7 +24,7 @@
   <div th:replace="~{fragments/theory :: theory-section}"></div>
 
   <!-- Summary Section Fragment -->
-  <div th:replace="~{fragments/summary :: summary-section(${executionTracker}, ${cacheStats})}"></div>
+  <div th:replace="~{fragments/summary :: summary-section(${executionTracker}, ${cacheStats}, ${contextCacheTracker})}"></div>
 
   <!-- Context Caching Statistics Fragment -->
   <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
