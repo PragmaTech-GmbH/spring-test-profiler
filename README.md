@@ -14,13 +14,12 @@ Find [more information](https://pragmatech.digital/products/spring-test-profiler
 
 **Overall goal**: Identify optimization opportunities in your Spring Test suite to speed up your builds and ship to production faster and with more confidence 🚤
 
-<p align="center">
-  <img src="docs/spring-test-profiler-report-sample.png" alt="Spring Test Profiler Report" />
-</p>
-<br/>
-<p align="center">
-  <img src="docs/context-comparison.png" alt="Spring Test Profiler Report Context Comparison" />
-</p>
+<table>
+  <tr>
+    <td><img src="docs/report-top.png" alt="Spring Test Profiler Report - Top" /></td>
+    <td><img src="docs/report-bottom.png" alt="Spring Test Profiler Report - Bottom" /></td>
+  </tr>
+</table>
 
 This profiler helps you:
 
