@@ -5,6 +5,9 @@
 
 set -e  # Exit on any error
 
+# Suppress JVM warnings (Guice Unsafe deprecation + CDS class sharing)
+export MAVEN_OPTS="${MAVEN_OPTS:+$MAVEN_OPTS }-Xshare:off"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -25,7 +28,7 @@ echo
 echo -e "${YELLOW}📦 Step 1: Building and installing Spring Test Profiler...${NC}"
 cd "$SCRIPT_DIR"
 
-if ./mvnw clean spotless:apply install -DskipTests -q; then
+if ./mvnw clean spotless:apply install -DskipTests -q 2> >(grep -v "sun.misc.Unsafe\|HiddenClassDefiner\|Please consider reporting this\|will be removed in a future release" >&2); then
     echo -e "${GREEN}✅ Profiler built and installed successfully${NC}"
 else
     echo -e "${RED}❌ Failed to build and install profiler${NC}"
@@ -38,7 +41,7 @@ echo
 echo -e "${YELLOW}🧪 Step 2: Running demo tests to generate report...${NC}"
 cd "$DEMO_DIR"
 
-if mvn test -Dtest="*IT" -U -q; then
+if mvn test -Dtest="*IT" -U -q 2> >(grep -v "sun.misc.Unsafe\|HiddenClassDefiner\|Please consider reporting this\|will be removed in a future release" >&2); then
     echo -e "${GREEN}✅ Demo tests completed successfully${NC}"
 else
     echo -e "${RED}❌ Demo tests failed${NC}"
