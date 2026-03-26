@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="summary-section(executionTracker, cacheStats)" th:with="
+    <div th:fragment="summary-section(executionTracker, cacheStats, contextCacheTracker)" th:with="
         totalDurationMs=${executionTracker.getOverallDuration().toMillis()},
         cacheSize=${cacheStats != null ? cacheStats.size() : 0},
-        cacheHits=${cacheStats != null ? cacheStats.hitCount() : 0},
-        cacheMisses=${cacheStats != null ? cacheStats.missCount() : 0},
-        totalCacheAccess=${cacheStats != null ? (cacheStats.hitCount() + cacheStats.missCount()) : 0},
+        cacheHits=${contextCacheTracker != null ? contextCacheTracker.getCacheHits() : 0},
+        cacheMisses=${contextCacheTracker != null ? contextCacheTracker.getCacheMisses() : 0},
+        totalCacheAccess=${cacheHits + cacheMisses},
         cacheHitRate=${totalCacheAccess > 0 ? (cacheHits * 100.0 / totalCacheAccess) : 0.0}">
 
         <h2>Test Execution Summary</h2>

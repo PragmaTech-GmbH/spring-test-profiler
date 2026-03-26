@@ -471,6 +471,34 @@ public class ContextCacheTracker {
     return new TimelineData(timelineEntries, earliestCreation, latestAccess, events);
   }
 
+  /** Gets the total number of cache hits tracked by this tracker. */
+  public int getCacheHits() {
+    return cacheHits.get();
+  }
+
+  /** Gets the total number of cache misses (context creations) tracked by this tracker. */
+  public int getCacheMisses() {
+    return cacheMisses.get();
+  }
+
+  /** Gets the total number of unique contexts created. */
+  public int getTotalContextsCreated() {
+    return totalContextsCreated.get();
+  }
+
+  /**
+   * Calculates the context reuse rate as a percentage. This represents how often a context was
+   * reused from cache vs created fresh.
+   *
+   * @return reuse rate as percentage (0.0 to 100.0), or 0.0 if no cache accesses occurred
+   */
+  public double getContextReuseRate() {
+    int hits = cacheHits.get();
+    int misses = cacheMisses.get();
+    int totalAccesses = hits + misses;
+    return totalAccesses > 0 ? (double) hits / totalAccesses * 100.0 : 0.0;
+  }
+
   /** Clears all tracking data. */
   public void clear() {
     contextToTestMethods.clear();
