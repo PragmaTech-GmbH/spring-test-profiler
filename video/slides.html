@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spring Test Profiler - Demo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f0f1a;
+      color: #e8e8f0;
+      overflow: hidden;
+    }
+
+    .slide {
+      width: 1920px;
+      height: 1080px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px 120px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide.active { display: flex; }
+
+    /* Subtle grid background */
+    .slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(109, 179, 63, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(109, 179, 63, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Glow accent */
+    .slide::after {
+      content: '';
+      position: absolute;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(109, 179, 63, 0.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .spring-green { color: #6db33f; }
+    .muted { color: #8888a0; }
+    .highlight { color: #f0c040; }
+    .red { color: #e74c3c; }
+
+    h1 {
+      font-size: 72px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      z-index: 1;
+    }
+
+    h2 {
+      font-size: 52px;
+      font-weight: 600;
+      margin-bottom: 40px;
+      z-index: 1;
+    }
+
+    .subtitle {
+      font-size: 32px;
+      font-weight: 300;
+      color: #a0a0b8;
+      margin-bottom: 40px;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 18px;
+      font-weight: 500;
+      background: rgba(109, 179, 63, 0.15);
+      color: #6db33f;
+      border: 1px solid rgba(109, 179, 63, 0.3);
+      z-index: 1;
+    }
+
+    .url {
+      font-size: 22px;
+      color: #6888b0;
+      margin-top: 30px;
+      font-family: 'JetBrains Mono', monospace;
+      z-index: 1;
+    }
+
+    /* Slide 2: Problem */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .problem-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 30px;
+      background: rgba(231, 76, 60, 0.05);
+      border: 1px solid rgba(231, 76, 60, 0.15);
+      border-radius: 16px;
+    }
+
+    .problem-icon {
+      font-size: 36px;
+      flex-shrink: 0;
+      width: 50px;
+      text-align: center;
+    }
+
+    .problem-text h3 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #e8e8f0;
+    }
+
+    .problem-text p {
+      font-size: 18px;
+      color: #9090a8;
+      line-height: 1.5;
+    }
+
+    /* Slide 3: Solution */
+    .solution-layout {
+      display: flex;
+      gap: 60px;
+      width: 100%;
+      align-items: flex-start;
+      z-index: 1;
+    }
+
+    .solution-left {
+      flex: 1;
+    }
+
+    .solution-right {
+      flex: 1;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+
+    .step-number {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(109, 179, 63, 0.2);
+      color: #6db33f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .step-content h3 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .step-content p {
+      font-size: 18px;
+      color: #9090a8;
+      line-height: 1.4;
+    }
+
+    .code-block {
+      background: #1a1a2e;
+      border: 1px solid #2a2a40;
+      border-radius: 12px;
+      padding: 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 17px;
+      line-height: 1.6;
+      overflow: hidden;
+      white-space: pre;
+    }
+
+    .code-block .tag { color: #e74c3c; }
+    .code-block .attr { color: #f0c040; }
+    .code-block .val { color: #6db33f; }
+    .code-block .comment { color: #5a5a70; }
+
+    /* Slide 4: Transition */
+    #slide-4 h2 {
+      font-size: 64px;
+      text-align: center;
+    }
+
+    #slide-4 .arrow {
+      font-size: 80px;
+      margin-top: 20px;
+      color: #6db33f;
+      z-index: 1;
+    }
+
+    /* Slide 5: CTA */
+    .cta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .cta-left, .cta-right {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .cta-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 24px;
+    }
+
+    .cta-step .num {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #6db33f;
+      color: #0f0f1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .cta-code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #1a1a2e;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 20px;
+      color: #6db33f;
+    }
+
+    .github-cta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 36px;
+      background: rgba(109, 179, 63, 0.1);
+      border: 1px solid rgba(109, 179, 63, 0.3);
+      border-radius: 16px;
+      margin-top: 20px;
+    }
+
+    .github-cta .star { font-size: 40px; }
+
+    .github-cta .text {
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    .github-cta .repo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      color: #6888b0;
+      margin-top: 4px;
+    }
+
+    /* Logo */
+    .logo {
+      font-size: 100px;
+      margin-bottom: 20px;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide 1: Title -->
+  <div class="slide active" id="slide-1">
+    <div class="logo">&#129514;</div>
+    <h1>Spring Test <span class="spring-green">Profiler</span></h1>
+    <p class="subtitle">Unlock Spring's Most Unknown Testing Hidden Gem<br><span style="color: #6db33f; font-weight: 500;">Context Caching</span> &mdash; and achieve faster builds</p>
+    <div class="badge">Open Source &middot; Zero Config &middot; Spring Boot 2.x - 4.x</div>
+    <p class="url">github.com/PragmaTech-GmbH/spring-test-profiler</p>
+  </div>
+
+  <!-- Slide 2: The Problem -->
+  <div class="slide" id="slide-2">
+    <h2>The Problem: <span class="red">Slow</span> Spring Test Suites</h2>
+    <div class="problem-grid">
+      <div class="problem-item">
+        <div class="problem-icon">&#9201;</div>
+        <div class="problem-text">
+          <h3>Expensive Context Startup</h3>
+          <p>Each unique context configuration triggers a full Spring context creation &mdash; 2 to 10 seconds each</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">&#128065;</div>
+        <div class="problem-text">
+          <h3>Hidden Duplicates</h3>
+          <p>Tiny config drifts between tests silently create separate contexts that could be shared</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">&#128163;</div>
+        <div class="problem-text">
+          <h3>@DirtiesContext Overuse</h3>
+          <p>Destroys the cached context after each test, forcing expensive recreation for every method</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">&#128566;</div>
+        <div class="problem-text">
+          <h3>No Visibility</h3>
+          <p>Spring's context cache is a black box &mdash; no built-in tools to see what's being reused or wasted</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: The Solution -->
+  <div class="slide" id="slide-3">
+    <h2><span class="spring-green">Setup</span> in 3 Steps</h2>
+    <div class="solution-layout">
+      <div class="solution-left">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Add the test dependency</h3>
+            <p>Works with Maven and Gradle</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Register via spring.factories</h3>
+            <p>Add the listener + initializer to<br><span style="font-family: 'JetBrains Mono'; font-size: 16px; color: #6db33f;">src/test/resources/META-INF/spring.factories</span></p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Run your tests</h3>
+            <p><span style="font-family: 'JetBrains Mono'; color: #f0c040;">mvn test</span> or <span style="font-family: 'JetBrains Mono'; color: #f0c040;">gradle test</span> &mdash; report appears at<br><span style="font-family: 'JetBrains Mono'; font-size: 16px; color: #6db33f;">target/spring-test-profiler/latest.html</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="solution-right" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="code-block" style="font-size: 16px;"><span class="comment">&lt;!-- pom.xml --&gt;</span>
+<span class="tag">&lt;dependency&gt;</span>
+  <span class="tag">&lt;groupId&gt;</span><span class="val">digital.pragmatech.testing</span><span class="tag">&lt;/groupId&gt;</span>
+  <span class="tag">&lt;artifactId&gt;</span><span class="val">spring-test-profiler</span><span class="tag">&lt;/artifactId&gt;</span>
+  <span class="tag">&lt;version&gt;</span><span class="val">0.0.17</span><span class="tag">&lt;/version&gt;</span>
+  <span class="tag">&lt;scope&gt;</span><span class="attr">test</span><span class="tag">&lt;/scope&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></div>
+        <div class="code-block" style="font-size: 15px; line-height: 1.5;"><span class="comment"># src/test/resources/META-INF/spring.factories</span>
+
+<span class="attr">org.springframework.test.context.TestExecutionListener</span>=\
+<span class="val">digital.pragmatech.testing.SpringTestProfilerListener</span>
+
+<span class="attr">org.springframework.context.ApplicationContextInitializer</span>=\
+<span class="val">digital.pragmatech.testing.diagnostic\
+.ContextDiagnosticApplicationInitializer</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: Transition -->
+  <div class="slide" id="slide-4">
+    <h2>Let's see it <span class="spring-green">in action</span></h2>
+    <div class="arrow">&#8595;</div>
+  </div>
+
+  <!-- Slide 5: CTA / Closing -->
+  <div class="slide" id="slide-5">
+    <h2>Get Started in <span class="spring-green">30 Seconds</span></h2>
+    <div class="cta-grid">
+      <div class="cta-left">
+        <div class="cta-step">
+          <span class="num">1</span>
+          <span>Add the dependency to your <span class="cta-code">pom.xml</span></span>
+        </div>
+        <div class="cta-step">
+          <span class="num">2</span>
+          <span>Run <span class="cta-code">mvn test</span> or <span class="cta-code">gradle test</span></span>
+        </div>
+        <div class="cta-step">
+          <span class="num">3</span>
+          <span>Open <span class="cta-code">target/spring-test-profiler/latest.html</span></span>
+        </div>
+        <div class="cta-step" style="margin-top: 16px;">
+          <span class="num">&#10003;</span>
+          <span>Identify optimization opportunities instantly</span>
+        </div>
+      </div>
+      <div class="cta-right" style="justify-content: center;">
+        <div class="github-cta">
+          <span class="star">&#11088;</span>
+          <div>
+            <div class="text">Star us on GitHub</div>
+            <div class="repo">github.com/PragmaTech-GmbH/spring-test-profiler</div>
+          </div>
+        </div>
+        <p style="text-align: center; color: #6888b0; font-size: 20px; margin-top: 24px;">
+          Open Source &middot; MIT License &middot; Spring Boot 2.x - 4.x
+        </p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
