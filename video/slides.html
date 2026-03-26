@@ -9,7 +9,9 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #0f0f1a;
       color: #e8e8f0;
@@ -17,13 +19,13 @@
     }
 
     .slide {
-      width: 1920px;
-      height: 1080px;
+      width: 100vw;
+      height: 100vh;
       display: none;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 80px 120px;
+      padding: 60px 100px;
       position: relative;
       overflow: hidden;
     }
@@ -59,33 +61,37 @@
     .red { color: #e74c3c; }
 
     h1 {
-      font-size: 72px;
+      font-size: 4.5vw;
       font-weight: 700;
       letter-spacing: -1px;
       margin-bottom: 20px;
       z-index: 1;
+      text-align: center;
     }
 
     h2 {
-      font-size: 52px;
+      font-size: 3.2vw;
       font-weight: 600;
       margin-bottom: 40px;
       z-index: 1;
+      text-align: center;
     }
 
     .subtitle {
-      font-size: 32px;
+      font-size: 1.8vw;
       font-weight: 300;
       color: #a0a0b8;
       margin-bottom: 40px;
       z-index: 1;
+      text-align: center;
+      line-height: 1.5;
     }
 
     .badge {
       display: inline-block;
       padding: 8px 20px;
       border-radius: 20px;
-      font-size: 18px;
+      font-size: 1vw;
       font-weight: 500;
       background: rgba(109, 179, 63, 0.15);
       color: #6db33f;
@@ -94,7 +100,7 @@
     }
 
     .url {
-      font-size: 22px;
+      font-size: 1.2vw;
       color: #6888b0;
       margin-top: 30px;
       font-family: 'JetBrains Mono', monospace;
@@ -105,8 +111,9 @@
     .problem-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      width: 100%;
+      gap: 30px;
+      width: 90%;
+      max-width: 1400px;
       z-index: 1;
     }
 
@@ -114,28 +121,28 @@
       display: flex;
       align-items: flex-start;
       gap: 20px;
-      padding: 30px;
+      padding: 28px;
       background: rgba(231, 76, 60, 0.05);
       border: 1px solid rgba(231, 76, 60, 0.15);
       border-radius: 16px;
     }
 
     .problem-icon {
-      font-size: 36px;
+      font-size: 32px;
       flex-shrink: 0;
-      width: 50px;
+      width: 45px;
       text-align: center;
     }
 
     .problem-text h3 {
-      font-size: 24px;
+      font-size: 1.3vw;
       font-weight: 600;
       margin-bottom: 8px;
       color: #e8e8f0;
     }
 
     .problem-text p {
-      font-size: 18px;
+      font-size: 1vw;
       color: #9090a8;
       line-height: 1.5;
     }
@@ -143,8 +150,9 @@
     /* Slide 3: Solution */
     .solution-layout {
       display: flex;
-      gap: 60px;
-      width: 100%;
+      gap: 50px;
+      width: 90%;
+      max-width: 1500px;
       align-items: flex-start;
       z-index: 1;
     }
@@ -160,13 +168,13 @@
     .step {
       display: flex;
       align-items: flex-start;
-      gap: 20px;
-      margin-bottom: 36px;
+      gap: 18px;
+      margin-bottom: 32px;
     }
 
     .step-number {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       background: rgba(109, 179, 63, 0.2);
       color: #6db33f;
@@ -174,18 +182,18 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 20px;
+      font-size: 18px;
       flex-shrink: 0;
     }
 
     .step-content h3 {
-      font-size: 24px;
+      font-size: 1.3vw;
       font-weight: 600;
       margin-bottom: 6px;
     }
 
     .step-content p {
-      font-size: 18px;
+      font-size: 1vw;
       color: #9090a8;
       line-height: 1.4;
     }
@@ -194,9 +202,9 @@
       background: #1a1a2e;
       border: 1px solid #2a2a40;
       border-radius: 12px;
-      padding: 28px;
+      padding: 24px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 17px;
+      font-size: 0.9vw;
       line-height: 1.6;
       overflow: hidden;
       white-space: pre;
@@ -209,12 +217,12 @@
 
     /* Slide 4: Transition */
     #slide-4 h2 {
-      font-size: 64px;
+      font-size: 4vw;
       text-align: center;
     }
 
     #slide-4 .arrow {
-      font-size: 80px;
+      font-size: 5vw;
       margin-top: 20px;
       color: #6db33f;
       z-index: 1;
@@ -225,7 +233,8 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 50px;
-      width: 100%;
+      width: 90%;
+      max-width: 1400px;
       z-index: 1;
     }
 
@@ -239,7 +248,7 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      font-size: 24px;
+      font-size: 1.3vw;
     }
 
     .cta-step .num {
@@ -261,7 +270,7 @@
       background: #1a1a2e;
       padding: 6px 14px;
       border-radius: 6px;
-      font-size: 20px;
+      font-size: 1.1vw;
       color: #6db33f;
     }
 
@@ -279,22 +288,43 @@
     .github-cta .star { font-size: 40px; }
 
     .github-cta .text {
-      font-size: 22px;
+      font-size: 1.3vw;
       font-weight: 500;
     }
 
     .github-cta .repo {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 18px;
+      font-size: 1vw;
       color: #6888b0;
       margin-top: 4px;
     }
 
     /* Logo */
     .logo {
-      font-size: 100px;
+      font-size: 6vw;
       margin-bottom: 20px;
       z-index: 1;
+    }
+
+    /* Slide counter */
+    .slide-counter {
+      position: fixed;
+      bottom: 20px;
+      right: 30px;
+      font-size: 16px;
+      color: #4a4a60;
+      font-family: 'JetBrains Mono', monospace;
+      z-index: 100;
+    }
+
+    /* Fade transition */
+    .slide {
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
@@ -360,26 +390,26 @@
           <div class="step-number">2</div>
           <div class="step-content">
             <h3>Register via spring.factories</h3>
-            <p>Add the listener + initializer to<br><span style="font-family: 'JetBrains Mono'; font-size: 16px; color: #6db33f;">src/test/resources/META-INF/spring.factories</span></p>
+            <p>Add the listener + initializer to<br><span style="font-family: 'JetBrains Mono'; font-size: 0.9vw; color: #6db33f;">src/test/resources/META-INF/spring.factories</span></p>
           </div>
         </div>
         <div class="step">
           <div class="step-number">3</div>
           <div class="step-content">
             <h3>Run your tests</h3>
-            <p><span style="font-family: 'JetBrains Mono'; color: #f0c040;">mvn test</span> or <span style="font-family: 'JetBrains Mono'; color: #f0c040;">gradle test</span> &mdash; report appears at<br><span style="font-family: 'JetBrains Mono'; font-size: 16px; color: #6db33f;">target/spring-test-profiler/latest.html</span></p>
+            <p><span style="font-family: 'JetBrains Mono'; color: #f0c040;">mvn test</span> or <span style="font-family: 'JetBrains Mono'; color: #f0c040;">gradle test</span> &mdash; report appears at<br><span style="font-family: 'JetBrains Mono'; font-size: 0.9vw; color: #6db33f;">target/spring-test-profiler/latest.html</span></p>
           </div>
         </div>
       </div>
       <div class="solution-right" style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="code-block" style="font-size: 16px;"><span class="comment">&lt;!-- pom.xml --&gt;</span>
+        <div class="code-block"><span class="comment">&lt;!-- pom.xml --&gt;</span>
 <span class="tag">&lt;dependency&gt;</span>
   <span class="tag">&lt;groupId&gt;</span><span class="val">digital.pragmatech.testing</span><span class="tag">&lt;/groupId&gt;</span>
   <span class="tag">&lt;artifactId&gt;</span><span class="val">spring-test-profiler</span><span class="tag">&lt;/artifactId&gt;</span>
   <span class="tag">&lt;version&gt;</span><span class="val">0.0.17</span><span class="tag">&lt;/version&gt;</span>
   <span class="tag">&lt;scope&gt;</span><span class="attr">test</span><span class="tag">&lt;/scope&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span></div>
-        <div class="code-block" style="font-size: 15px; line-height: 1.5;"><span class="comment"># src/test/resources/META-INF/spring.factories</span>
+        <div class="code-block" style="line-height: 1.5;"><span class="comment"># src/test/resources/META-INF/spring.factories</span>
 
 <span class="attr">org.springframework.test.context.TestExecutionListener</span>=\
 <span class="val">digital.pragmatech.testing.SpringTestProfilerListener</span>
@@ -408,10 +438,14 @@
         </div>
         <div class="cta-step">
           <span class="num">2</span>
-          <span>Run <span class="cta-code">mvn test</span> or <span class="cta-code">gradle test</span></span>
+          <span>Register in <span class="cta-code">META-INF/spring.factories</span></span>
         </div>
         <div class="cta-step">
           <span class="num">3</span>
+          <span>Run <span class="cta-code">mvn test</span> or <span class="cta-code">gradle test</span></span>
+        </div>
+        <div class="cta-step">
+          <span class="num">4</span>
           <span>Open <span class="cta-code">target/spring-test-profiler/latest.html</span></span>
         </div>
         <div class="cta-step" style="margin-top: 16px;">
@@ -427,12 +461,51 @@
             <div class="repo">github.com/PragmaTech-GmbH/spring-test-profiler</div>
           </div>
         </div>
-        <p style="text-align: center; color: #6888b0; font-size: 20px; margin-top: 24px;">
+        <p style="text-align: center; color: #6888b0; font-size: 1.1vw; margin-top: 24px;">
           Open Source &middot; MIT License &middot; Spring Boot 2.x - 4.x
         </p>
       </div>
     </div>
   </div>
+
+  <!-- Slide counter -->
+  <div class="slide-counter" id="counter">1 / 5</div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('counter');
+    let current = 0;
+
+    function showSlide(index) {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[index].classList.add('active');
+      counter.textContent = (index + 1) + ' / ' + slides.length;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault();
+        if (current < slides.length - 1) {
+          current++;
+          showSlide(current);
+        }
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (current > 0) {
+          current--;
+          showSlide(current);
+        }
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        current = 0;
+        showSlide(current);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        current = slides.length - 1;
+        showSlide(current);
+      }
+    });
+  </script>
 
 </body>
 </html>
