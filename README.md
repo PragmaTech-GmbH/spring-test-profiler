@@ -34,7 +34,11 @@ This profiler helps you:
 
 [![Build & Test Maven Project (main)](https://github.com/PragmaTech-GmbH/spring-test-profiler/workflows/CI/badge.svg)](https://github.com/PragmaTech-GmbH/spring-test-profiler/actions/workflows/ci.yml?query=branch%3Amain)
 
-This profiler works with Java 17+ and is compatible with Spring Framework 6 and 7 (aka. Spring Boot 3 and 4).
+This profiler works with Java 17+ and is compatible with:
+
+- Spring Framework 5 (Spring Boot 2)
+- Spring Framework 6 (Spring Boot 3)
+- Spring Framework 7 (Spring Boot 4)
 
 ## Prototype Phase
 

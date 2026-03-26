@@ -1,5 +1,6 @@
 package digital.pragmatech.testing;
 
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.lang.NonNull;
-import org.springframework.test.context.BootstrapUtils;
 import org.springframework.test.context.MergedContextConfiguration;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestContextBootstrapper;
@@ -77,7 +77,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     contextLoadStartTimes.put(testContext, Instant.now());
 
     // Extract and track context configuration
-    TestContextBootstrapper bootstrapper = BootstrapUtils.resolveTestContextBootstrapper(testClass);
+    TestContextBootstrapper bootstrapper = resolveBootstrapper(testClass);
     MergedContextConfiguration mergedConfig = bootstrapper.buildMergedContextConfiguration();
 
     // The cache key is the hashCode of the MergedContextConfiguration
@@ -102,8 +102,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     if (className != null) {
       try {
         Class<?> testClass = testContext.getTestClass();
-        TestContextBootstrapper bootstrapper =
-            BootstrapUtils.resolveTestContextBootstrapper(testClass);
+        TestContextBootstrapper bootstrapper = resolveBootstrapper(testClass);
         MergedContextConfiguration mergedConfig = bootstrapper.buildMergedContextConfiguration();
         int cacheKey = mergedConfig.hashCode();
 
@@ -241,6 +240,44 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
   }
 
   /**
+   * Resolves a TestContextBootstrapper for the given test class using reflection to access
+   * BootstrapUtils. This is necessary because BootstrapUtils is package-private in Spring 5.x and
+   * the public convenience method was only added in Spring 6.
+   */
+  private static TestContextBootstrapper resolveBootstrapper(Class<?> testClass) {
+    try {
+      Class<?> bootstrapUtilsClass =
+          Class.forName("org.springframework.test.context.BootstrapUtils");
+
+      // Spring 6+: public static resolveTestContextBootstrapper(Class<?>)
+      try {
+        Method resolveMethod =
+            bootstrapUtilsClass.getMethod("resolveTestContextBootstrapper", Class.class);
+        return (TestContextBootstrapper) resolveMethod.invoke(null, testClass);
+      } catch (NoSuchMethodException e) {
+        // Fall through to Spring 5 path
+      }
+
+      // Spring 5: package-private createBootstrapContext + resolveTestContextBootstrapper
+      Method createCtx =
+          bootstrapUtilsClass.getDeclaredMethod("createBootstrapContext", Class.class);
+      createCtx.setAccessible(true);
+      Object bootstrapContext = createCtx.invoke(null, testClass);
+
+      Class<?> bootstrapContextClass =
+          Class.forName("org.springframework.test.context.BootstrapContext");
+      Method resolveMethod =
+          bootstrapUtilsClass.getDeclaredMethod(
+              "resolveTestContextBootstrapper", bootstrapContextClass);
+      resolveMethod.setAccessible(true);
+      return (TestContextBootstrapper) resolveMethod.invoke(null, bootstrapContext);
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException(
+          "Failed to resolve TestContextBootstrapper for " + testClass.getName(), e);
+    }
+  }
+
+  /**
    * Registers a shutdown hook to ensure report generation when JVM exits. This is called once when
    * the first test class is processed.
    */
@@ -250,7 +287,17 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         if (!shutdownHookRegistered) {
           Runtime.getRuntime()
               .addShutdownHook(
-                  new Thread(() -> generateReport(), "SpringTestProfilerReportGenerator"));
+                  new Thread(
+                      () -> {
+                        try {
+                          generateReport();
+                        } catch (Exception e) {
+                          System.err.println(
+                              "Spring Test Profiler: Failed to generate report: " + e.getMessage());
+                          e.printStackTrace(System.err);
+                        }
+                      },
+                      "SpringTestProfilerReportGenerator"));
           shutdownHookRegistered = true;
           logger.debug("Registered shutdown hook for Spring Test Profiler report generation");
         }

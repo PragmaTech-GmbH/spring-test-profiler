@@ -83,7 +83,7 @@ public class TestExecutionReporter {
         Files.write(latestLink, htmlContent.getBytes());
       }
 
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.error("Failed to generate Spring Test Profiler report", e);
     }
   }
@@ -206,7 +206,7 @@ public class TestExecutionReporter {
       logger.info("Successfully generated HTML with Thymeleaf templates");
       return result;
     } catch (Exception e) {
-      logger.error("Failed to generate HTML with Thymeleaf ", e);
+      logger.error("Failed to generate HTML with Thymeleaf: {}", e.getMessage(), e);
       throw new RuntimeException("Report generation failed", e);
     }
   }
