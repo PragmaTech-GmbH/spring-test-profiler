@@ -230,6 +230,54 @@ h2 {
 .summary-card.disabled .value { color: #95a5a6; }
 .summary-card.aborted .value { color: #f39c12; }
 
+/* Info icon tooltip */
+.info-icon {
+    position: relative;
+    cursor: help;
+    font-size: 14px;
+    color: #bdc3c7;
+    margin-left: 4px;
+    vertical-align: middle;
+    transition: color 0.2s ease;
+}
+
+.info-icon:hover {
+    color: #3498db;
+}
+
+.info-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2c3e50;
+    color: #fff;
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 1.4;
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: normal;
+    width: 240px;
+    text-align: left;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+.info-icon:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #2c3e50;
+    z-index: 100;
+    pointer-events: none;
+}
+
 /* Help card styles */
 .summary-card.help-card {
     background: linear-gradient(135deg, #3498db, #2980b9);

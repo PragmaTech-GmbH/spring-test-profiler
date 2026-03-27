@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="summary-section(executionTracker, cacheStats, contextCacheTracker)" th:with="
+    <div th:fragment="summary-section(executionTracker, cacheStats, contextCacheTracker, optimizationStats)" th:with="
         totalDurationMs=${executionTracker.getOverallDuration().toMillis()},
         cacheSize=${cacheStats != null ? cacheStats.size() : 0},
         cacheHits=${contextCacheTracker != null ? contextCacheTracker.getCacheHits() : 0},
@@ -23,28 +23,36 @@
         </div>
         <div class="summary-grid">
             <div class="summary-card">
-                <h3>Cache Size</h3>
+                <h3>Cache Size <span class="info-icon" data-tooltip="Number of Spring ApplicationContexts currently held in the test context cache.">&#9432;</span></h3>
                 <div class="value" th:text="${cacheSize}">0</div>
             </div>
             <div class="summary-card">
-                <h3>Cache Hits</h3>
+                <h3>Cache Hits <span class="info-icon" data-tooltip="Number of times a test reused an existing cached context instead of creating a new one.">&#9432;</span></h3>
                 <div class="value" th:text="${cacheHits}">0</div>
             </div>
             <div class="summary-card">
-                <h3>Cache Misses</h3>
+                <h3>Cache Misses <span class="info-icon" data-tooltip="Number of times a new context had to be created because no matching cached context was found.">&#9432;</span></h3>
                 <div class="value" th:text="${cacheMisses}">0</div>
             </div>
             <div class="summary-card">
-                <h3>Cache Hit Rate</h3>
+                <h3>Cache Hit Rate <span class="info-icon" data-tooltip="Percentage of cache hits vs total cache accesses. Higher is better — 100% means every test reused an existing context.">&#9432;</span></h3>
                 <div class="value" style="font-size: 24px;" th:text="${#numbers.formatDecimal(cacheHitRate, 1, 1) + '%'}">0%</div>
             </div>
             <div class="summary-card">
-                <h3>Total Runtime</h3>
+                <h3>Total Runtime <span class="info-icon" data-tooltip="Wall-clock time from the first test starting to the last test finishing. Includes context creation, test execution, setup/teardown, and everything in between.">&#9432;</span></h3>
                 <div class="value" style="font-size: 24px;" th:text="${durationFormatter.format(totalDurationMs)}">0ms</div>
             </div>
-            <div th:if="${availableProcessors != null and availableProcessors > 0}" class="summary-card">
-                <h3>Available Processors</h3>
-                <div class="value" th:text="${availableProcessors}">0</div>
+            <div class="summary-card">
+                <h3>Test Classes <span class="info-icon" data-tooltip="Total number of test classes executed in this test run.">&#9432;</span></h3>
+                <div class="value" th:text="${executionTracker.getTotalTestClasses()}">0</div>
+            </div>
+            <div th:if="${optimizationStats != null}" class="summary-card">
+                <h3>Potential Time Savings <span class="info-icon" data-tooltip="Estimated time you could save by harmonizing similar Spring contexts. If two test classes use nearly identical configurations, merging them into one shared context eliminates the duplicate startup cost.">&#9432;</span></h3>
+                <div class="value" style="font-size: 24px;" th:text="${durationFormatter.format(optimizationStats.getPotentialTimeSavingsMs())}">0ms</div>
+            </div>
+            <div th:if="${optimizationStats != null}" class="summary-card">
+                <h3>Context Load Time <span class="info-icon" data-tooltip="Cumulative time spent creating all Spring ApplicationContexts. Compare this to Total Runtime to see how much of your build time goes to context startup vs actual test execution.">&#9432;</span></h3>
+                <div class="value" style="font-size: 24px;" th:text="${durationFormatter.format(optimizationStats.getTotalContextCreationTimeMs())}">0ms</div>
             </div>
             <div class="summary-card help-card">
                 <h3>Need Help?</h3>

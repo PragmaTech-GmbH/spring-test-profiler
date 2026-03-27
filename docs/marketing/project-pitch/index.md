@@ -11,14 +11,14 @@ theme: pragmatech
 
 # Spring Test Profiler
 
-### Profile & Improve Your Spring Tests for Faster and More Confident Production Deployments
+### Unlock Spring's Most Unknown Testing Hidden Gem — Context Caching — and Achieve Faster Builds
 
 <!--
 PRESENTER NOTES:
 - Welcome viewers with energy
 - Introduce yourself briefly
-- Set the stage: "Today I'll show you a tool that can dramatically speed up your Spring tests"
-- Transition: "But first, let's talk about a problem every Spring developer faces..."
+- Set the stage: "Did you know Spring has a built-in context caching mechanism for tests? Most developers don't — and their builds pay the price."
+- Transition: "Let me show you how to unlock this hidden gem with the Spring Test Profiler"
 -->
 
 ---
@@ -28,21 +28,21 @@ PRESENTER NOTES:
 
 ![bg left:40%](assets/generated/stop-watch.jpg)
 
-# The Problem
+# The Problem: Slow Spring Test Suites
 
-## Spring developers waste hours every week waiting for slow test suites
+## Every unique context config = a new Spring context startup (2-10s each)
 
-- Context switching during long test runs
-- Delayed feedback on code changes
-- Slower CI/CD pipelines affecting deployments
-- Reduced confidence in making frequent commits
+- Expensive Context Startup — each unique configuration triggers a full Spring context creation
+- Hidden Duplicates — tiny config drifts silently create separate contexts that could be shared
+- @DirtiesContext Overuse — destroys the cached context, forcing expensive recreation every time
+- No Visibility — Spring's context cache is a black box with no built-in observability
 
 <!--
 PRESENTER NOTES (45 seconds):
-- Show split screen concept: frustrated developer vs happy developer
 - Emphasize the pain: "Imagine waiting 5 minutes for tests that could run in 30 seconds"
-- Real impact: "This isn't just about time - it's about your productivity and confidence"
-- Hook: "What if I told you there's a hidden optimization in Spring that most developers don't know about?"
+- "Tiny differences between test classes — an extra profile, a different property — silently create duplicate contexts"
+- "Add @DirtiesContext and you're destroying and recreating contexts for every single test method"
+- "The worst part? There's no built-in way to see what's happening inside Spring's context cache"
 -->
 
 ---
@@ -55,8 +55,8 @@ PRESENTER NOTES (45 seconds):
 
 Your tests are like web pages, contexts are like cached resources
 
-**✅ 3 test classes sharing 1 context = Fast**
-**❌ 3 test classes creating 3 contexts = Slow**
+**3 test classes sharing 1 context = Fast**
+**3 test classes creating 3 contexts = Slow**
 
 Cache keys affected by: `@TestPropertySource`, `@MockBean`, `@Profile`
 
@@ -111,77 +111,82 @@ PRESENTER NOTES (30 seconds):
 
 ## The missing observability layer for your Spring tests
 
-- **Zero Configuration** - Add dependency, run tests
-- **Beautiful Visualizations** - Timeline, statistics, insights
-- **Actionable Insights** - Specific optimization recommendations
-- **Universal Compatibility** - Any Spring Boot version
+- **Context Cache Visualization** - See exactly what's being reused or wasted
+- **Load Time Tracking** - Know how long each context takes to create
+- **Context Comparison** - Diff two contexts to find what's different
+- **Universal Compatibility** - Spring Boot 2.x through 4.x
 
 <!--
 PRESENTER NOTES (30 seconds):
 - Hero moment: "Meet Spring Test Profiler"
 - Emphasize key value props quickly
-- "In just one dependency, you get complete visibility into your test performance"
-- Transition: "Let me show you exactly how this works with a real project"
+- "Complete visibility into your test performance in one HTML report"
+- Transition: "Let me show you exactly how to set this up"
 -->
 
 ---
 
-# Live Demo: Setup
+# Setup in 3 Steps
 
 ![bg right:40%](assets/context-caching-bad.png)
 
-## Realistic Spring Boot App
-REST API with database, mix of test types
-
-## Before State: Slow Tests
-```bash
-mvn test
-# Tests run: 12, Time: 47.2s
-```
-
-## One-Line Integration
+## Step 1: Add the test dependency
 ```xml
 <dependency>
   <groupId>digital.pragmatech.testing</groupId>
   <artifactId>spring-test-profiler</artifactId>
-  <version>0.0.10</version>
+  <version>0.0.17</version>
   <scope>test</scope>
 </dependency>
 ```
 
+## Step 2: Register via spring.factories
+```properties
+# src/test/resources/META-INF/spring.factories
+org.springframework.test.context.TestExecutionListener=\
+digital.pragmatech.testing.SpringTestProfilerListener
+org.springframework.context.ApplicationContextInitializer=\
+digital.pragmatech.testing.diagnostic\
+.ContextDiagnosticApplicationInitializer
+```
+
+## Step 3: Run your tests
+```bash
+mvn test   # or: gradle test
+# Report: target/spring-test-profiler/latest.html
+```
+
 <!--
 PRESENTER NOTES (30 seconds):
-- Show realistic complexity: "This isn't a toy example"
-- Emphasize the "before" timing: "47 seconds for 12 tests"
-- Show how simple the integration is: "Just one dependency"
-- "No configuration files, no annotations, no setup code"
+- "Setting up the profiler takes three steps"
+- "First, add the test dependency to your pom.xml"
+- "Second, register the listener and initializer in a spring.factories file under your test resources"
+- "Third, just run your tests as you normally would — the report appears automatically"
 -->
 
 ---
 
-# The Magic: Report Generation
+# The Report
 
 ![bg right:45%](assets/context-caching-hints.png)
 
-## Automatic Activation
-```bash
-mvn test
-# Spring Test Profiler activated
-# Report generated: target/spring-test-profiler/latest.html
-```
-
 ## What You Get
-- Timeline visualization of test execution
-- Context cache statistics and hit/miss ratios
-- Memory usage patterns during test runs
-- Specific optimization recommendations
+- Summary dashboard with cache size, hits, misses, and hit rate
+- Context cache entries with load times and test class mapping
+- Context comparison visualizer to diff similar contexts
+- Sorting and filtering by annotation type
+
+## Report Location
+```
+target/spring-test-profiler/latest.html
+```
 
 <!--
 PRESENTER NOTES (30 seconds):
-- Show the profiler automatically activating
-- Point out the generated report location
-- Highlight key report features
-- "Everything you need to understand your test performance in one beautiful report"
+- "The report opens with a summary dashboard showing cache hits, misses, and your hit rate"
+- "Each cache entry shows load time, bean count, and which test classes use it"
+- "The context comparison visualizer shows exactly what's different between two similar contexts"
+- "Often it's just a single property or profile — easy to fix, big time savings"
 -->
 
 ---
@@ -204,7 +209,7 @@ static class TestConfig {
 }
 ```
 
-## Results: 47s → 12s (3x faster!)
+## Results: 47s to 12s (3x faster!)
 
 <!--
 PRESENTER NOTES (60 seconds):
@@ -219,43 +224,43 @@ PRESENTER NOTES (60 seconds):
 
 # Advanced Features
 
-- **🔄 Parallel Execution** - Full support for JUnit parallel tests
-- **📊 JSON Export** - CI/CD integration ready
-- **🔧 Build Tools** - Maven & Gradle support
-- **🌱 Compatibility** - Spring Boot 2.x - 3.x
+- Parallel Execution — full support for JUnit parallel and Maven Failsafe parallel tests
+- JSON Export — CI/CD integration ready (beta)
+- Build Tools — Maven and Gradle with automatic report placement
+- Compatibility — Spring Boot 2.x through 4.x
 
 <!--
 PRESENTER NOTES (30 seconds):
 - Quick run through advanced features
 - Mention CI/CD integration possibilities with JSON export
 - Emphasize broad compatibility
-- "Whether you're on older Spring Boot versions or the latest, this tool works"
+- "Whether you're on Spring Boot 2.7 or the latest 4.0, this tool works"
 -->
 
 ---
 
 ![bg right:30%](assets/generated/spring-test-profiler-logo-raw.png)
 
-# Get Started Today
+# Get Started in 30 Seconds
 
 ## GitHub Repository
-**github.com/rieckpil/spring-test-profiler**
+**github.com/PragmaTech-GmbH/spring-test-profiler**
 
 ## Easy Start
-1. Add one dependency
-2. Run your tests
-3. Get insights immediately
+1. Add the dependency to your `pom.xml`
+2. Register in `META-INF/spring.factories`
+3. Run `mvn test` or `gradle test`
+4. Open `target/spring-test-profiler/latest.html`
 
 ## Join the Community
-Developers already optimizing their test suites
+Open Source — MIT License — Spring Boot 2.x through 4.x
 
-**⭐ Star on GitHub**
+**Star us on GitHub**
 
 <!--
 PRESENTER NOTES (30 seconds):
 - Clear call to action with GitHub link
-- Reinforce how simple it is to get started
-- Community appeal: "Join other developers who are already getting value"
-- "Don't let slow tests slow you down - try Spring Test Profiler today"
-- End with energy and clear next steps
+- "Getting started takes thirty seconds"
+- "Add the dependency, register in spring.factories, run your tests, and open the report"
+- "If this is useful, give us a star on GitHub — link in the description"
 -->
