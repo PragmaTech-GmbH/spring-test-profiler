@@ -296,6 +296,13 @@ public class TemplateHelpers {
       return toJson(timelineData.events());
     }
 
+    public String ganttTimelineToJson(GanttTimelineData ganttData) {
+      if (ganttData == null) {
+        return "null";
+      }
+      return toJson(ganttData);
+    }
+
     public String contextStatisticsToJson(ContextCacheTracker contextCacheTracker) {
       if (contextCacheTracker == null) {
         return "[]";

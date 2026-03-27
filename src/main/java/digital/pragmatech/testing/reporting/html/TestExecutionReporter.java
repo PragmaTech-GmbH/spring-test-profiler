@@ -13,6 +13,8 @@ import digital.pragmatech.testing.OptimizationStatistics;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TimelineData;
+import digital.pragmatech.testing.reporting.GanttTimelineData;
+import digital.pragmatech.testing.reporting.GanttTimelineDataGenerator;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
 import digital.pragmatech.testing.reporting.json.JsonReportGenerator;
 import digital.pragmatech.testing.util.BuildToolDetection;
@@ -186,6 +188,12 @@ public class TestExecutionReporter {
         // Add timeline data for visualization
         TimelineData timelineData = contextCacheTracker.getTimelineData();
         context.setVariable("timelineData", timelineData);
+
+        // Generate Gantt timeline data for visualization
+        GanttTimelineDataGenerator ganttGenerator = new GanttTimelineDataGenerator();
+        GanttTimelineData ganttTimelineData =
+            ganttGenerator.generate(contextCacheTracker, executionTracker);
+        context.setVariable("ganttTimelineData", ganttTimelineData);
       }
 
       // Static assets are now copied in generateReport method
@@ -194,12 +202,18 @@ public class TestExecutionReporter {
       registerHelperBeans(context, contextCacheTracker);
 
       // Add context statistics JSON for JavaScript consumption
+      TemplateHelpers.JsonHelper jsonHelper = new TemplateHelpers.JsonHelper();
       if (contextCacheTracker != null) {
-        TemplateHelpers.JsonHelper jsonHelper = new TemplateHelpers.JsonHelper();
         String contextStatisticsJson = jsonHelper.contextStatisticsToJson(contextCacheTracker);
         context.setVariable("contextStatisticsJson", contextStatisticsJson);
+
+        // Add Gantt timeline JSON for JavaScript visualization
+        GanttTimelineData ganttData = (GanttTimelineData) context.getVariable("ganttTimelineData");
+        String ganttTimelineJson = jsonHelper.ganttTimelineToJson(ganttData);
+        context.setVariable("ganttTimelineJson", ganttTimelineJson);
       } else {
         context.setVariable("contextStatisticsJson", "[]");
+        context.setVariable("ganttTimelineJson", "null");
       }
 
       String result = templateEngine.process("report", context);

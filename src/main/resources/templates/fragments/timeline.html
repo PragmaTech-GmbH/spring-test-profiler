@@ -1,67 +1,83 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <div th:fragment="timeline-section(timelineData, jsonHelper)" class="timeline-section">
-        <h2>📊 Context Lifecycle Timeline</h2>
+    <div th:fragment="timeline-section(ganttTimelineData, ganttTimelineJson)" class="timeline-section">
+        <h2>Context Lifecycle Timeline</h2>
 
-        <div th:if="${timelineData != null and timelineData.events.size() > 0}" class="timeline-content">
+        <div th:if="${ganttTimelineData != null and ganttTimelineData.contextLanes.size() > 0}" class="timeline-content">
             <!-- Timeline Summary -->
             <div class="timeline-summary">
                 <div class="timeline-metric">
                     <span class="label">Total Timeline Duration:</span>
-                    <span class="value" th:text="${timelineData.totalDurationSeconds + 's'}">0s</span>
+                    <span class="value" th:text="${#numbers.formatDecimal(ganttTimelineData.totalDurationMs / 1000.0, 1, 2) + 's'}">0s</span>
                 </div>
                 <div class="timeline-metric">
-                    <span class="label">Context Creation Events:</span>
-                    <span class="value" th:text="${timelineData.events.size()}">0</span>
+                    <span class="label">Contexts:</span>
+                    <span class="value" th:text="${ganttTimelineData.contextLanes.size()}">0</span>
+                </div>
+                <div class="timeline-metric">
+                    <span class="label">Total Tests:</span>
+                    <span class="value" th:text="${ganttTimelineData.totalTestMethods()}">0</span>
                 </div>
             </div>
 
             <!-- Timeline Legend -->
-<!--            <div class="timeline-legend">-->
-<!--                <div class="legend-item">-->
-<!--                    <div class="legend-color creation"></div>-->
-<!--                    <span>Context Creation</span>-->
-<!--                </div>-->
-<!--                <div class="legend-item">-->
-<!--                    <div class="legend-color active"></div>-->
-<!--                    <span>Active Usage</span>-->
-<!--                </div>-->
-<!--                <div class="legend-item">-->
-<!--                    <div class="legend-color cached"></div>-->
-<!--                    <span>Cached Retention</span>-->
-<!--                </div>-->
-<!--            </div>-->
-
-            <!-- Timeline Chart Container -->
-            <div class="timeline-chart-container">
-                <canvas id="contextTimelineChart" width="400" height="200"></canvas>
+            <div class="timeline-legend">
+                <div class="legend-item">
+                    <div class="legend-color context-loading"></div>
+                    <span>Context Loading</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color test-passed"></div>
+                    <span>Test Passed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color test-failed"></div>
+                    <span>Test Failed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color test-aborted"></div>
+                    <span>Test Aborted</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color test-disabled"></div>
+                    <span>Test Disabled</span>
+                </div>
             </div>
+
+            <!-- Gantt Chart Container -->
+            <div id="gantt-timeline-container" class="gantt-container">
+                <!-- D3.js will render SVG here -->
+            </div>
+
+            <!-- Tooltip (hidden by default) -->
+            <div id="timeline-tooltip" class="timeline-tooltip"></div>
 
             <!-- Timeline Details Table -->
             <div class="timeline-details">
-                <h3>Timeline Details</h3>
+                <h3>Context Details</h3>
                 <table class="timeline-table">
                     <thead>
                         <tr>
                             <th>Context</th>
-                            <th>Phase</th>
-                            <th>Start Time</th>
-                            <th>Duration</th>
-                            <th>Details</th>
+                            <th>Load Start</th>
+                            <th>Load Duration</th>
+                            <th>Beans</th>
+                            <th>Test Classes</th>
+                            <th>Test Methods</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="entry : ${timelineData.entries}">
-                            <td th:text="${entry.contextLabel}" class="context-name">Context</td>
-                            <td>
-                                <span class="phase-badge"
-                                      th:class="${'phase-badge phase-' + entry.phase.toLowerCase()}"
-                                      th:text="${entry.phase}">Phase</span>
+                        <tr th:each="lane : ${ganttTimelineData.contextLanes}">
+                            <td class="context-name">
+                                <span class="context-color-indicator" th:style="'background-color:' + ${lane.color}"></span>
+                                <span th:text="${lane.contextLabel}">Context</span>
                             </td>
-                            <td th:text="${entry.startMs + 'ms'}" class="time-value">0ms</td>
-                            <td th:text="${entry.durationMs + 'ms'}" class="duration-value">0ms</td>
-                            <td th:text="${entry.tooltip}" class="details">Details</td>
+                            <td th:text="${lane.loadStartMs + 'ms'}" class="time-value">0ms</td>
+                            <td th:text="${lane.loadDurationMs + 'ms'}" class="duration-value">0ms</td>
+                            <td th:text="${lane.beanCount}" class="count-value">0</td>
+                            <td th:text="${lane.testClassCount}" class="count-value">0</td>
+                            <td th:text="${lane.testMethodCount}" class="count-value">0</td>
                         </tr>
                     </tbody>
                 </table>
@@ -69,129 +85,31 @@
 
             <!-- Insights -->
             <div class="timeline-insights">
-                <h3>🔍 Timeline Insights</h3>
+                <h3>Timeline Insights</h3>
                 <div class="insights-grid">
                     <div class="insight-card">
                         <h4>Context Overlap</h4>
                         <p>Multiple contexts active simultaneously may indicate opportunities for consolidation.</p>
                     </div>
                     <div class="insight-card">
-                        <h4>Cache Retention</h4>
-                        <p>Contexts retained long after last use consume memory without benefit.</p>
+                        <h4>Test Distribution</h4>
+                        <p>Tests clustered on a single context show good cache utilization.</p>
                     </div>
                     <div class="insight-card">
-                        <h4>Creation Timing</h4>
-                        <p>Context creation spikes show when tests require new configurations.</p>
+                        <h4>Load Times</h4>
+                        <p>Long context bars indicate slow-loading contexts that may benefit from optimization.</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- No timeline data available -->
-        <div th:if="${timelineData == null or timelineData.events.size() == 0}" class="no-timeline-data">
+        <div th:if="${ganttTimelineData == null or ganttTimelineData.contextLanes.size() == 0}" class="no-timeline-data">
             <p>No context lifecycle data available for timeline visualization.</p>
         </div>
 
-        <!-- Chart.js Integration Script -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-        <script th:if="${timelineData != null and timelineData.events.size() > 0}">
-            document.addEventListener('DOMContentLoaded', function() {
-                const ctx = document.getElementById('contextTimelineChart');
-                if (ctx) {
-                    // Get timeline events data
-                    const events = [(${jsonHelper.timelineEventsToJson(timelineData)})];
-                    const totalDurationSeconds = [(${timelineData.totalDurationSeconds})];
-
-                    // Prepare data for scatter plot timeline visualization
-                    const datasets = events.map((event, index) => ({
-                        label: event.contextName,
-                        data: [{
-                            x: event.creationTimeSeconds,
-                            y: index + 1,
-                            loadTime: event.loadTimeMs,
-                            testClasses: event.testClassCount,
-                            cacheHits: event.cacheHitCount,
-                            beans: event.beanCount
-                        }],
-                        backgroundColor: event.color,
-                        borderColor: event.color,
-                        pointRadius: 8,
-                        pointHoverRadius: 12
-                    }));
-
-                    new Chart(ctx.getContext('2d'), {
-                        type: 'scatter',
-                        data: {
-                            datasets: datasets
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                x: {
-                                    type: 'linear',
-                                    position: 'bottom',
-                                    title: {
-                                        display: true,
-                                        text: 'Time (seconds)'
-                                    },
-                                    min: 0,
-                                    max: Math.max(totalDurationSeconds, 10)
-                                },
-                                y: {
-                                    type: 'linear',
-                                    title: {
-                                        display: true,
-                                        text: 'Context Creation Order'
-                                    },
-                                    min: 0,
-                                    max: events.length + 1,
-                                    ticks: {
-                                        stepSize: 1,
-                                        callback: function(value) {
-                                            if (value === 0 || value > events.length) return '';
-                                            return 'Context ' + value;
-                                        }
-                                    }
-                                }
-                            },
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Spring Context Creation Timeline'
-                                },
-                                legend: {
-                                    display: true,
-                                    position: 'bottom'
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        title: function(context) {
-                                            const point = context[0];
-                                            return point.dataset.label;
-                                        },
-                                        label: function(context) {
-                                            const data = context.raw;
-                                            return [
-                                                `Created at: ${data.x}s`,
-                                                `Load time: ${data.loadTime}ms`,
-                                                `Test classes: ${data.testClasses}`,
-                                                `Cache hits: ${data.cacheHits}`,
-                                                `Beans: ${data.beans}`
-                                            ];
-                                        }
-                                    }
-                                }
-                            },
-                            interaction: {
-                                intersect: false,
-                                mode: 'point'
-                            }
-                        }
-                    });
-                }
-            });
-        </script>
+        <!-- Gantt Timeline Data for JavaScript -->
+        <script type="application/json" id="gantt-timeline-json" th:utext="${ganttTimelineJson}">null</script>
     </div>
 </body>
 </html>

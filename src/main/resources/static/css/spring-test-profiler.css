@@ -1515,6 +1515,124 @@ h2 {
     }
 }
 
+/* Gantt Timeline Styles */
+.gantt-container {
+    position: relative;
+    width: 100%;
+    min-height: 200px;
+    background: white;
+    border: 1px solid #ecf0f1;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.gantt-container svg {
+    display: block;
+}
+
+.lane-bg {
+    transition: fill 0.2s ease;
+}
+
+.context-bar {
+    cursor: pointer;
+    transition: opacity 0.2s ease, stroke 0.1s ease;
+}
+
+.context-bar:hover {
+    filter: brightness(1.1);
+}
+
+.test-marker {
+    cursor: pointer;
+    transition: stroke-width 0.1s ease;
+}
+
+.test-marker:hover {
+    filter: brightness(1.1);
+}
+
+/* Timeline Tooltip */
+.timeline-tooltip {
+    position: fixed;
+    display: none;
+    background: rgba(44, 62, 80, 0.95);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 320px;
+    z-index: 10000;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.timeline-tooltip .tooltip-label {
+    color: #bdc3c7;
+    font-weight: 500;
+}
+
+/* Timeline Legend Colors */
+.legend-color.context-loading {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.legend-color.test-passed {
+    background-color: #27ae60;
+}
+
+.legend-color.test-failed {
+    background-color: #e74c3c;
+}
+
+.legend-color.test-aborted {
+    background-color: #f39c12;
+}
+
+.legend-color.test-disabled {
+    background-color: #95a5a6;
+}
+
+/* Context Color Indicator */
+.context-color-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Gantt Axis Styling */
+.x-axis path,
+.y-axis path,
+.x-axis line,
+.y-axis line {
+    stroke: #bdc3c7;
+}
+
+.x-axis text,
+.y-axis text {
+    fill: #2c3e50;
+    font-size: 12px;
+}
+
+.axis-label {
+    fill: #7f8c8d;
+    font-size: 12px;
+}
+
+/* Responsive Gantt adjustments */
+@media (max-width: 768px) {
+    .gantt-container {
+        padding: 10px;
+        min-height: 150px;
+    }
+}
+
 /* Context Comparison Visualizer Styles */
 .context-comparison-controls {
     display: flex;
