@@ -77,7 +77,7 @@ Add the dependency to your project:
 Add the dependency to your project:
 
 ```groovy
-testImplementation('digital.pragmatech.testing:spring-test-profiler:0.1.0')
+testRuntimeOnly("digital.pragmatech.testing:spring-test-profiler:0.1.0")
 ```
 
 
