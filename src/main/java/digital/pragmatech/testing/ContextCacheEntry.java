@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import digital.pragmatech.testing.plugins.ContextCustomizerFormatter;
+import digital.pragmatech.testing.extensions.ContextCustomizerFormatter;
 import org.springframework.test.context.MergedContextConfiguration;
 
 /** Entry representing a cached context configuration. */
@@ -244,9 +244,7 @@ public class ContextCacheEntry {
       summary.put(
           "contextCustomizers",
           String.join(
-              "\n",
-              ContextCustomizerFormatter.getDefault()
-                  .formatAll(configuration.getContextCustomizers())));
+              "\n", ContextCustomizerFormatter.formatAll(configuration.getContextCustomizers())));
       summary.put("locations", String.join(",", configuration.getLocations()));
 
       summary.put(

@@ -1,4 +1,4 @@
-package digital.pragmatech.testing.plugins;
+package digital.pragmatech.testing.extensions;
 
 import java.util.Objects;
 
@@ -7,20 +7,20 @@ import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.MergedContextConfiguration;
 
 final class SyntheticContextCustomizer implements ContextCustomizer {
-  private final String name;
-  private final String baseUrlProperty;
+  private final String identifier;
+  private final String configurationProperty;
 
-  SyntheticContextCustomizer(String name, String baseUrlProperty) {
-    this.name = name;
-    this.baseUrlProperty = baseUrlProperty;
+  SyntheticContextCustomizer(String identifier, String configurationProperty) {
+    this.identifier = identifier;
+    this.configurationProperty = configurationProperty;
   }
 
-  String name() {
-    return name;
+  String identifier() {
+    return identifier;
   }
 
-  String baseUrlProperty() {
-    return baseUrlProperty;
+  String configurationProperty() {
+    return configurationProperty;
   }
 
   @Override
@@ -35,11 +35,12 @@ final class SyntheticContextCustomizer implements ContextCustomizer {
     if (!(other instanceof SyntheticContextCustomizer that)) {
       return false;
     }
-    return Objects.equals(name, that.name) && Objects.equals(baseUrlProperty, that.baseUrlProperty);
+    return Objects.equals(identifier, that.identifier)
+        && Objects.equals(configurationProperty, that.configurationProperty);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, baseUrlProperty);
+    return Objects.hash(identifier, configurationProperty);
   }
 }

@@ -1,6 +1,6 @@
-package digital.pragmatech.testing.plugins;
+package digital.pragmatech.testing.extensions;
 
-public final class SyntheticContextCustomizerPlugin implements ContextCustomizerPlugin {
+public final class SyntheticContextCustomizerExtension implements ContextCustomizerExtension {
 
   @Override
   public boolean supports(Object contextCustomizer) {
@@ -10,10 +10,10 @@ public final class SyntheticContextCustomizerPlugin implements ContextCustomizer
   @Override
   public String describe(Object contextCustomizer) {
     SyntheticContextCustomizer customizer = (SyntheticContextCustomizer) contextCustomizer;
-    return "SyntheticContextCustomizer[name="
-        + customizer.name()
-        + ", baseUrlProperty="
-        + customizer.baseUrlProperty()
+    return "SyntheticContextCustomizer[identifier="
+        + customizer.identifier()
+        + ", configurationProperty="
+        + customizer.configurationProperty()
         + "]";
   }
 }

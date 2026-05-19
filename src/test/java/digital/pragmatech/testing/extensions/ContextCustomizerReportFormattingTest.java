@@ -1,4 +1,4 @@
-package digital.pragmatech.testing.plugins;
+package digital.pragmatech.testing.extensions;
 
 import java.util.List;
 import java.util.Set;
@@ -6,6 +6,7 @@ import java.util.Set;
 import digital.pragmatech.testing.ContextCacheEntry;
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextLoader;
@@ -15,45 +16,56 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ContextCustomizerReportFormattingTest {
 
+  @AfterEach
+  void clearExtensionRegistry() {
+    ContextCustomizerExtensionRegistry.clear();
+  }
+
   @Test
-  void shouldUsePluginDescriptionInConfigurationSummary() {
+  void shouldUseExtensionDescriptionInConfigurationSummary() {
+    ContextCustomizerExtensionRegistry.registerAll(
+        List.of(new SyntheticContextCustomizerExtension()));
     MergedContextConfiguration config =
-        createConfig(new SyntheticContextCustomizer("amazonS3Client", "amazons3.url"));
+        createConfig(new SyntheticContextCustomizer("dependencyOne", "dependency.one.property"));
 
     ContextCacheEntry entry = new ContextCacheEntry(config);
 
     assertThat(entry.getConfigurationSummary())
         .containsEntry(
             "contextCustomizers",
-            "SyntheticContextCustomizer[name=amazonS3Client, baseUrlProperty=amazons3.url]");
+            "SyntheticContextCustomizer[identifier=dependencyOne, configurationProperty=dependency.one.property]");
   }
 
   @Test
-  void shouldUsePluginDescriptionInContextComparisonJson() {
+  void shouldUseExtensionDescriptionInContextComparisonJson() {
+    ContextCustomizerExtensionRegistry.registerAll(
+        List.of(new SyntheticContextCustomizerExtension()));
     MergedContextConfiguration config =
-        createConfig(new SyntheticContextCustomizer("seaweedFsClient", "seaweedfs.url"));
+        createConfig(new SyntheticContextCustomizer("dependencyTwo", "dependency.two.property"));
     ContextCacheTracker tracker = new ContextCacheTracker();
-    tracker.recordTestClassForContext(config, "com.example.SeaweedFsClientIT");
+    tracker.recordTestClassForContext(config, "com.example.SecondContextTest");
     tracker.recordContextCreation(config, 100);
 
     String json = new TemplateHelpers.JsonHelper().contextStatisticsToJson(tracker);
 
     assertThat(json)
         .contains(
-            "SyntheticContextCustomizer[name=seaweedFsClient, baseUrlProperty=seaweedfs.url]");
+            "SyntheticContextCustomizer[identifier=dependencyTwo, configurationProperty=dependency.two.property]");
   }
 
   @Test
   void shouldReportDifferentValuesForSameCustomizerClassWithDifferentConfiguration() {
-    ContextCustomizerFormatter formatter =
-        new ContextCustomizerFormatter(List.of(new SyntheticContextCustomizerPlugin()));
+    List<ContextCustomizerExtension> extensions =
+        List.of(new SyntheticContextCustomizerExtension());
 
-    String amazonDescription =
-        formatter.format(new SyntheticContextCustomizer("amazonS3Client", "amazons3.url"));
-    String seaweedDescription =
-        formatter.format(new SyntheticContextCustomizer("seaweedFsClient", "seaweedfs.url"));
+    String firstDescription =
+        ContextCustomizerFormatter.format(
+            new SyntheticContextCustomizer("dependencyOne", "dependency.one.property"), extensions);
+    String secondDescription =
+        ContextCustomizerFormatter.format(
+            new SyntheticContextCustomizer("dependencyTwo", "dependency.two.property"), extensions);
 
-    assertThat(amazonDescription).isNotEqualTo(seaweedDescription);
+    assertThat(firstDescription).isNotEqualTo(secondDescription);
   }
 
   private MergedContextConfiguration createConfig(SyntheticContextCustomizer customizer) {
