@@ -31,9 +31,11 @@ public final class ContextCustomizerFormatter {
     for (ContextCustomizerExtension extension : extensions) {
       try {
         if (extension.supports(contextCustomizer)) {
-          String description = extension.describe(contextCustomizer);
-          if (description != null && !description.isBlank()) {
-            return description;
+          Optional<String> description =
+              Optional.ofNullable(extension.describe(contextCustomizer))
+                  .filter(value -> !value.isBlank());
+          if (description.isPresent()) {
+            return description.get();
           }
         }
       } catch (RuntimeException ex) {
