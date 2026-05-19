@@ -2,13 +2,14 @@ package digital.pragmatech.testing.extensions;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Formats Spring context customizers with optional project-provided extensions. */
 public final class ContextCustomizerFormatter {
-  private static final Logger logger = LoggerFactory.getLogger(ContextCustomizerFormatter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ContextCustomizerFormatter.class);
 
   private ContextCustomizerFormatter() {}
 
@@ -18,11 +19,8 @@ public final class ContextCustomizerFormatter {
 
   static List<String> formatAll(
       Collection<?> contextCustomizers, Collection<ContextCustomizerExtension> extensions) {
-    if (contextCustomizers == null || contextCustomizers.isEmpty()) {
-      return List.of();
-    }
-
-    return contextCustomizers.stream()
+    return Optional.ofNullable(contextCustomizers).orElse(List.of()).stream()
+        .filter(contextCustomizer -> contextCustomizer != null)
         .map(contextCustomizer -> format(contextCustomizer, extensions))
         .sorted()
         .toList();
@@ -30,10 +28,6 @@ public final class ContextCustomizerFormatter {
 
   static String format(
       Object contextCustomizer, Collection<ContextCustomizerExtension> extensions) {
-    if (contextCustomizer == null) {
-      return "null";
-    }
-
     for (ContextCustomizerExtension extension : extensions) {
       try {
         if (extension.supports(contextCustomizer)) {
@@ -43,7 +37,7 @@ public final class ContextCustomizerFormatter {
           }
         }
       } catch (RuntimeException ex) {
-        logger.debug(
+        LOGGER.debug(
             "Context customizer extension {} failed for {}: {}",
             extension.getClass().getName(),
             contextCustomizer.getClass().getName(),
