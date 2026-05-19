@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /** Stores context customizer extensions discovered from Spring test application contexts. */
 public final class ContextCustomizerExtensionRegistry {
-  private static final ConcurrentMap<String, ContextCustomizerExtension> extensions =
+  private static final ConcurrentMap<String, ContextCustomizerExtension> EXTENSIONS =
       new ConcurrentHashMap<>();
 
   private ContextCustomizerExtensionRegistry() {}
@@ -20,18 +20,18 @@ public final class ContextCustomizerExtensionRegistry {
 
     for (ContextCustomizerExtension extension : discovered) {
       if (extension != null) {
-        extensions.putIfAbsent(extension.getClass().getName(), extension);
+        EXTENSIONS.putIfAbsent(extension.getClass().getName(), extension);
       }
     }
   }
 
   public static List<ContextCustomizerExtension> getExtensions() {
-    return extensions.values().stream()
+    return EXTENSIONS.values().stream()
         .sorted(Comparator.comparing(extension -> extension.getClass().getName()))
         .toList();
   }
 
   public static void clear() {
-    extensions.clear();
+    EXTENSIONS.clear();
   }
 }
