@@ -129,6 +129,47 @@ After test execution, find the HTML report at:
 - Maven: `target/spring-test-profiler/latest.html`
 - Gradle: `build/spring-test-profiler/latest.html`
 
+### 5. Add Custom Context Customizer Descriptions
+
+Spring Test Profiler can show richer context customizer details when your project exposes a
+`ContextCustomizerExtension` bean. This is useful when a customizer class is the same across test
+contexts, but its internal configuration is different. A common example is a WireMock
+`WireMockContextCustomizer`: two tests can both use the same customizer class, while each test
+configures different mock names, ports, files, or properties.
+
+Create a Spring bean in your test application context, for example with `@Component` or a test
+`@Bean` method:
+
+```java
+package com.example.testing;
+
+import digital.pragmatech.testing.extensions.ContextCustomizerExtension;
+import org.springframework.stereotype.Component;
+
+@Component
+class ExampleContextCustomizerExtension implements ContextCustomizerExtension {
+
+  @Override
+  public boolean supports(Object contextCustomizer) {
+    // Return true only for the customizer type this extension knows how to describe.
+    return contextCustomizer.getClass().getName().contains("ExampleContextCustomizer");
+  }
+
+  @Override
+  public String describe(Object contextCustomizer) {
+    // Return a stable, human-readable summary of the fields that make contexts differ.
+    return contextCustomizer.getClass().getSimpleName() + "[configuration=custom]";
+  }
+}
+```
+
+The `supports(...)` method should be narrow: check the exact customizer class or a known interface.
+The `describe(...)` method should include only deterministic configuration values that help explain why Spring created
+a separate context. Avoid identity hashes, timestamps, random ports, or other values that change between runs unless
+they are the actual configuration you want to compare.
+
+If no extension supports a customizer, the report falls back to the customizer class simple name.
+
 ## Demo Report
 
 Access a demo Spring Test Profiler report [here](https://pragmatech.digital/products/spring-test-profiler/).
