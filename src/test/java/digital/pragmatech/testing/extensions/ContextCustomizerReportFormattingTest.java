@@ -8,6 +8,8 @@ import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextLoader;
 import org.springframework.test.context.MergedContextConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,8 +78,20 @@ class ContextCustomizerReportFormattingTest {
         new String[0],
         null,
         Set.of(customizer),
-        null,
+        new StubContextLoader(),
         null,
         null);
+  }
+
+  private static final class StubContextLoader implements ContextLoader {
+    @Override
+    public String[] processLocations(Class<?> clazz, String... locations) {
+      return locations;
+    }
+
+    @Override
+    public ApplicationContext loadContext(String... locations) {
+      return null;
+    }
   }
 }
