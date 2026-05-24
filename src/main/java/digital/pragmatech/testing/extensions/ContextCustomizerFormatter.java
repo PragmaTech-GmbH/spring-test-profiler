@@ -1,11 +1,10 @@
 package digital.pragmatech.testing.extensions;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.test.context.ContextCustomizer;
 
 /** Formats Spring context customizers with optional project-provided extensions. */
 public final class ContextCustomizerFormatter {
@@ -13,21 +12,18 @@ public final class ContextCustomizerFormatter {
 
   private ContextCustomizerFormatter() {}
 
-  public static List<String> formatAll(Collection<?> contextCustomizers) {
-    return formatAll(contextCustomizers, ContextCustomizerExtensionRegistry.getExtensions());
-  }
-
-  static List<String> formatAll(
-      Collection<?> contextCustomizers, Collection<ContextCustomizerExtension> extensions) {
-    return Optional.ofNullable(contextCustomizers).orElse(List.of()).stream()
-        .filter(contextCustomizer -> contextCustomizer != null)
+  public static List<String> formatAll(Set<ContextCustomizer> contextCustomizers) {
+    List<ContextCustomizerExtension> extensions =
+        ContextCustomizerExtensionRegistry.getExtensions();
+    return Optional.ofNullable(contextCustomizers).orElse(Set.of()).stream()
+        .filter(Objects::nonNull)
         .map(contextCustomizer -> format(contextCustomizer, extensions))
         .sorted()
         .toList();
   }
 
   static String format(
-      Object contextCustomizer, Collection<ContextCustomizerExtension> extensions) {
+      ContextCustomizer contextCustomizer, List<ContextCustomizerExtension> extensions) {
     for (ContextCustomizerExtension extension : extensions) {
       try {
         if (extension.supports(contextCustomizer)) {

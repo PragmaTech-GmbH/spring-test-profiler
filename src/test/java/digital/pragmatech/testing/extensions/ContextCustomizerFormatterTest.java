@@ -3,38 +3,45 @@ package digital.pragmatech.testing.extensions;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextCustomizer;
+import org.springframework.test.context.MergedContextConfiguration;
 
+import static digital.pragmatech.testing.extensions.ContextCustomizerFormatter.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ContextCustomizerFormatterTest {
 
   @Test
   void shouldFallbackToSimpleNameWhenNoExtensionSupportsCustomizer() {
-    assertThat(
-            ContextCustomizerFormatter.format(
-                new PlainCustomizer(), List.of(new UnsupportedExtension())))
+    ContextCustomizer contextCustomizer = new PlainCustomizer();
+    assertThat(format(contextCustomizer, List.of(new UnsupportedExtension())))
         .isEqualTo("PlainCustomizer");
   }
 
   @Test
   void shouldUseExtensionDescriptionWhenExtensionSupportsCustomizer() {
-    assertThat(
-            ContextCustomizerFormatter.format(
-                new SyntheticContextCustomizer("dependencyOne", "dependency.one.property"),
-                List.of(new SyntheticContextCustomizerExtension())))
-        .isEqualTo(
-            "SyntheticContextCustomizer[identifier=dependencyOne, configurationProperty=dependency.one.property]");
+    ContextCustomizer contextCustomizer =
+        new SyntheticContextCustomizer("dependencyOne", "dependency.one.property");
+    String expectedDescription =
+        "SyntheticContextCustomizer[identifier=dependencyOne, configurationProperty=dependency.one.property]";
+
+    assertThat(format(contextCustomizer, List.of(new SyntheticContextCustomizerExtension())))
+        .isEqualTo(expectedDescription);
   }
 
   @Test
   void shouldFallbackToSimpleNameWhenExtensionFails() {
-    assertThat(
-            ContextCustomizerFormatter.format(
-                new PlainCustomizer(), List.of(new FailingExtension())))
+    ContextCustomizer contextCustomizer = new PlainCustomizer();
+    assertThat(format(contextCustomizer, List.of(new FailingExtension())))
         .isEqualTo("PlainCustomizer");
   }
 
-  private static final class PlainCustomizer {}
+  private static final class PlainCustomizer implements ContextCustomizer {
+    @Override
+    public void customizeContext(
+        ConfigurableApplicationContext context, MergedContextConfiguration mergedConfig) {}
+  }
 
   private static final class UnsupportedExtension implements ContextCustomizerExtension {
     @Override
