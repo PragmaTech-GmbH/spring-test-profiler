@@ -17,6 +17,7 @@ import digital.pragmatech.testing.SpringContextStatistics;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TestStatus;
 import digital.pragmatech.testing.TimelineData;
+import digital.pragmatech.testing.extensions.ContextCustomizerFormatter;
 import digital.pragmatech.testing.util.SimpleJsonWriter;
 
 /** Helper classes for Thymeleaf templates to format data and provide utility methods. */
@@ -388,9 +389,7 @@ public class TemplateHelpers {
         // Context customizers
         config.put(
             "contextCustomizers",
-            mergedConfig.getContextCustomizers().stream()
-                .map(customizer -> customizer.getClass().getName())
-                .toList());
+            ContextCustomizerFormatter.formatAll(mergedConfig.getContextCustomizers()));
 
         // Context loader
         config.put(

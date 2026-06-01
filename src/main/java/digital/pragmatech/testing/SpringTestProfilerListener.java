@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import digital.pragmatech.testing.diagnostic.ContextDiagnostic;
+import digital.pragmatech.testing.extensions.ContextCustomizerExtension;
+import digital.pragmatech.testing.extensions.ContextCustomizerExtensionRegistry;
 import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
 import digital.pragmatech.testing.util.TestAnnotationDetector;
 import org.slf4j.Logger;
@@ -106,6 +108,8 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         // Calling getApplicationContext() triggers lazy context creation.
         org.springframework.context.ApplicationContext applicationContext =
             testContext.getApplicationContext();
+        ContextCustomizerExtensionRegistry.registerAll(
+            applicationContext.getBeansOfType(ContextCustomizerExtension.class).values());
         Instant contextLoadEndTime = Instant.now();
 
         Class<?> testClass = testContext.getTestClass();
@@ -326,6 +330,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
 
         // Clear data
         contextCacheTracker.clear();
+        ContextCustomizerExtensionRegistry.clear();
         reportGenerated = true;
       }
     }
