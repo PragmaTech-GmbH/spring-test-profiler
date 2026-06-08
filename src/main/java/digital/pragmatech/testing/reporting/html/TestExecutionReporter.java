@@ -1,6 +1,7 @@
 package digital.pragmatech.testing.reporting.html;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,10 +60,8 @@ public class TestExecutionReporter {
         jsonReportGenerator.generateJsonReport(
             reportDir, executionTracker, cacheStats, contextCacheTracker);
       } else {
-        // Copy static assets before generating HTML
-        copyStaticAssets(reportDir);
-
-        // Original HTML reporting logic
+        // HTML reporting logic; CSS and JS are inlined into the report for a
+        // self-contained, portable file (see generateHtmlWithThymeleaf)
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
         String reportFileName = "test-profiler-report-" + timestamp + ".html";
         Path reportFile = reportDir.resolve(reportFileName);
@@ -188,7 +187,9 @@ public class TestExecutionReporter {
         context.setVariable("timelineData", timelineData);
       }
 
-      // Static assets are now copied in generateReport method
+      // Inline CSS and JS so the generated report is a single self-contained file
+      context.setVariable("inlineCss", readResourceAsString("static/css/spring-test-profiler.css"));
+      context.setVariable("inlineJs", readResourceAsString("static/js/report.js"));
 
       // Register helper beans for templates
       registerHelperBeans(context, contextCacheTracker);
@@ -230,32 +231,15 @@ public class TestExecutionReporter {
     context.setVariable("helpers", new TemplateHelpers());
   }
 
-  private void copyStaticAssets(Path reportDir) {
-    try {
-      Path staticDir = reportDir.resolve("static");
-      Path cssDir = staticDir.resolve("css");
-      Path jsDir = staticDir.resolve("js");
-
-      Files.createDirectories(cssDir);
-      Files.createDirectories(jsDir);
-
-      copyResourceToFile(
-          "static/css/spring-test-profiler.css", cssDir.resolve("spring-test-profiler.css"));
-
-      copyResourceToFile("static/js/report.js", jsDir.resolve("report.js"));
-
-    } catch (IOException e) {
-      logger.error("Failed to copy static assets to report directory", e);
-      throw new ReportGenerationException("Static asset copying failed", e);
-    }
-  }
-
-  private void copyResourceToFile(String resourcePath, Path targetFile) throws IOException {
+  private String readResourceAsString(String resourcePath) {
     try (var inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
       if (inputStream == null) {
-        throw new RuntimeException("Resource not found in classpath: " + resourcePath);
+        throw new IOException("Resource not found in classpath: " + resourcePath);
       }
-      Files.copy(inputStream, targetFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      logger.error("Failed to read static asset for inlining: {}", resourcePath, e);
+      throw new ReportGenerationException("Reading static asset failed: " + resourcePath, e);
     }
   }
 }

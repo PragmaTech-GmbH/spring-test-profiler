@@ -9,7 +9,7 @@
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
   <script src="https://d3js.org/d3.v7.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js" integrity="lJJVaUgxmk/PVfQnAsGN1QuJZrE+n6bg2EMu33yVZOJ2av/3UzTHbmnPCI7ENJYa" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="static/css/spring-test-profiler.css">
+  <style th:utext="${inlineCss}"></style>
 </head>
 <body>
 <div class="container">
@@ -70,6 +70,6 @@
 </footer>
 
 <script type="application/json" id="context-statistics-json" th:utext="${contextStatisticsJson}">[]</script>
-<script src="static/js/report.js"></script>
+<script th:utext="${inlineJs}"></script>
 </body>
 </html>
