@@ -1277,6 +1277,7 @@ h2 {
 
 .context-timeline-section h2 {
     color: #2c3e50;
+    margin-top: 0;
     margin-bottom: 10px;
 }
 
