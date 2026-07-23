@@ -40,6 +40,10 @@ public class ContextCacheEntry {
   // Timeline tracking for future visualization
   private final List<Instant> accessTimes = new CopyOnWriteArrayList<>();
 
+  // Cache lifetimes of this context: one lifespan per creation (re-creations after
+  // @DirtiesContext removal or LRU eviction append additional lifespans)
+  private final List<ContextLifespan> lifespans = new CopyOnWriteArrayList<>();
+
   public ContextCacheEntry(MergedContextConfiguration configuration) {
     this.configuration = configuration;
   }
@@ -86,13 +90,44 @@ public class ContextCacheEntry {
   }
 
   public void recordCreation(long loadTimeMs) {
-    this.created = true;
-    this.contextLoadTimeMs = loadTimeMs;
     Instant now = Instant.now();
-    this.creationTime = now;
-    this.firstUsedTime = now;
+    if (!created) {
+      // First creation: keep first-lifespan semantics for the legacy fields
+      this.creationTime = now;
+      this.firstUsedTime = now;
+      this.contextLoadTimeMs = loadTimeMs;
+    }
+    this.created = true;
     this.lastUsedTime = now;
     this.accessTimes.add(now);
+    this.lifespans.add(new ContextLifespan(now, loadTimeMs));
+  }
+
+  /**
+   * Records that this context was removed from Spring's cache (e.g. @DirtiesContext or LRU
+   * eviction). Marks the last open lifespan as removed; ignored if no lifespan is open.
+   */
+  public void recordRemoval(Instant removalTime, ContextRemovalReason reason) {
+    for (int i = lifespans.size() - 1; i >= 0; i--) {
+      ContextLifespan lifespan = lifespans.get(i);
+      if (!lifespan.isRemoved()) {
+        lifespan.markRemoved(removalTime, reason);
+        return;
+      }
+    }
+  }
+
+  /** All cache lifetimes of this context, in creation order. */
+  public List<ContextLifespan> getLifespans() {
+    return Collections.unmodifiableList(lifespans);
+  }
+
+  /** True if this context was created and its latest lifespan has been removed from the cache. */
+  public boolean isCurrentlyRemoved() {
+    if (!created || lifespans.isEmpty()) {
+      return false;
+    }
+    return lifespans.get(lifespans.size() - 1).isRemoved();
   }
 
   public void recordCacheHit() {

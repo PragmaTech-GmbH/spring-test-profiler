@@ -1,7 +1,6 @@
 package digital.pragmatech.testing;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +15,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import digital.pragmatech.testing.optimization.ContextOptimizationOpportunity;
-import digital.pragmatech.testing.reporting.ContextTimelineEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.MergedContextConfiguration;
@@ -95,7 +93,9 @@ public class ContextCacheTracker {
     ContextCacheEntry entry = cacheEntries.get(config);
     if (entry != null) {
       entry.recordCreation(loadTimeMs);
-      contextCreationOrder.add(config);
+      if (!contextCreationOrder.contains(config)) {
+        contextCreationOrder.add(config);
+      }
       totalContextsCreated.incrementAndGet();
       cacheMisses.incrementAndGet();
 
@@ -124,7 +124,9 @@ public class ContextCacheTracker {
     if (entry != null) {
       entry.recordCreation(loadTimeMs);
       entry.setContextDiagnostic(heapMemoryUsedBytes, availableProcessors);
-      contextCreationOrder.add(config);
+      if (!contextCreationOrder.contains(config)) {
+        contextCreationOrder.add(config);
+      }
       totalContextsCreated.incrementAndGet();
       cacheMisses.incrementAndGet();
 
@@ -160,6 +162,21 @@ public class ContextCacheTracker {
     if (entry != null) {
       entry.recordCacheHit();
       cacheHits.incrementAndGet();
+    }
+  }
+
+  /**
+   * Records that a context was removed from Spring's cache (@DirtiesContext or LRU eviction).
+   * Null-safe for configurations that were never tracked.
+   */
+  public void recordContextRemoval(
+      MergedContextConfiguration config, Instant removalTime, ContextRemovalReason reason) {
+    ContextCacheEntry entry = cacheEntries.get(config);
+    if (entry != null) {
+      entry.recordRemoval(removalTime, reason);
+      logger.debug("Recorded context removal ({}) for config: {}", reason, config);
+    } else {
+      logger.debug("Ignoring removal of unknown context config: {}", config);
     }
   }
 
@@ -376,99 +393,6 @@ public class ContextCacheTracker {
     } else {
       return "Consider optimizing test setup to reduce context load time";
     }
-  }
-
-  /**
-   * Gets timeline data for visualization of context lifecycle. Returns data suitable for Chart.js
-   * timeline visualization showing actual test execution progression.
-   */
-  public TimelineData getTimelineData() {
-    List<ContextCacheEntry> createdEntries =
-        cacheEntries.values().stream()
-            .filter(ContextCacheEntry::isCreated)
-            .sorted(
-                (a, b) -> {
-                  Instant timeA = a.getCreationTime();
-                  Instant timeB = b.getCreationTime();
-                  if (timeA == null && timeB == null) {
-                    return 0;
-                  }
-                  if (timeA == null) {
-                    return 1;
-                  }
-                  if (timeB == null) {
-                    return -1;
-                  }
-                  return timeA.compareTo(timeB);
-                })
-            .toList();
-
-    if (createdEntries.isEmpty()) {
-      return new TimelineData(Collections.emptyList(), null, null, Collections.emptyList());
-    }
-
-    // Calculate timeline bounds
-    Instant earliestCreation = createdEntries.get(0).getCreationTime();
-    Instant latestAccess =
-        createdEntries.stream()
-            .map(ContextCacheEntry::getLastUsedTime)
-            .filter(Objects::nonNull)
-            .max(Instant::compareTo)
-            .orElse(Instant.now());
-
-    // Generate context events for timeline visualization
-    List<ContextTimelineEvent> events = new ArrayList<>();
-    List<String> contextColors =
-        Arrays.asList(
-            "#e74c3c", "#3498db", "#27ae60", "#f39c12", "#9b59b6", "#e67e22", "#1abc9c", "#34495e",
-            "#e91e63", "#ff5722");
-
-    for (int i = 0; i < createdEntries.size(); i++) {
-      ContextCacheEntry entry = createdEntries.get(i);
-
-      String contextLabel = "Context " + (i + 1);
-      if (!entry.getTestClasses().isEmpty()) {
-        String firstTestClass = entry.getTestClasses().iterator().next();
-        String simpleName = firstTestClass.substring(firstTestClass.lastIndexOf('.') + 1);
-        contextLabel = simpleName;
-      }
-
-      String color = contextColors.get(i % contextColors.size());
-      long creationTimeSeconds =
-          java.time.Duration.between(earliestCreation, entry.getCreationTime()).toMillis() / 1000;
-
-      events.add(
-          new ContextTimelineEvent(
-              contextLabel,
-              color,
-              creationTimeSeconds,
-              entry.getContextLoadTimeMs(),
-              entry.getTestClasses().size(),
-              entry.getHitCount(),
-              entry.getBeanDefinitionCount()));
-    }
-
-    // Calculate timeline entries for the table
-    List<TimelineEntry> timelineEntries = new ArrayList<>();
-    for (int i = 0; i < createdEntries.size(); i++) {
-      ContextCacheEntry entry = createdEntries.get(i);
-
-      String contextLabel = events.get(i).contextName();
-      long creationStartMs =
-          java.time.Duration.between(earliestCreation, entry.getCreationTime()).toMillis();
-
-      timelineEntries.add(
-          new TimelineEntry(
-              contextLabel,
-              "Creation",
-              creationStartMs,
-              creationStartMs + entry.getContextLoadTimeMs(),
-              events.get(i).color(),
-              entry.getContextLoadTimeMs() + "ms load time",
-              entry.getConfiguration().hashCode()));
-    }
-
-    return new TimelineData(timelineEntries, earliestCreation, latestAccess, events);
   }
 
   /** Gets the total number of cache hits tracked by this tracker. */

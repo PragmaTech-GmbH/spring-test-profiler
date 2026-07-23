@@ -132,6 +132,10 @@
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
+        <excludes>
+          <exclude>static/js/node_modules/**</exclude>
+          <exclude>static/js/coverage/**</exclude>
+        </excludes>
       </resource>
     </resources>
     <pluginManagement>

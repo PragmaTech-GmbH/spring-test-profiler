@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="context-timeline-section" class="section context-timeline-section">
+  <h2>Context Cache Timeline</h2>
+  <p class="section-description">
+    Each bar is one lifetime of a Spring ApplicationContext in the TestContext cache: the dark
+    segment is the context load (leading up to the moment it entered the cache), the light segment
+    is the time it stayed cached. A bar ends when the context was removed from the cache
+    (@DirtiesContext or LRU eviction) - or runs dashed to the end of the test run if it stayed
+    cached.
+  </p>
+  <div class="timeline-legend" id="context-timeline-legend"></div>
+  <div class="timeline-chart-scroll">
+    <div id="context-timeline-chart"></div>
+  </div>
+  <div class="no-timeline-data" id="context-timeline-empty" style="display:none">
+    <p>No context lifecycle data available.</p>
+  </div>
+</div>
+
+</body>
+</html>
