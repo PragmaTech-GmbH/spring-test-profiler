@@ -6,7 +6,20 @@ This page explains the Spring mechanism the profiler is built around. Understand
 
 Starting a Spring application context is expensive - often several seconds per context for a real application. To avoid paying that cost for every test class, the Spring TestContext Framework caches application contexts **within one JVM test run** and reuses them across test classes.
 
-Whether a context can be reused is decided by the context's cache key, derived from the `MergedContextConfiguration` of a test class. Roughly, two test classes share a context only when **all** of the following match:
+The animation below (also shown in the report's theory section) illustrates the mechanism:
+
+![Animation explaining Spring test context caching: Spring scans the test configuration, builds a cache key from the MergedContextConfiguration hashCode, and reuses matching ApplicationContexts](https://raw.githubusercontent.com/PragmaTech-GmbH/spring-test-profiler/main/docs/context-caching-animation.gif)
+
+Step by step, this is what happens for every Spring test class:
+
+1. **Configuration scan** - before running a test class, Spring X-rays its complete test configuration: annotations like `@SpringBootTest`, `@ContextConfiguration`, `@ActiveProfiles`, `@TestPropertySource`, plus everything contributed indirectly, such as context customizers from `@MockBean` or Testcontainers/WireMock integrations.
+2. **Merge into one object** - all these customization points are merged into a single `MergedContextConfiguration` instance that fully describes the context this test class needs.
+3. **Cache key from hashCode** - the `hashCode` of that `MergedContextConfiguration` (backed by `equals`) acts as the cache key into the context cache.
+4. **Hit or miss** - if a context with the same key already exists in the cache, the test reuses it instantly (cache hit). If not, Spring starts a brand-new application context - often the slowest step of the whole test class - and stores it under the new key (cache miss).
+
+The crucial consequence: same key means instant reuse, while **one tiny difference** in any configuration attribute means a slow, brand-new context. There is no "close enough" - the key either matches exactly or it does not.
+
+Whether a context can be reused is therefore decided entirely by the attributes that flow into the `MergedContextConfiguration`. Roughly, two test classes share a context only when **all** of the following match:
 
 - Context configuration classes and locations (`@ContextConfiguration`, `@SpringBootTest` classes)
 - Active profiles (`@ActiveProfiles`)
