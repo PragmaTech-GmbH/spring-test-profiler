@@ -986,6 +986,369 @@ class ContextComparator {
 }
 
 /**
+ * Creates a tick label formatter for the timeline x-axis. The unit adapts to the
+ * total run duration so short runs (60s) and long runs (hours) both stay readable.
+ * @param {number} totalDurationMs - Total duration shown on the axis
+ * @returns {function(number): string} Formatter from relative milliseconds to label
+ */
+function timelineTickFormat(totalDurationMs) {
+  if (totalDurationMs < 2000) {
+    return ms => `${Math.round(ms)}ms`;
+  }
+  if (totalDurationMs < 120000) {
+    const showDecimals = totalDurationMs <= 20000;
+    return ms => (showDecimals ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms / 1000)}s`);
+  }
+  if (totalDurationMs < 3600000) {
+    return ms => {
+      const totalSeconds = Math.round(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    };
+  }
+  return ms => {
+    const totalSeconds = Math.round(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+}
+
+/**
+ * Formats a duration for tooltips (independent of the axis scale).
+ * @param {number} durationMs - Duration in milliseconds
+ * @returns {string} Human readable duration
+ */
+function formatTimelineDuration(durationMs) {
+  if (durationMs < 1000) {
+    return `${Math.round(durationMs)}ms`;
+  }
+  if (durationMs < 60000) {
+    return `${(durationMs / 1000).toFixed(1)}s`;
+  }
+  const totalSeconds = Math.round(durationMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+}
+
+/**
+ * Transforms the embedded context timeline JSON into chart rows.
+ * One row per cache lifespan (a context re-created after @DirtiesContext removal
+ * produces multiple rows).
+ * @param {object} timelineJson - Parsed #context-timeline-json payload
+ * @returns {{t0: number, totalDurationMs: number, rows: Array}} Chart model
+ */
+function buildTimelineRows(timelineJson) {
+  const emptyResult = { t0: 0, totalDurationMs: 0, rows: [] };
+  if (!timelineJson || !Array.isArray(timelineJson.contexts) || timelineJson.contexts.length === 0) {
+    return emptyResult;
+  }
+
+  // A segment's startMs is the cache-entry moment; the load happened just before it,
+  // so the earliest visible instant of a segment is startMs - loadMs
+  const allLoadStarts = timelineJson.contexts
+    .flatMap(context => (Array.isArray(context.segments) ? context.segments : []))
+    .filter(segment => typeof segment.startMs === 'number')
+    .map(segment => segment.startMs - Math.max(segment.loadMs || 0, 0));
+  if (allLoadStarts.length === 0) {
+    return emptyResult;
+  }
+
+  const t0 =
+    typeof timelineJson.testRunStartMs === 'number'
+      ? Math.min(timelineJson.testRunStartMs, ...allLoadStarts)
+      : Math.min(...allLoadStarts);
+
+  const runEndMs =
+    typeof timelineJson.testRunEndMs === 'number' ? timelineJson.testRunEndMs : null;
+
+  const rows = [];
+  timelineJson.contexts.forEach(context => {
+    const segments = Array.isArray(context.segments) ? context.segments : [];
+    segments.forEach((segment, segmentIndex) => {
+      if (typeof segment.startMs !== 'number') {
+        return;
+      }
+      // startMs is the moment the context ENTERED the cache (load already finished),
+      // so the load phase is drawn leading up to it: [startMs - loadMs, startMs]
+      const relStartMs = Math.max(0, segment.startMs - t0);
+      const loadMs = Math.min(Math.max(segment.loadMs || 0, 0), relStartMs);
+      const relLoadStartMs = relStartMs - loadMs;
+
+      const removed = typeof segment.removedMs === 'number';
+      let relEndMs;
+      if (removed) {
+        relEndMs = segment.removedMs - t0;
+      } else if (runEndMs !== null) {
+        relEndMs = runEndMs - t0;
+      } else {
+        relEndMs = relStartMs;
+      }
+      relEndMs = Math.max(relEndMs, relStartMs);
+
+      rows.push({
+        contextKey: context.contextKey,
+        rowLabel:
+          segmentIndex > 0 ? `${context.contextKey} (${segmentIndex + 1})` : context.contextKey,
+        relLoadStartMs,
+        relStartMs,
+        loadMs,
+        relEndMs,
+        removed,
+        removalReason: removed ? segment.removalReason || null : null,
+        startWallMs: segment.startMs,
+        testClassCount: context.testClassCount || 0,
+        beanCount: context.beanCount || 0
+      });
+    });
+  });
+
+  rows.sort((a, b) => a.relLoadStartMs - b.relLoadStartMs);
+
+  const maxRowEndMs = rows.length > 0 ? Math.max(...rows.map(row => row.relEndMs)) : 0;
+  const totalDurationMs = Math.max(runEndMs !== null ? runEndMs - t0 : 0, maxRowEndMs, 1);
+
+  return { t0, totalDurationMs, rows };
+}
+
+/**
+ * Gantt-style visualization of context cache lifetimes: one bar per lifespan,
+ * dark segment = context load, light segment = alive in cache, red edge = removal.
+ */
+class ContextCacheTimeline {
+  constructor(containerId, timelineJson) {
+    this.container = document.getElementById(containerId);
+    if (!this.container) {
+      return;
+    }
+    if (typeof d3 === 'undefined') {
+      ContextCacheTimeline.showEmptyState();
+      return;
+    }
+
+    const chartModel = buildTimelineRows(timelineJson);
+    if (chartModel.rows.length === 0) {
+      ContextCacheTimeline.showEmptyState();
+      return;
+    }
+
+    this.colors = {
+      load: '#2980b9',
+      aliveFill: 'rgba(41, 128, 185, 0.3)',
+      aliveStroke: '#2980b9',
+      removed: '#e74c3c',
+      grid: '#ecf0f1',
+      label: '#2c3e50'
+    };
+    this.layout = { labelGutter: 150, rowHeight: 26, barHeight: 16, axisHeight: 30, rightPadding: 20 };
+
+    this.renderLegend();
+    this.render(chartModel);
+  }
+
+  static showEmptyState() {
+    const emptyState = document.getElementById('context-timeline-empty');
+    if (emptyState) {
+      emptyState.style.display = 'block';
+    }
+  }
+
+  renderLegend() {
+    const legendContainer = document.getElementById('context-timeline-legend');
+    if (!legendContainer) {
+      return;
+    }
+    legendContainer.innerHTML = `
+      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-load"></span>Context load</span>
+      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-alive"></span>Alive in cache</span>
+      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-removed"></span>Removed (@DirtiesContext / eviction)</span>
+      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-open"></span>Still cached at end of run</span>`;
+  }
+
+  render(chartModel) {
+    const { rows, totalDurationMs, t0 } = chartModel;
+    const { labelGutter, rowHeight, barHeight, axisHeight, rightPadding } = this.layout;
+
+    const containerWidth = Math.max(this.container.getBoundingClientRect().width || 0, 700);
+    const chartHeight = axisHeight + rows.length * rowHeight + 8;
+
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, totalDurationMs])
+      .range([labelGutter, containerWidth - rightPadding]);
+
+    const svg = d3
+      .select(this.container)
+      .append('svg')
+      .attr('width', containerWidth)
+      .attr('height', chartHeight)
+      .attr('role', 'img')
+      .attr('aria-label', 'Timeline of Spring application contexts in the test context cache');
+
+    const tickFormatter = timelineTickFormat(totalDurationMs);
+    const xAxis = d3.axisTop(xScale).ticks(8).tickFormat(tickFormatter).tickSizeOuter(0);
+
+    // Gridlines behind the bars
+    svg
+      .append('g')
+      .attr('class', 'timeline-grid')
+      .selectAll('line')
+      .data(xScale.ticks(8))
+      .enter()
+      .append('line')
+      .attr('x1', tick => xScale(tick))
+      .attr('x2', tick => xScale(tick))
+      .attr('y1', axisHeight)
+      .attr('y2', chartHeight - 4)
+      .attr('stroke', this.colors.grid)
+      .attr('stroke-width', 1);
+
+    svg
+      .append('g')
+      .attr('class', 'timeline-axis')
+      .attr('transform', `translate(0, ${axisHeight})`)
+      .call(xAxis);
+
+    const tooltip = this.createTooltip();
+
+    const rowGroups = svg
+      .selectAll('.timeline-row')
+      .data(rows)
+      .enter()
+      .append('g')
+      .attr('class', 'timeline-row')
+      .attr('transform', (row, index) => `translate(0, ${axisHeight + index * rowHeight})`);
+
+    const barY = (rowHeight - barHeight) / 2;
+
+    // Alive-in-cache span (from cache entry until removal or run end, outlined so
+    // the extent stays crisp even with the light fill)
+    rowGroups
+      .append('rect')
+      .attr('class', 'timeline-bar-alive')
+      .attr('x', row => xScale(row.relStartMs))
+      .attr('y', barY)
+      .attr('width', row => Math.max(xScale(row.relEndMs) - xScale(row.relStartMs), 2))
+      .attr('height', barHeight)
+      .attr('rx', 2)
+      .attr('fill', this.colors.aliveFill)
+      .attr('stroke', this.colors.aliveStroke)
+      .attr('stroke-width', 1);
+
+    // Load phase (dark segment leading up to the cache entry)
+    rowGroups
+      .append('rect')
+      .attr('class', 'timeline-bar-load')
+      .attr('x', row => xScale(row.relLoadStartMs))
+      .attr('y', barY)
+      .attr('width', row =>
+        row.loadMs > 0
+          ? Math.max(xScale(row.relStartMs) - xScale(row.relLoadStartMs), 2)
+          : 0
+      )
+      .attr('height', barHeight)
+      .attr('rx', 2)
+      .attr('fill', this.colors.load);
+
+    // Bar end: solid red cap when removed, dashed edge when still cached at run end
+    rowGroups
+      .append('line')
+      .attr('class', 'timeline-bar-end')
+      .attr('x1', row => xScale(row.relEndMs))
+      .attr('x2', row => xScale(row.relEndMs))
+      .attr('y1', barY - 2)
+      .attr('y2', barY + barHeight + 2)
+      .attr('stroke', row => (row.removed ? this.colors.removed : this.colors.aliveStroke))
+      .attr('stroke-width', row => (row.removed ? 3 : 1.5))
+      .attr('stroke-dasharray', row => (row.removed ? null : '3,3'));
+
+    // Row labels (clickable, scrolls to the context details)
+    rowGroups
+      .append('text')
+      .attr('class', 'timeline-row-label')
+      .attr('x', labelGutter - 10)
+      .attr('y', rowHeight / 2 + 4)
+      .attr('text-anchor', 'end')
+      .attr('fill', this.colors.label)
+      .text(row => row.rowLabel)
+      .style('cursor', 'pointer')
+      .on('click', (event, row) => {
+        if (window.testClassSearcher) {
+          window.testClassSearcher.scrollToContext(row.contextKey);
+        }
+      });
+
+    // Transparent hover target across the full row (bigger hit area than the bar)
+    const self = this;
+    rowGroups
+      .append('rect')
+      .attr('class', 'timeline-row-hover')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', containerWidth)
+      .attr('height', rowHeight)
+      .attr('fill', 'transparent')
+      .on('mousemove', function (event, row) {
+        tooltip.innerHTML = self.buildTooltipHtml(row, t0, tickFormatter);
+        tooltip.style.display = 'block';
+        self.positionTooltip(tooltip, event);
+      })
+      .on('mouseleave', function () {
+        tooltip.style.display = 'none';
+      });
+  }
+
+  createTooltip() {
+    let tooltip = this.container.parentElement.querySelector('.timeline-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'timeline-tooltip';
+      tooltip.style.display = 'none';
+      this.container.parentElement.appendChild(tooltip);
+    }
+    return tooltip;
+  }
+
+  positionTooltip(tooltip, event) {
+    const sectionRect = this.container.parentElement.getBoundingClientRect();
+    const offsetX = event.clientX - sectionRect.left + 14;
+    const offsetY = event.clientY - sectionRect.top + 14;
+    tooltip.style.left = `${offsetX}px`;
+    tooltip.style.top = `${offsetY}px`;
+  }
+
+  buildTooltipHtml(row, t0, tickFormatter) {
+    const cachedWallClock = new Date(row.startWallMs).toLocaleTimeString();
+    let removalLine;
+    if (row.removed) {
+      removalLine = `Removed at ${tickFormatter(row.relEndMs)} - ${ContextCacheTimeline.removalReasonLabel(row.removalReason)}`;
+    } else {
+      removalLine = 'Alive until end of run';
+    }
+    return `
+      <strong>${row.rowLabel}</strong><br>
+      Load duration: ${formatTimelineDuration(row.loadMs)}<br>
+      Added to cache at ${tickFormatter(row.relStartMs)} (${cachedWallClock})<br>
+      ${removalLine}<br>
+      Test classes: ${row.testClassCount} | Beans: ${row.beanCount}`;
+  }
+
+  static removalReasonLabel(removalReason) {
+    switch (removalReason) {
+      case 'DIRTIES_CONTEXT':
+        return '@DirtiesContext';
+      case 'CACHE_EVICTION':
+        return 'LRU eviction (cache exceeded max size)';
+      default:
+        return 'cause unknown';
+    }
+  }
+}
+
+/**
  * Initialize the report functionality when DOM is loaded
  */
 function initializeReport() {
@@ -1006,6 +1369,25 @@ function initializeReport() {
     new AnnotationFilter();
     new ContextComparator();
   }
+
+  // Initialize the context cache timeline chart
+  let contextTimeline = null;
+  try {
+    const timelineJsonScript = document.getElementById('context-timeline-json');
+    if (timelineJsonScript) {
+      contextTimeline = JSON.parse(timelineJsonScript.textContent || '{}');
+    }
+  } catch (e) {
+    console.error('Failed to parse context timeline JSON:', e);
+  }
+  window.contextTimeline = contextTimeline;
+  if (document.getElementById('context-timeline-chart')) {
+    if (contextTimeline && Array.isArray(contextTimeline.contexts) && contextTimeline.contexts.length > 0) {
+      new ContextCacheTimeline('context-timeline-chart', contextTimeline);
+    } else {
+      ContextCacheTimeline.showEmptyState();
+    }
+  }
 }
 
 // Initialize when DOM is loaded
@@ -1019,6 +1401,10 @@ if (typeof module !== 'undefined' && module.exports) {
     TestClassSearcher,
     AnnotationFilter,
     ContextComparator,
+    timelineTickFormat,
+    formatTimelineDuration,
+    buildTimelineRows,
+    ContextCacheTimeline,
     initializeReport
   };
 }

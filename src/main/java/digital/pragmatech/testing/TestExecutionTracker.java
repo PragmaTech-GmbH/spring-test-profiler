@@ -68,6 +68,16 @@ public class TestExecutionTracker {
     return totalTestMethods.get();
   }
 
+  /** Start of the overall test run, or null if tracking never started. */
+  public Instant getOverallStartTime() {
+    return overallStartTime;
+  }
+
+  /** End of the overall test run, or null if tracking was not stopped yet. */
+  public Instant getOverallEndTime() {
+    return overallEndTime;
+  }
+
   public Duration getOverallDuration() {
     if (overallStartTime != null && overallEndTime != null) {
       return Duration.between(overallStartTime, overallEndTime);

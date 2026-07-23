@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -14,6 +15,10 @@ import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
 import digital.pragmatech.testing.util.TestAnnotationDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.Ordered;
 import org.springframework.lang.NonNull;
 import org.springframework.test.context.MergedContextConfiguration;
@@ -43,6 +48,13 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
   // Static flag to ensure report is generated only once
   private static volatile boolean reportGenerated = false;
   private static volatile boolean shutdownHookRegistered = false;
+
+  // Once report generation started, context close events must no longer mutate the tracker
+  private static volatile boolean reportGenerationStarted = false;
+
+  // Context instances that already have a ContextClosedEvent listener registered
+  private static final Set<ApplicationContext> closeListenerRegistered =
+      ConcurrentHashMap.newKeySet();
 
   // Hold a reference to a TestContext so we can access the cache later
   private static final AtomicReference<TestContext> lastTestContext = new AtomicReference<>();
@@ -116,6 +128,9 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         TestContextBootstrapper bootstrapper = resolveBootstrapper(testClass);
         MergedContextConfiguration mergedConfig = bootstrapper.buildMergedContextConfiguration();
 
+        // Track when this context leaves the cache (@DirtiesContext / LRU eviction)
+        registerRemovalListener(applicationContext, mergedConfig, testContext);
+
         // Calculate context loading time (listener-level measurement)
         Instant contextLoadStartTime = contextLoadStartTimes.get(testContext);
         long contextLoadDurationMs = 0;
@@ -147,9 +162,10 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         }
 
         // Now check if this was a cache hit or miss
-        // If the context was already tracked as created for another test, it's a hit
+        // If the context was already tracked as created for another test, it's a hit -
+        // unless it was removed from the cache in the meantime, then this is a re-creation
         Optional<ContextCacheEntry> entry = contextCacheTracker.getCacheEntry(mergedConfig);
-        if (entry.isPresent() && entry.get().isCreated()) {
+        if (entry.isPresent() && entry.get().isCreated() && !entry.get().isCurrentlyRemoved()) {
           contextCacheTracker.recordContextCacheHit(mergedConfig);
           logger.debug(
               "Context cache hit for test class {} ({}ms)", className, contextLoadDurationMs);
@@ -232,6 +248,57 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
       // Clean up
       methodStartTimes.remove(testContext);
     }
+  }
+
+  /**
+   * Registers a ContextClosedEvent listener on the given context (once per context instance) to
+   * record when it is removed from Spring's context cache. Both @DirtiesContext removal and LRU
+   * eviction close the context synchronously, so the close event marks the removal time.
+   */
+  private static void registerRemovalListener(
+      ApplicationContext applicationContext,
+      MergedContextConfiguration mergedConfig,
+      TestContext testContext) {
+    if (!(applicationContext instanceof ConfigurableApplicationContext configurableContext)) {
+      return;
+    }
+    if (!closeListenerRegistered.add(applicationContext)) {
+      return;
+    }
+
+    // Capture the cache reference now; it is not reachable from within the close event
+    ContextCache contextCache = SpringContextCacheAccessor.getContextCache(testContext);
+
+    configurableContext.addApplicationListener(
+        (ApplicationListener<ContextClosedEvent>)
+            event -> {
+              try {
+                closeListenerRegistered.remove(event.getApplicationContext());
+                if (reportGenerationStarted || isJvmShutdownInProgress()) {
+                  return;
+                }
+                ContextRemovalReason reason =
+                    ContextRemovalDetector.inferRemovalReason(contextCache);
+                contextCacheTracker.recordContextRemoval(mergedConfig, Instant.now(), reason);
+              } catch (Exception e) {
+                logger.debug("Failed to record context removal", e);
+              }
+            });
+  }
+
+  /**
+   * Contexts closed during JVM shutdown (e.g. Spring Boot's shutdown hook) were never removed from
+   * the cache during the test run and must not be recorded as removals.
+   */
+  private static boolean isJvmShutdownInProgress() {
+    for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
+      String frameClassName = element.getClassName();
+      if (frameClassName.contains("SpringApplicationShutdownHook")
+          || frameClassName.equals("java.lang.ApplicationShutdownHooks")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private TestStatus determineTestStatus(TestContext testContext) {
@@ -319,6 +386,7 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
   public static void generateReport() {
     synchronized (SpringTestProfilerListener.class) {
       if (!reportGenerated) {
+        reportGenerationStarted = true;
         logger.info("Generating Spring Test Profiler");
         executionTracker.stopTracking();
 
@@ -334,6 +402,11 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         reportGenerated = true;
       }
     }
+  }
+
+  /** Exposes the shared tracker for integration tests. */
+  static ContextCacheTracker getContextCacheTracker() {
+    return contextCacheTracker;
   }
 
   /** Gets the Spring ContextCache if available. */
