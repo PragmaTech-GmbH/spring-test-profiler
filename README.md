@@ -16,7 +16,9 @@ Find [more information](https://pragmatech.digital/products/spring-test-profiler
 
 ## How Context Caching Works
 
-Spring caches ApplicationContexts across tests: it X-rays each test's configuration, merges all customization points into a `MergedContextConfiguration`, and uses its hashCode as the cache key. Same key means instant reuse - one tiny difference means a slow, brand-new context. The report's theory section shows this as an animation:
+Spring caches ApplicationContexts across tests: it X-rays each test's configuration, merges all customization points into a `MergedContextConfiguration`, and uses its hashCode as the cache key.
+
+Same key means instant reuse - one tiny difference means a slow, brand-new context. The report's theory section shows this as an animation:
 
 ![Animation explaining Spring test context caching: Spring scans the test configuration, builds a cache key from the MergedContextConfiguration hashCode, and reuses matching ApplicationContexts](docs/context-caching-animation.gif)
 
@@ -25,6 +27,15 @@ Spring caches ApplicationContexts across tests: it X-rays each test's configurat
 
 **Overall goal**: Identify optimization opportunities in your Spring Test suite to speed up your builds and ship to production faster and with more confidence 🚤
 
+This profiler helps you:
+
+- Track Spring Test context caching statistics for your test suite
+- Show context reuse metrics and cache hit/miss ratios
+- Identify tests that couldn't reuse contexts and explain why
+- Drastically reduce the build time of your project
+
+## Sample Report
+
 <table>
   <tr>
     <td><img src="docs/report-top.png" alt="Spring Test Profiler Report - Top" /></td>
@@ -32,13 +43,6 @@ Spring caches ApplicationContexts across tests: it X-rays each test's configurat
   </tr>
 </table>
 
-This profiler helps you:
-
-- Track Spring Test context caching statistics for your test suite
-- Show context reuse metrics and cache hit/miss ratios
-- Identify tests that couldn't reuse contexts and explain why
-- Easy integration with a `spring.factories` file or `@TestExecutionListeners` annotation
-- Works with both Maven Surefire/Failsafe and Gradle test tasks
 
 ## Requirements
 
