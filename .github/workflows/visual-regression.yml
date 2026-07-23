@@ -1,0 +1,209 @@
+name: Visual Regression
+
+# Report-only check: renders the profiler HTML report built from this PR next to the
+# report produced by the latest version published to Maven Central and posts the pixel
+# diff as a PR comment. Visual differences never fail this job - only infrastructure
+# errors do. Do not mark this check as required in branch protection.
+
+on:
+  pull_request:
+    paths:
+      - 'src/main/**'
+      - 'demo/spring-boot-3.5-maven/**'
+      - 'visual-regression/**'
+      - '.github/workflows/visual-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: visual-regression-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEMO_DIR: demo/spring-boot-3.5-maven
+
+jobs:
+  visual-regression:
+    name: Compare report against latest release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21'
+          cache: 'npm'
+          cache-dependency-path: 'visual-regression/package-lock.json'
+
+      - name: Resolve latest Maven Central release
+        id: baseline
+        run: |
+          metadataUrl="https://repo1.maven.org/maven2/digital/pragmatech/testing/spring-test-profiler/maven-metadata.xml"
+          baselineVersion="$(curl -sf "$metadataUrl" | sed -n 's/.*<release>\(.*\)<\/release>.*/\1/p' | head -1 || true)"
+          if [ -z "$baselineVersion" ]; then
+            echo "Could not determine the latest release from Maven Central - skipping visual comparison"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Baseline version: $baselineVersion"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "version=$baselineVersion" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run demo with released profiler (baseline)
+        if: steps.baseline.outputs.skip != 'true'
+        working-directory: ${{ env.DEMO_DIR }}
+        run: |
+          ./mvnw -q versions:use-dep-version \
+            -Dincludes=digital.pragmatech.testing:spring-test-profiler \
+            -DdepVersion="${{ steps.baseline.outputs.version }}" \
+            -DforceVersion=true -DgenerateBackupPoms=false
+          ./mvnw -q clean verify
+          mkdir -p "$GITHUB_WORKSPACE/visual-regression/work"
+          cp target/spring-test-profiler/latest.html "$GITHUB_WORKSPACE/visual-regression/work/baseline.html"
+          git checkout -- pom.xml
+
+      - name: Build PR profiler
+        if: steps.baseline.outputs.skip != 'true'
+        id: current
+        run: |
+          ./mvnw -q clean install -DskipTests
+          currentVersion="$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)"
+          echo "Current version: $currentVersion"
+          echo "version=$currentVersion" >> "$GITHUB_OUTPUT"
+
+      - name: Run demo with PR profiler (current)
+        if: steps.baseline.outputs.skip != 'true'
+        working-directory: ${{ env.DEMO_DIR }}
+        run: |
+          ./mvnw -q clean verify
+          cp target/spring-test-profiler/latest.html "$GITHUB_WORKSPACE/visual-regression/work/current.html"
+
+      - name: Install comparison harness
+        if: steps.baseline.outputs.skip != 'true'
+        working-directory: visual-regression
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Compare reports
+        if: steps.baseline.outputs.skip != 'true'
+        working-directory: visual-regression
+        run: |
+          node compare-reports.mjs \
+            --baseline work/baseline.html \
+            --current work/current.html \
+            --out work/out \
+            --baseline-version "${{ steps.baseline.outputs.version }}" \
+            --current-version "${{ steps.current.outputs.version }}"
+
+      - name: Upload comparison artifacts
+        if: always() && steps.baseline.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-report
+          path: visual-regression/work/
+          if-no-files-found: ignore
+
+      - name: Publish result
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          BASELINE_SKIPPED: ${{ steps.baseline.outputs.skip }}
+          BASELINE_VERSION: ${{ steps.baseline.outputs.version }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- spring-test-profiler-visual-regression -->';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            let body;
+            if (process.env.BASELINE_SKIPPED === 'true') {
+              body = [
+                marker,
+                '## Visual Regression Check',
+                '',
+                'Skipped - could not determine the latest release from Maven Central.',
+              ].join('\n');
+            } else {
+              let summary;
+              try {
+                summary = JSON.parse(fs.readFileSync('visual-regression/work/out/summary.json', 'utf8'));
+              } catch (error) {
+                summary = null;
+              }
+              if (summary === null) {
+                body = [
+                  marker,
+                  '## Visual Regression Check',
+                  '',
+                  `The comparison did not produce a result - see the [workflow run](${runUrl}) for details.`,
+                ].join('\n');
+              } else {
+                const emoji = { identical: '✅', minor: 'ℹ️', notable: '⚠️' }[summary.classification] ?? '❓';
+                const diffPercent = (summary.diffRatio * 100).toFixed(3);
+                body = [
+                  marker,
+                  '## Visual Regression Check',
+                  '',
+                  `${emoji} Report comparison against the latest Maven Central release: **${summary.classification}**`,
+                  '',
+                  '| | |',
+                  '|---|---|',
+                  `| Baseline (Maven Central) | \`${summary.baselineVersion}\` |`,
+                  `| Current (this PR) | \`${summary.currentVersion}\` |`,
+                  `| Differing pixels | ${summary.diffPixels.toLocaleString('en-US')} of ${summary.totalPixels.toLocaleString('en-US')} (${diffPercent}%) |`,
+                  '',
+                  `Before/after screenshots, \`diff.png\`, and both HTML reports are attached as the`,
+                  `\`visual-regression-report\` artifact on the [workflow run](${runUrl}).`,
+                  '',
+                  '_This check is informational and never blocks a merge. It shows how the report',
+                  'rendered from this PR differs from what the latest released version produces._',
+                ].join('\n');
+              }
+            }
+
+            await core.summary.addRaw(body.replace(marker, '')).write();
+
+            const isSameRepoPr =
+              context.eventName === 'pull_request' &&
+              context.payload.pull_request.head.repo.full_name === `${context.repo.owner}/${context.repo.repo}`;
+            if (!isSameRepoPr) {
+              core.info('Not a same-repository pull request - skipping PR comment (result is in the step summary).');
+              return;
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+            const existingComment = comments.find((comment) => comment.body?.includes(marker));
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              });
+            }

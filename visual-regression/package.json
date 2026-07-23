@@ -1,0 +1,14 @@
+{
+  "name": "spring-test-profiler-visual-regression",
+  "private": true,
+  "type": "module",
+  "description": "Visual comparison of the profiler HTML report between the PR build and the latest Maven Central release",
+  "scripts": {
+    "compare": "node compare-reports.mjs"
+  },
+  "dependencies": {
+    "pixelmatch": "^6.0.0",
+    "playwright": "^1.53.0",
+    "pngjs": "^7.0.0"
+  }
+}
