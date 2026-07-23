@@ -1287,6 +1287,22 @@ h2 {
     margin-bottom: 15px;
 }
 
+.timeline-incubating-hint {
+    background: #fdecea;
+    border-left: 4px solid #e74c3c;
+    color: #c0392b;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.timeline-incubating-hint a {
+    color: #c0392b;
+    font-weight: 600;
+}
+
 .timeline-legend {
     display: flex;
     flex-wrap: wrap;

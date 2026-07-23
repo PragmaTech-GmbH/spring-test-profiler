@@ -4,6 +4,12 @@
 
 <div th:fragment="context-timeline-section" class="section context-timeline-section">
   <h2>Context Cache Timeline</h2>
+  <div class="timeline-incubating-hint">
+    <strong>Incubating feature:</strong> this timeline is new and still evolving. Feedback is
+    very welcome - please
+    <a href="https://github.com/PragmaTech-GmbH/spring-test-profiler/issues" target="_blank"
+       rel="noopener noreferrer">let us know</a> what you think.
+  </div>
   <p class="section-description">
     Each bar is one lifetime of a Spring ApplicationContext in the TestContext cache: the dark
     segment is the context load (leading up to the moment it entered the cache), the light segment
