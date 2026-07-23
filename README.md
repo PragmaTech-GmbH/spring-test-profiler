@@ -4,13 +4,22 @@
   <img src="docs/resources/spring-test-profiler-logo-three-256x256.png" alt="Spring Test Profiler Logo" />
 </p>
 
-Spring's `TestContext` Context Caching is one of the **most** **unknown hidden gems of testing with Spring Boot** - it can cut your build times in half, and often even more. Yet most developers aren't aware of it, and once they discover it, they need a tool to tell them how to optimize their test suite. That's where the Spring Test Profiler comes in.
+Spring's `TestContext` Context Caching is one of the **most** **unknown hidden gems of testing with Spring Boot** - it can cut your build times in half, and often even more.
+
+Yet most developers aren't aware of it, and once they discover it, they need a tool to tell them how to optimize their test suite. That's where the Spring Test Profiler comes in.
 
 The Spring Test Profiler is a Spring Test utility that provides visualization and insights for Spring Test execution, with a focus on Spring context caching. It helps you identify optimization opportunities in your Spring Test suite to speed up your builds and ship to production faster and with more confidence.
 
 Fast build times = fast feedback and accelerated feature delivery!
 
 Find [more information](https://pragmatech.digital/products/spring-test-profiler/) about the profiler on our website.
+
+## How Context Caching Works
+
+Spring caches ApplicationContexts across tests: it X-rays each test's configuration, merges all customization points into a `MergedContextConfiguration`, and uses its hashCode as the cache key. Same key means instant reuse - one tiny difference means a slow, brand-new context. The report's theory section shows this as an animation:
+
+![Animation explaining Spring test context caching: Spring scans the test configuration, builds a cache key from the MergedContextConfiguration hashCode, and reuses matching ApplicationContexts](docs/context-caching-animation.gif)
+
 
 ## Features
 
