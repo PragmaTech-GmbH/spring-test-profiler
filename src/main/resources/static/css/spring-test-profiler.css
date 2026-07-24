@@ -155,6 +155,417 @@ h2 {
     text-decoration: underline;
 }
 
+/* Context caching explainer animation (X-ray scanner, 24s auto-loop) */
+.caching-animation {
+    margin: 25px auto;
+    max-width: 760px;
+}
+
+.caching-animation svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #ffffff;
+    border: 1px solid #ecf0f1;
+    border-radius: 8px;
+}
+
+.caching-animation text {
+    font-family: inherit;
+    text-anchor: middle;
+}
+
+.caching-animation .xray-scanner-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    fill: #7f8c8d;
+}
+
+.caching-animation .xray-scanner-frame {
+    fill: #f8f9fa;
+    stroke: #2c3e50;
+    stroke-width: 2;
+}
+
+.caching-animation .xray-test-card-one rect {
+    fill: #ffffff;
+    stroke: #3498db;
+    stroke-width: 2;
+}
+
+.caching-animation .xray-card-annotation {
+    font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+    font-size: 11px;
+    fill: #8e44ad;
+}
+
+.caching-animation .xray-card-name {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #2c3e50;
+}
+
+.caching-animation .xray-beam {
+    fill: #3498db;
+}
+
+.caching-animation .xray-pill rect {
+    fill: #eafaf1;
+    stroke: #27ae60;
+    stroke-width: 1.5;
+}
+
+.caching-animation .xray-pill text {
+    font-size: 11px;
+    fill: #1e8449;
+}
+
+.caching-animation .xray-fingerprint rect {
+    fill: #2c3e50;
+}
+
+.caching-animation .xray-fingerprint-type {
+    font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+    font-size: 11px;
+    fill: #ecf0f1;
+}
+
+.caching-animation .xray-fingerprint-hash,
+.caching-animation .xray-slot-hash {
+    font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.caching-animation .xray-hash-green {
+    fill: #2ecc71;
+}
+
+.caching-animation .xray-hash-blue {
+    fill: #3498db;
+}
+
+.caching-animation .xray-hash-orange {
+    fill: #e67e22;
+}
+
+.caching-animation .xray-shelf-label {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #7f8c8d;
+}
+
+.caching-animation .xray-slot rect {
+    fill: #ffffff;
+    stroke: #bdc3c7;
+    stroke-width: 1.5;
+}
+
+.caching-animation .xray-slot-empty {
+    fill: none;
+    stroke: #d5dbdb;
+    stroke-width: 1.5;
+    stroke-dasharray: 6 5;
+}
+
+.caching-animation .xray-slot-type {
+    font-size: 11px;
+    fill: #7f8c8d;
+}
+
+.caching-animation .xray-hit-glow {
+    fill: rgba(39, 174, 96, 0.12);
+    stroke: #27ae60;
+    stroke-width: 3;
+}
+
+.caching-animation .xray-hit-note {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #27ae60;
+}
+
+.caching-animation .xray-miss-flash rect {
+    fill: rgba(231, 76, 60, 0.08);
+    stroke: #e74c3c;
+    stroke-width: 3;
+}
+
+.caching-animation .xray-miss-note {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #e74c3c;
+}
+
+.caching-animation .xray-gear {
+    font-size: 34px;
+    fill: #7f8c8d;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.caching-animation .xray-build-note {
+    font-size: 12px;
+    font-weight: 700;
+    fill: #e67e22;
+}
+
+.caching-animation .xray-outro-glow rect {
+    fill: none;
+    stroke: #3498db;
+    stroke-width: 3;
+}
+
+/* Animated elements share one 24s cycle; each keyframe block carves out its scene window */
+.caching-animation .xray-test-card-one {
+    opacity: 0;
+    animation: xrayTestCardOne 24s ease-in-out infinite;
+}
+
+.caching-animation .xray-beam {
+    opacity: 0;
+    animation: xrayBeam 24s linear infinite;
+}
+
+.caching-animation .xray-pill {
+    opacity: 0;
+}
+
+.caching-animation .xray-pill-1 { animation: xrayPillOne 24s ease-in-out infinite; }
+.caching-animation .xray-pill-2 { animation: xrayPillTwo 24s ease-in-out infinite; }
+.caching-animation .xray-pill-3 { animation: xrayPillThree 24s ease-in-out infinite; }
+.caching-animation .xray-pill-4 { animation: xrayPillFour 24s ease-in-out infinite; }
+.caching-animation .xray-pill-5 { animation: xrayPillFive 24s ease-in-out infinite; }
+.caching-animation .xray-pill-6 { animation: xrayPillSix 24s ease-in-out infinite; }
+
+.caching-animation .xray-fingerprint-one {
+    opacity: 0;
+    animation: xrayFingerprintOne 24s ease-in-out infinite;
+}
+
+.caching-animation .xray-fingerprint-two {
+    opacity: 0;
+    animation: xrayFingerprintTwo 24s ease-in-out infinite;
+}
+
+.caching-animation .xray-hit-glow,
+.caching-animation .xray-hit-note {
+    opacity: 0;
+    animation: xrayHitPulse 24s ease-in-out infinite;
+}
+
+.caching-animation .xray-miss-flash,
+.caching-animation .xray-miss-note {
+    opacity: 0;
+    animation: xrayMissFlash 24s ease-in-out infinite;
+}
+
+.caching-animation .xray-gear {
+    opacity: 0;
+    animation: xrayGear 24s linear infinite;
+}
+
+.caching-animation .xray-build-note {
+    opacity: 0;
+    animation: xrayBuildNote 24s ease-in-out infinite;
+}
+
+.caching-animation .xray-slot-three {
+    opacity: 0;
+    animation: xraySlotThree 24s ease-in-out infinite;
+}
+
+.caching-animation .xray-outro-glow {
+    opacity: 0;
+    animation: xrayOutroGlow 24s ease-in-out infinite;
+}
+
+@keyframes xrayTestCardOne {
+    0% { opacity: 0; transform: translateX(0); }
+    2%, 4% { opacity: 1; transform: translateX(0); }
+    13% { transform: translateX(275px); }
+    34% { opacity: 1; transform: translateX(275px); }
+    38%, 100% { opacity: 0; transform: translateX(275px); }
+}
+
+@keyframes xrayBeam {
+    0%, 15% { opacity: 0; transform: translateX(0); }
+    17% { opacity: 0.8; }
+    33% { opacity: 0.8; transform: translateX(148px); }
+    35%, 100% { opacity: 0; transform: translateX(148px); }
+}
+
+@keyframes xrayPillOne {
+    0%, 17% { opacity: 0; }
+    18.5%, 38% { opacity: 1; }
+    42%, 100% { opacity: 0; }
+}
+
+@keyframes xrayPillTwo {
+    0%, 20% { opacity: 0; }
+    21.5%, 38% { opacity: 1; }
+    42%, 100% { opacity: 0; }
+}
+
+@keyframes xrayPillThree {
+    0%, 23% { opacity: 0; }
+    24.5%, 38% { opacity: 1; }
+    42%, 100% { opacity: 0; }
+}
+
+@keyframes xrayPillFour {
+    0%, 26% { opacity: 0; }
+    27.5%, 38% { opacity: 1; }
+    42%, 100% { opacity: 0; }
+}
+
+@keyframes xrayPillFive {
+    0%, 29% { opacity: 0; }
+    30.5%, 38% { opacity: 1; }
+    42%, 100% { opacity: 0; }
+}
+
+@keyframes xrayPillSix {
+    0%, 32% { opacity: 0; }
+    33.5%, 38% { opacity: 1; }
+    42%, 100% { opacity: 0; }
+}
+
+@keyframes xrayFingerprintOne {
+    0%, 38% { opacity: 0; transform: translate(0, 0); }
+    42% { opacity: 1; }
+    50% { transform: translate(0, 0); }
+    55% { transform: translate(-170px, 26px); }
+    62% { opacity: 1; }
+    66%, 100% { opacity: 0; transform: translate(-170px, 26px); }
+}
+
+@keyframes xrayHitPulse {
+    0%, 54% { opacity: 0; }
+    56% { opacity: 1; }
+    58% { opacity: 0.35; }
+    60%, 64% { opacity: 1; }
+    67%, 100% { opacity: 0; }
+}
+
+@keyframes xrayFingerprintTwo {
+    0%, 66% { opacity: 0; transform: translate(0, 0); }
+    69% { opacity: 1; }
+    70% { transform: translate(0, 0); }
+    74% { transform: translate(170px, 26px); }
+    78% { opacity: 1; }
+    81%, 100% { opacity: 0; transform: translate(170px, 26px); }
+}
+
+@keyframes xrayMissFlash {
+    0%, 73% { opacity: 0; }
+    74.5% { opacity: 1; }
+    76% { opacity: 0.3; }
+    77.5%, 79% { opacity: 1; }
+    81%, 100% { opacity: 0; }
+}
+
+@keyframes xrayGear {
+    0%, 76% { opacity: 0; transform: rotate(0deg); }
+    78% { opacity: 1; }
+    82% { opacity: 1; transform: rotate(300deg); }
+    84%, 100% { opacity: 0; transform: rotate(360deg); }
+}
+
+@keyframes xrayBuildNote {
+    0%, 76% { opacity: 0; }
+    78%, 83% { opacity: 1; }
+    85%, 100% { opacity: 0; }
+}
+
+@keyframes xraySlotThree {
+    0%, 81% { opacity: 0; }
+    84%, 100% { opacity: 1; }
+}
+
+@keyframes xrayOutroGlow {
+    0%, 86% { opacity: 0; }
+    88% { opacity: 0.9; }
+    92% { opacity: 0.4; }
+    96% { opacity: 0.9; }
+    100% { opacity: 0; }
+}
+
+/* Captions cross-fade in sync with the scenes */
+.caching-animation-captions {
+    position: relative;
+    min-height: 48px;
+    margin-top: 12px;
+}
+
+.caching-animation-captions .xray-caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #2c3e50;
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0;
+}
+
+.caching-animation-captions .xray-caption-1 { animation: xrayCaptionOne 24s ease-in-out infinite; }
+.caching-animation-captions .xray-caption-2 { animation: xrayCaptionTwo 24s ease-in-out infinite; }
+.caching-animation-captions .xray-caption-3 { animation: xrayCaptionThree 24s ease-in-out infinite; }
+.caching-animation-captions .xray-caption-4 { animation: xrayCaptionFour 24s ease-in-out infinite; }
+.caching-animation-captions .xray-caption-5 { animation: xrayCaptionFive 24s ease-in-out infinite; }
+.caching-animation-captions .xray-caption-6 { animation: xrayCaptionSix 24s ease-in-out infinite; }
+
+@keyframes xrayCaptionOne {
+    0% { opacity: 0; }
+    2%, 13% { opacity: 1; }
+    16%, 100% { opacity: 0; }
+}
+
+@keyframes xrayCaptionTwo {
+    0%, 15% { opacity: 0; }
+    18%, 33% { opacity: 1; }
+    36%, 100% { opacity: 0; }
+}
+
+@keyframes xrayCaptionThree {
+    0%, 35% { opacity: 0; }
+    38%, 48% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+@keyframes xrayCaptionFour {
+    0%, 50% { opacity: 0; }
+    53%, 63% { opacity: 1; }
+    66%, 100% { opacity: 0; }
+}
+
+@keyframes xrayCaptionFive {
+    0%, 65% { opacity: 0; }
+    68%, 82% { opacity: 1; }
+    85%, 100% { opacity: 0; }
+}
+
+@keyframes xrayCaptionSix {
+    0%, 85% { opacity: 0; }
+    88%, 98% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Static fallback frame for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .caching-animation * {
+        animation: none !important;
+    }
+
+    .caching-animation .xray-fingerprint-one,
+    .caching-animation .xray-slot-three,
+    .caching-animation-captions .xray-caption-3 {
+        opacity: 1;
+    }
+}
+
 .execution-info {
     background: white;
     border-radius: 8px;

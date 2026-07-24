@@ -12,6 +12,110 @@
         <div class="theory-content" id="theory-content" style="display: none;">
             <p>Spring Test Framework provides <strong>context caching</strong> to improve test performance by reusing ApplicationContext instances across multiple test classes when they share the same configuration.</p>
 
+            <div class="caching-animation" aria-label="Animation showing how Spring builds a cache key from the test configuration and reuses matching ApplicationContexts">
+                <svg viewBox="0 0 760 340" role="img" focusable="false">
+                    <!-- X-ray scanner -->
+                    <text x="380" y="20" class="xray-scanner-label">SPRING X-RAY</text>
+                    <rect x="300" y="28" width="160" height="96" rx="10" class="xray-scanner-frame"/>
+
+                    <!-- Scene 1: test class card slides into the scanner -->
+                    <g class="xray-test-card-one">
+                        <rect x="30" y="48" width="150" height="56" rx="8"/>
+                        <text x="105" y="72" class="xray-card-annotation">@SpringBootTest</text>
+                        <text x="105" y="92" class="xray-card-name">OrderControllerTest</text>
+                    </g>
+
+                    <!-- Scene 2: scan beam -->
+                    <rect x="306" y="34" width="6" height="84" class="xray-beam"/>
+
+                    <!-- Scene 2: detected customization points -->
+                    <g class="xray-pill xray-pill-1">
+                        <rect x="80" y="138" width="150" height="24" rx="12"/>
+                        <text x="155" y="154">&#10003; Context Loader</text>
+                    </g>
+                    <g class="xray-pill xray-pill-2">
+                        <rect x="305" y="138" width="150" height="24" rx="12"/>
+                        <text x="380" y="154">&#10003; Config Classes</text>
+                    </g>
+                    <g class="xray-pill xray-pill-3">
+                        <rect x="530" y="138" width="150" height="24" rx="12"/>
+                        <text x="605" y="154">&#10003; Active Profiles</text>
+                    </g>
+                    <g class="xray-pill xray-pill-4">
+                        <rect x="80" y="170" width="150" height="24" rx="12"/>
+                        <text x="155" y="186">&#10003; Property Sources</text>
+                    </g>
+                    <g class="xray-pill xray-pill-5">
+                        <rect x="305" y="170" width="150" height="24" rx="12"/>
+                        <text x="380" y="186">&#10003; Initializers</text>
+                    </g>
+                    <g class="xray-pill xray-pill-6">
+                        <rect x="530" y="170" width="150" height="24" rx="12"/>
+                        <text x="605" y="186">&#10003; Customizers</text>
+                    </g>
+
+                    <!-- Scene 3 + 4: fingerprint card (cache hit) -->
+                    <g class="xray-fingerprint xray-fingerprint-one">
+                        <rect x="270" y="142" width="220" height="58" rx="8"/>
+                        <text x="380" y="166" class="xray-fingerprint-type">MergedContextConfiguration</text>
+                        <text x="380" y="188" class="xray-fingerprint-hash xray-hash-green">hashCode: #a3f19c</text>
+                    </g>
+
+                    <!-- Scene 5: second fingerprint card (cache miss) -->
+                    <g class="xray-fingerprint xray-fingerprint-two">
+                        <rect x="270" y="142" width="220" height="58" rx="8"/>
+                        <text x="380" y="166" class="xray-fingerprint-type">MergedContextConfiguration</text>
+                        <text x="380" y="188" class="xray-fingerprint-hash xray-hash-orange">hashCode: #f07d2b</text>
+                    </g>
+
+                    <!-- Context cache shelf -->
+                    <text x="380" y="228" class="xray-shelf-label">Context Cache</text>
+                    <g class="xray-slot">
+                        <rect x="135" y="240" width="150" height="54" rx="8"/>
+                        <text x="210" y="262" class="xray-slot-type">ApplicationContext</text>
+                        <text x="210" y="281" class="xray-slot-hash xray-hash-green">#a3f19c</text>
+                    </g>
+                    <g class="xray-slot">
+                        <rect x="305" y="240" width="150" height="54" rx="8"/>
+                        <text x="380" y="262" class="xray-slot-type">ApplicationContext</text>
+                        <text x="380" y="281" class="xray-slot-hash xray-hash-blue">#77d2e1</text>
+                    </g>
+                    <rect x="475" y="240" width="150" height="54" rx="8" class="xray-slot-empty"/>
+                    <g class="xray-slot xray-slot-three">
+                        <rect x="475" y="240" width="150" height="54" rx="8"/>
+                        <text x="550" y="262" class="xray-slot-type">ApplicationContext</text>
+                        <text x="550" y="281" class="xray-slot-hash xray-hash-orange">#f07d2b</text>
+                    </g>
+
+                    <!-- Scene 4: cache hit highlight -->
+                    <rect x="135" y="240" width="150" height="54" rx="8" class="xray-hit-glow"/>
+                    <text x="210" y="316" class="xray-hit-note">&#9889; reused instantly</text>
+
+                    <!-- Scene 5: cache miss flash and slow build -->
+                    <g class="xray-miss-flash">
+                        <rect x="135" y="240" width="150" height="54" rx="8"/>
+                        <rect x="305" y="240" width="150" height="54" rx="8"/>
+                    </g>
+                    <text x="380" y="316" class="xray-miss-note">&#10007; no match in cache</text>
+                    <text x="550" y="222" class="xray-gear">&#9881;</text>
+                    <text x="550" y="316" class="xray-build-note">&#128034; building new context&#8230;</text>
+
+                    <!-- Scene 6: outro pulse on both freshly used contexts -->
+                    <g class="xray-outro-glow">
+                        <rect x="135" y="240" width="150" height="54" rx="8"/>
+                        <rect x="475" y="240" width="150" height="54" rx="8"/>
+                    </g>
+                </svg>
+                <div class="caching-animation-captions">
+                    <span class="xray-caption xray-caption-1">Every Spring test needs an ApplicationContext - and starting one from scratch is expensive.</span>
+                    <span class="xray-caption xray-caption-2">Spring X-rays the test setup and collects every customization point that shapes the context.</span>
+                    <span class="xray-caption xray-caption-3">The result is a MergedContextConfiguration - its hashCode becomes the cache key.</span>
+                    <span class="xray-caption xray-caption-4">Same key already in the cache? The existing context is reused instantly.</span>
+                    <span class="xray-caption xray-caption-5">One tiny difference creates a new key - and a slow, brand-new context.</span>
+                    <span class="xray-caption xray-caption-6">Spring Test Profiler shows you how many contexts your suite creates - and why.</span>
+                </div>
+            </div>
+
             <h3>How Context Caching Works</h3>
             <p>Spring generates a <strong>cache key</strong> based on:</p>
             <ul>

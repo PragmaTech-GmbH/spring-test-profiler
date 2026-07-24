@@ -30,6 +30,8 @@ replay_pid*
 
 .idea
 
+# Claude
+.claude/worktrees
 **/.claude/settings.local.json
 
 ### Java ###
