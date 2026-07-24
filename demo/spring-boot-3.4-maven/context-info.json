@@ -1,4 +1,4 @@
 {
   "description": "Expected Spring Test Profiler metrics for this demo. Verified in CI against target/spring-test-profiler/results.json after the test suite ran.",
-  "expectedContextsCreated": 4
+  "expectedContextsCreated": 6
 }
