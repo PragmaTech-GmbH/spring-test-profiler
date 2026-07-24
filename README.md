@@ -157,6 +157,38 @@ tooling:
 jq '.contextsCreated' target/spring-test-profiler/results.json
 ```
 
+#### Guard Your Context Count in CI
+
+Once you have optimized your test suite, you can pin the expected number of created contexts and
+fail the build when it regresses (for example when someone introduces a new `@DirtiesContext` or
+an accidental context configuration difference). Run this after your test suite, e.g. as a CI
+step:
+
+```bash
+expectedContexts=3
+actualContexts=$(jq -r '.contextsCreated' target/spring-test-profiler/results.json)
+
+if [ "$actualContexts" != "$expectedContexts" ]; then
+  echo "Expected $expectedContexts Spring contexts but $actualContexts were created"
+  exit 1
+fi
+```
+
+Other metrics work the same way, for example alerting when context creation time exceeds a budget:
+
+```bash
+totalContextCreationTimeMs=$(jq -r '.totalContextCreationTimeMs' target/spring-test-profiler/results.json)
+
+if [ "$totalContextCreationTimeMs" -gt 60000 ]; then
+  echo "Context creation took ${totalContextCreationTimeMs}ms, exceeding the 60s budget"
+  exit 1
+fi
+```
+
+This repository uses the same approach for its demo projects: each demo pins its expected context
+count in a `context-info.json` file, and the CI pipeline verifies the generated `results.json`
+against it with [`.github/scripts/verify-profiler-json.sh`](.github/scripts/verify-profiler-json.sh).
+
 ### 5. Add Custom Context Customizer Descriptions
 
 Spring Test Profiler can show richer context customizer details when your project exposes a
