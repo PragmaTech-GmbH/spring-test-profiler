@@ -29,14 +29,14 @@
   <!-- Context Caching Statistics Fragment -->
   <div th:replace="~{fragments/caching :: caching-section(${cacheStats}, ${contextCacheTracker})}"></div>
 
+  <!-- Context Cache Timeline Fragment -->
+  <div th:replace="~{fragments/context-timeline :: context-timeline-section}"></div>
+
   <!-- Context Comparison Visualizer Fragment -->
   <div th:replace="~{fragments/context-comparison :: context-comparison-section}"></div>
 
   <!-- Optimization Recommendations Fragment -->
   <!--  <div th:replace="~{fragments/optimization :: optimization-section(${optimizationStats})}"></div>-->
-
-  <!-- Timeline Visualization Fragment -->
-  <!--  <div th:replace="~{fragments/timeline :: timeline-section(${timelineData}, ${jsonHelper})}"></div>-->
 
   <!-- Context Configurations Fragment -->
   <div th:replace="~{fragments/configurations :: configurations-section}"></div>
@@ -70,6 +70,7 @@
 </footer>
 
 <script type="application/json" id="context-statistics-json" th:utext="${contextStatisticsJson}">[]</script>
+<script type="application/json" id="context-timeline-json" th:utext="${contextTimelineJson}">{}</script>
 <script th:utext="${inlineJs}"></script>
 </body>
 </html>

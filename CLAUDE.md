@@ -65,6 +65,15 @@ mvn clean verify
 # View reports at: target/spring-test-profiler/latest.html
 ```
 
+### Visual Regression Check
+
+```bash
+# Compare the report rendered from the local working tree against the latest Maven Central release
+./visual-regression/run-local.sh
+```
+
+The same comparison runs on pull requests via `.github/workflows/visual-regression.yml` (report-only, never blocks a merge).
+
 ### Development Testing
 
 ```bash

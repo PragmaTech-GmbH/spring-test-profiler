@@ -1,11 +1,13 @@
 package digital.pragmatech.testing.reporting;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,10 +15,10 @@ import java.util.Set;
 import digital.pragmatech.testing.ContextCacheEntry;
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.ContextIdGenerator;
+import digital.pragmatech.testing.ContextLifespan;
 import digital.pragmatech.testing.SpringContextStatistics;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TestStatus;
-import digital.pragmatech.testing.TimelineData;
 import digital.pragmatech.testing.extensions.ContextCustomizerFormatter;
 import digital.pragmatech.testing.util.SimpleJsonWriter;
 
@@ -290,11 +292,98 @@ public class TemplateHelpers {
       }
     }
 
-    public String timelineEventsToJson(TimelineData timelineData) {
-      if (timelineData == null || timelineData.events() == null) {
-        return "[]";
+    /**
+     * Builds the JSON payload for the context cache timeline chart. All timestamps are epoch
+     * milliseconds (SimpleJsonWriter serializes Instant with second granularity only, which is too
+     * coarse for short test runs).
+     */
+    public String contextTimelineToJson(
+        ContextCacheTracker contextCacheTracker,
+        TestExecutionTracker executionTracker,
+        int maxCacheSize) {
+      if (contextCacheTracker == null) {
+        return "{}";
       }
-      return toJson(timelineData.events());
+
+      List<Map<String, Object>> contexts = new ArrayList<>();
+      long earliestSegmentStartMs = Long.MAX_VALUE;
+      long latestSegmentEndMs = Long.MIN_VALUE;
+
+      List<ContextCacheEntry> createdEntries =
+          contextCacheTracker.getAllEntries().stream()
+              .filter(ContextCacheEntry::isCreated)
+              .filter(entry -> !entry.getLifespans().isEmpty())
+              .sorted(
+                  Comparator.comparing(
+                      entry -> entry.getLifespans().get(0).getCreationTime(),
+                      Comparator.nullsLast(Comparator.naturalOrder())))
+              .toList();
+
+      for (ContextCacheEntry entry : createdEntries) {
+        List<Map<String, Object>> segments = new ArrayList<>();
+        for (ContextLifespan lifespan : entry.getLifespans()) {
+          if (lifespan.getCreationTime() == null) {
+            continue;
+          }
+          long startMs = lifespan.getCreationTime().toEpochMilli();
+          Long removedMs =
+              lifespan.getRemovalTime() != null ? lifespan.getRemovalTime().toEpochMilli() : null;
+
+          Map<String, Object> segment = new LinkedHashMap<>();
+          segment.put("startMs", startMs);
+          segment.put("loadMs", lifespan.getLoadTimeMs());
+          segment.put("removedMs", removedMs);
+          segment.put(
+              "removalReason",
+              lifespan.getRemovalReason() != null ? lifespan.getRemovalReason().name() : null);
+          segments.add(segment);
+
+          earliestSegmentStartMs = Math.min(earliestSegmentStartMs, startMs);
+          latestSegmentEndMs =
+              Math.max(latestSegmentEndMs, removedMs != null ? removedMs : startMs);
+        }
+        if (segments.isEmpty()) {
+          continue;
+        }
+
+        Map<String, Object> context = new LinkedHashMap<>();
+        context.put("contextKey", ContextIdGenerator.getContextId(entry.getConfiguration()));
+        context.put("testClassCount", entry.getTestClasses().size());
+        context.put("testClasses", new ArrayList<>(entry.getTestClasses()));
+        context.put("beanCount", entry.getBeanDefinitionCount());
+        context.put("segments", segments);
+        contexts.add(context);
+      }
+
+      Instant overallStart =
+          executionTracker != null ? executionTracker.getOverallStartTime() : null;
+      Instant overallEnd = executionTracker != null ? executionTracker.getOverallEndTime() : null;
+
+      Long testRunStartMs = overallStart != null ? overallStart.toEpochMilli() : null;
+      if (earliestSegmentStartMs != Long.MAX_VALUE
+          && (testRunStartMs == null || earliestSegmentStartMs < testRunStartMs)) {
+        testRunStartMs = earliestSegmentStartMs;
+      }
+
+      Long testRunEndMs = overallEnd != null ? overallEnd.toEpochMilli() : null;
+      if (testRunEndMs == null) {
+        testRunEndMs =
+            latestSegmentEndMs != Long.MIN_VALUE
+                ? latestSegmentEndMs
+                : Instant.now().toEpochMilli();
+      }
+
+      Map<String, Object> timeline = new LinkedHashMap<>();
+      timeline.put("testRunStartMs", testRunStartMs);
+      timeline.put("testRunEndMs", testRunEndMs);
+      timeline.put("maxCacheSize", maxCacheSize);
+      timeline.put("contexts", contexts);
+
+      try {
+        return SimpleJsonWriter.toJson(timeline);
+      } catch (Exception e) {
+        return "{}";
+      }
     }
 
     public String contextStatisticsToJson(ContextCacheTracker contextCacheTracker) {
