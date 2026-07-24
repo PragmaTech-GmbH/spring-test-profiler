@@ -38,6 +38,7 @@ release:
         contributors:
           - '[bot]'
           - 'GitHub'
+          - 'Claude'
 deploy:
   maven:
     mavenCentral:
