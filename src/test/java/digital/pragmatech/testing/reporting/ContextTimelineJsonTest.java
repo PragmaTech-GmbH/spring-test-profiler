@@ -6,6 +6,7 @@ import digital.pragmatech.testing.ContextCacheEntry;
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.ContextRemovalReason;
 import digital.pragmatech.testing.TestExecutionTracker;
+import digital.pragmatech.testing.TestStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.MergedContextConfiguration;
@@ -98,6 +99,39 @@ class ContextTimelineJsonTest {
     assertTrue(json.contains("\"loadMs\":300"), json);
     // The second lifespan is still open
     assertTrue(json.contains("\"removedMs\":null"), json);
+  }
+
+  @Test
+  void shouldEmitTestExecutionsForContext() {
+    executionTracker.startTracking();
+    MergedContextConfiguration config = createConfig(Object.class);
+    contextCacheTracker.recordTestClassForContext(config, "com.example.TestA");
+    contextCacheTracker.recordContextCreation(config, 500);
+    contextCacheTracker.recordTestMethodForContext(config, "com.example.TestA", "shouldWork");
+    executionTracker.recordTestClassStart("com.example.TestA");
+    executionTracker.recordTestMethodStart("com.example.TestA", "shouldWork");
+    executionTracker.recordTestMethodEnd("com.example.TestA", "shouldWork", TestStatus.PASSED);
+    executionTracker.stopTracking();
+
+    String json = jsonHelper.contextTimelineToJson(contextCacheTracker, executionTracker, 32);
+
+    assertTrue(json.contains("\"testExecutions\":["), json);
+    assertTrue(json.contains("\"testClass\":\"com.example.TestA\""), json);
+    assertTrue(json.contains("\"testMethod\":\"shouldWork\""), json);
+    assertTrue(json.contains("\"status\":\"PASSED\""), json);
+  }
+
+  @Test
+  void shouldEmitEmptyTestExecutionsWithoutExecutionTracker() {
+    executionTracker.startTracking();
+    MergedContextConfiguration config = createConfig(Object.class);
+    contextCacheTracker.recordTestClassForContext(config, "com.example.TestA");
+    contextCacheTracker.recordContextCreation(config, 500);
+    executionTracker.stopTracking();
+
+    String json = jsonHelper.contextTimelineToJson(contextCacheTracker, null, 32);
+
+    assertTrue(json.contains("\"testExecutions\":[]"), json);
   }
 
   @Test

@@ -352,6 +352,7 @@ public class TemplateHelpers {
         context.put("testClasses", new ArrayList<>(entry.getTestClasses()));
         context.put("beanCount", entry.getBeanDefinitionCount());
         context.put("segments", segments);
+        context.put("testExecutions", buildTestExecutions(entry, executionTracker));
         contexts.add(context);
       }
 
@@ -384,6 +385,52 @@ public class TemplateHelpers {
       } catch (Exception e) {
         return "{}";
       }
+    }
+
+    /**
+     * Collects the individual test method executions that ran on the given context, with epoch
+     * millisecond timestamps matching the segment convention of the timeline payload.
+     */
+    private List<Map<String, Object>> buildTestExecutions(
+        ContextCacheEntry entry, TestExecutionTracker executionTracker) {
+      List<Map<String, Object>> testExecutions = new ArrayList<>();
+      if (executionTracker == null) {
+        return testExecutions;
+      }
+
+      Map<String, TestExecutionTracker.TestClassMetrics> classMetrics =
+          executionTracker.getClassMetrics();
+      for (String testMethodId : entry.getTestMethods()) {
+        String[] parts = testMethodId.split("#");
+        if (parts.length != 2) {
+          continue;
+        }
+        TestExecutionTracker.TestClassMetrics classMetric = classMetrics.get(parts[0]);
+        if (classMetric == null) {
+          continue;
+        }
+        TestExecutionTracker.TestMethodMetrics methodMetric =
+            classMetric.getMethodMetrics().get(parts[1]);
+        if (methodMetric == null || methodMetric.getStartTime() == null) {
+          continue;
+        }
+
+        long startMs = methodMetric.getStartTime().toEpochMilli();
+        long endMs =
+            methodMetric.getEndTime() != null ? methodMetric.getEndTime().toEpochMilli() : startMs;
+
+        Map<String, Object> execution = new LinkedHashMap<>();
+        execution.put("testClass", parts[0]);
+        execution.put("testMethod", parts[1]);
+        execution.put("startMs", startMs);
+        execution.put("endMs", endMs);
+        execution.put(
+            "status", methodMetric.getStatus() != null ? methodMetric.getStatus().name() : null);
+        testExecutions.add(execution);
+      }
+
+      testExecutions.sort(Comparator.comparingLong(execution -> (long) execution.get("startMs")));
+      return testExecutions;
     }
 
     public String contextStatisticsToJson(ContextCacheTracker contextCacheTracker) {

@@ -389,6 +389,58 @@ describe('Context Cache Timeline', () => {
       expect(result.rows.map(row => row.contextKey)).toEqual(['context-0', 'context-1']);
     });
 
+    test('should attach test executions to the row of their lifespan', () => {
+      const result = buildTimelineRows({
+        testRunStartMs: baseTimeMs,
+        testRunEndMs: baseTimeMs + 60000,
+        contexts: [
+          {
+            contextKey: 'context-0',
+            segments: [
+              { startMs: baseTimeMs + 1000, loadMs: 500, removedMs: baseTimeMs + 10000, removalReason: 'DIRTIES_CONTEXT' },
+              { startMs: baseTimeMs + 11000, loadMs: 400, removedMs: null, removalReason: null }
+            ],
+            testExecutions: [
+              { testClass: 'com.example.TestA', testMethod: 'first', startMs: baseTimeMs + 2000, endMs: baseTimeMs + 2500, status: 'PASSED' },
+              { testClass: 'com.example.TestA', testMethod: 'second', startMs: baseTimeMs + 12000, endMs: baseTimeMs + 12100, status: 'FAILED' }
+            ]
+          }
+        ]
+      });
+
+      expect(result.rows[0].testExecutions).toHaveLength(1);
+      expect(result.rows[0].testExecutions[0]).toMatchObject({
+        testMethod: 'first',
+        relStartMs: 2000,
+        relEndMs: 2500,
+        durationMs: 500,
+        status: 'PASSED'
+      });
+      expect(result.rows[1].testExecutions).toHaveLength(1);
+      expect(result.rows[1].testExecutions[0].testMethod).toBe('second');
+    });
+
+    test('should fall back to the latest earlier lifespan for out-of-window executions', () => {
+      const result = buildTimelineRows({
+        testRunStartMs: baseTimeMs,
+        testRunEndMs: baseTimeMs + 60000,
+        contexts: [
+          {
+            contextKey: 'context-0',
+            segments: [
+              { startMs: baseTimeMs + 1000, loadMs: 500, removedMs: baseTimeMs + 5000, removalReason: 'DIRTIES_CONTEXT' }
+            ],
+            testExecutions: [
+              { testClass: 'com.example.TestA', testMethod: 'late', startMs: baseTimeMs + 7000, endMs: baseTimeMs + 7100, status: 'PASSED' }
+            ]
+          }
+        ]
+      });
+
+      expect(result.rows[0].testExecutions).toHaveLength(1);
+      expect(result.rows[0].testExecutions[0].testMethod).toBe('late');
+    });
+
     test('should fall back to segment bounds when run bounds are missing', () => {
       const result = buildTimelineRows({
         contexts: [

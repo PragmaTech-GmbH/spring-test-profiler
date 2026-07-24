@@ -1068,6 +1068,7 @@ function buildTimelineRows(timelineJson) {
   const rows = [];
   timelineJson.contexts.forEach(context => {
     const segments = Array.isArray(context.segments) ? context.segments : [];
+    const contextRows = [];
     segments.forEach((segment, segmentIndex) => {
       if (typeof segment.startMs !== 'number') {
         return;
@@ -1089,7 +1090,7 @@ function buildTimelineRows(timelineJson) {
       }
       relEndMs = Math.max(relEndMs, relStartMs);
 
-      rows.push({
+      contextRows.push({
         contextKey: context.contextKey,
         rowLabel:
           segmentIndex > 0 ? `${context.contextKey} (${segmentIndex + 1})` : context.contextKey,
@@ -1101,9 +1102,42 @@ function buildTimelineRows(timelineJson) {
         removalReason: removed ? segment.removalReason || null : null,
         startWallMs: segment.startMs,
         testClassCount: context.testClassCount || 0,
-        beanCount: context.beanCount || 0
+        beanCount: context.beanCount || 0,
+        testExecutions: []
       });
     });
+
+    // Attach each test execution to the lifespan row whose time window contains it
+    // (a context re-created after @DirtiesContext has one row per lifespan)
+    const executions = Array.isArray(context.testExecutions) ? context.testExecutions : [];
+    executions.forEach(execution => {
+      if (typeof execution.startMs !== 'number' || contextRows.length === 0) {
+        return;
+      }
+      const relStartMs = Math.max(0, execution.startMs - t0);
+      const relEndMs = Math.max(
+        relStartMs,
+        typeof execution.endMs === 'number' ? execution.endMs - t0 : relStartMs
+      );
+      let targetRow = contextRows.find(
+        row => relStartMs >= row.relLoadStartMs && relStartMs <= row.relEndMs
+      );
+      if (!targetRow) {
+        // Fall back to the latest lifespan that started before the test did
+        const started = contextRows.filter(row => row.relLoadStartMs <= relStartMs);
+        targetRow = started.length > 0 ? started[started.length - 1] : contextRows[0];
+      }
+      targetRow.testExecutions.push({
+        testClass: execution.testClass || '',
+        testMethod: execution.testMethod || '',
+        status: execution.status || null,
+        relStartMs,
+        relEndMs,
+        durationMs: relEndMs - relStartMs
+      });
+    });
+
+    rows.push(...contextRows);
   });
 
   rows.sort((a, b) => a.relLoadStartMs - b.relLoadStartMs);
@@ -1140,6 +1174,7 @@ class ContextCacheTimeline {
       aliveFill: 'rgba(41, 128, 185, 0.3)',
       aliveStroke: '#2980b9',
       removed: '#e74c3c',
+      testExecution: '#8e44ad',
       grid: '#ecf0f1',
       label: '#2c3e50'
     };
@@ -1164,6 +1199,7 @@ class ContextCacheTimeline {
     legendContainer.innerHTML = `
       <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-load"></span>Context load</span>
       <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-alive"></span>Alive in cache</span>
+      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-test"></span>Test execution</span>
       <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-removed"></span>Removed (@DirtiesContext / eviction)</span>
       <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-open"></span>Still cached at end of run</span>`;
   }
@@ -1299,23 +1335,63 @@ class ContextCacheTimeline {
       .on('mouseleave', function () {
         tooltip.style.display = 'none';
       });
+
+    // Test execution markers, drawn after the row hover target so they receive
+    // mouse events and can show their own per-test tooltip
+    const markerHeight = 8;
+    const markerY = barY + (barHeight - markerHeight) / 2;
+    rowGroups
+      .selectAll('.timeline-test-marker')
+      .data(row => row.testExecutions || [])
+      .enter()
+      .append('rect')
+      .attr('class', 'timeline-test-marker')
+      .attr('x', execution => xScale(execution.relStartMs))
+      .attr('y', markerY)
+      .attr('width', execution =>
+        Math.max(xScale(execution.relEndMs) - xScale(execution.relStartMs), 3)
+      )
+      .attr('height', markerHeight)
+      .attr('rx', 1)
+      .attr('fill', this.colors.testExecution)
+      .style('cursor', 'pointer')
+      .on('mousemove', function (event, execution) {
+        tooltip.innerHTML = self.buildTestTooltipHtml(execution, tickFormatter);
+        tooltip.style.display = 'block';
+        self.positionTooltip(tooltip, event);
+      })
+      .on('mouseleave', function () {
+        tooltip.style.display = 'none';
+      });
   }
 
   createTooltip() {
-    let tooltip = this.container.parentElement.querySelector('.timeline-tooltip');
+    // Attach to the section (position: relative) rather than the inner scroll
+    // container, so the tooltip is neither clipped nor mispositioned
+    const host = this.container.closest('.context-timeline-section') || this.container.parentElement;
+    let tooltip = host.querySelector('.timeline-tooltip');
     if (!tooltip) {
       tooltip = document.createElement('div');
       tooltip.className = 'timeline-tooltip';
       tooltip.style.display = 'none';
-      this.container.parentElement.appendChild(tooltip);
+      host.appendChild(tooltip);
     }
     return tooltip;
   }
 
   positionTooltip(tooltip, event) {
-    const sectionRect = this.container.parentElement.getBoundingClientRect();
-    const offsetX = event.clientX - sectionRect.left + 14;
-    const offsetY = event.clientY - sectionRect.top + 14;
+    // The tooltip is position: absolute, so measure against its offset parent -
+    // the element its left/top coordinates actually resolve against
+    const parentRect = (tooltip.offsetParent || document.body).getBoundingClientRect();
+    let offsetX = event.clientX - parentRect.left + 14;
+    const offsetY = event.clientY - parentRect.top + 14;
+
+    // Flip to the left of the cursor when the tooltip would overflow the section
+    const tooltipWidth = tooltip.offsetWidth;
+    if (offsetX + tooltipWidth > parentRect.width - 10) {
+      offsetX = Math.max(10, event.clientX - parentRect.left - tooltipWidth - 14);
+    }
+
     tooltip.style.left = `${offsetX}px`;
     tooltip.style.top = `${offsetY}px`;
   }
@@ -1328,12 +1404,22 @@ class ContextCacheTimeline {
     } else {
       removalLine = 'Alive until end of run';
     }
+    const testCount = Array.isArray(row.testExecutions) ? row.testExecutions.length : 0;
     return `
       <strong>${row.rowLabel}</strong><br>
       Load duration: ${formatTimelineDuration(row.loadMs)}<br>
       Added to cache at ${tickFormatter(row.relStartMs)} (${cachedWallClock})<br>
       ${removalLine}<br>
-      Test classes: ${row.testClassCount} | Beans: ${row.beanCount}`;
+      Test classes: ${row.testClassCount} | Tests run: ${testCount} | Beans: ${row.beanCount}`;
+  }
+
+  buildTestTooltipHtml(execution, tickFormatter) {
+    const simpleClassName = execution.testClass.split('.').pop();
+    const statusLine = execution.status ? `<br>Status: ${execution.status}` : '';
+    return `
+      <strong>${simpleClassName}.${execution.testMethod}</strong><br>
+      Started at ${tickFormatter(execution.relStartMs)}<br>
+      Duration: ${formatTimelineDuration(execution.durationMs)}${statusLine}`;
   }
 
   static removalReasonLabel(removalReason) {
