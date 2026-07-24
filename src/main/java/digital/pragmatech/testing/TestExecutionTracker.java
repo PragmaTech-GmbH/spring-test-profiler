@@ -119,6 +119,14 @@ public class TestExecutionTracker {
       return className;
     }
 
+    public Instant getStartTime() {
+      return startTime;
+    }
+
+    public Instant getEndTime() {
+      return endTime;
+    }
+
     public Duration getDuration() {
       if (startTime != null && endTime != null) {
         return Duration.between(startTime, endTime);
@@ -169,6 +177,14 @@ public class TestExecutionTracker {
 
     public String getMethodName() {
       return methodName;
+    }
+
+    public Instant getStartTime() {
+      return startTime;
+    }
+
+    public Instant getEndTime() {
+      return endTime;
     }
 
     public Duration getDuration() {

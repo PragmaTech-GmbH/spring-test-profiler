@@ -1036,8 +1036,8 @@ function formatTimelineDuration(durationMs) {
 
 /**
  * Transforms the embedded context timeline JSON into chart rows.
- * One row per cache lifespan (a context re-created after @DirtiesContext removal
- * produces multiple rows).
+ * One row per context; a context re-created after @DirtiesContext removal
+ * contributes multiple load/alive segments to the same row.
  * @param {object} timelineJson - Parsed #context-timeline-json payload
  * @returns {{t0: number, totalDurationMs: number, rows: Array}} Chart model
  */
@@ -1067,8 +1067,8 @@ function buildTimelineRows(timelineJson) {
 
   const rows = [];
   timelineJson.contexts.forEach(context => {
-    const segments = Array.isArray(context.segments) ? context.segments : [];
-    segments.forEach((segment, segmentIndex) => {
+    const segments = [];
+    (Array.isArray(context.segments) ? context.segments : []).forEach(segment => {
       if (typeof segment.startMs !== 'number') {
         return;
       }
@@ -1089,20 +1089,57 @@ function buildTimelineRows(timelineJson) {
       }
       relEndMs = Math.max(relEndMs, relStartMs);
 
-      rows.push({
-        contextKey: context.contextKey,
-        rowLabel:
-          segmentIndex > 0 ? `${context.contextKey} (${segmentIndex + 1})` : context.contextKey,
+      segments.push({
         relLoadStartMs,
         relStartMs,
         loadMs,
         relEndMs,
         removed,
-        removalReason: removed ? segment.removalReason || null : null,
-        startWallMs: segment.startMs,
-        testClassCount: context.testClassCount || 0,
-        beanCount: context.beanCount || 0
+        removalReason: removed ? segment.removalReason || null : null
       });
+    });
+    if (segments.length === 0) {
+      return;
+    }
+
+    // Test executions on this context; the first execution of each test class
+    // carries the class label shown above the bar
+    const labeledClasses = new Set();
+    const testExecutions = [];
+    (Array.isArray(context.testExecutions) ? context.testExecutions : []).forEach(execution => {
+      if (typeof execution.startMs !== 'number') {
+        return;
+      }
+      const relStartMs = Math.max(0, execution.startMs - t0);
+      const relEndMs = Math.max(
+        relStartMs,
+        typeof execution.endMs === 'number' ? execution.endMs - t0 : relStartMs
+      );
+      const testClass = execution.testClass || '';
+      const showLabel = !labeledClasses.has(testClass);
+      labeledClasses.add(testClass);
+      testExecutions.push({
+        testClass,
+        status: execution.status || null,
+        relStartMs,
+        relEndMs,
+        durationMs: relEndMs - relStartMs,
+        showLabel
+      });
+    });
+
+    rows.push({
+      contextKey: context.contextKey,
+      rowLabel: context.contextKey,
+      segments,
+      relLoadStartMs: Math.min(...segments.map(segment => segment.relLoadStartMs)),
+      relEndMs: Math.max(...segments.map(segment => segment.relEndMs)),
+      totalLoadMs: segments.reduce((sum, segment) => sum + segment.loadMs, 0),
+      removedCount: segments.filter(segment => segment.removed).length,
+      startWallMs: segments[0].relStartMs + t0,
+      testClassCount: context.testClassCount || 0,
+      beanCount: context.beanCount || 0,
+      testExecutions
     });
   });
 
@@ -1136,14 +1173,17 @@ class ContextCacheTimeline {
     }
 
     this.colors = {
-      load: '#2980b9',
-      aliveFill: 'rgba(41, 128, 185, 0.3)',
-      aliveStroke: '#2980b9',
       removed: '#e74c3c',
+      testExecution: '#2c3e50',
       grid: '#ecf0f1',
       label: '#2c3e50'
     };
-    this.layout = { labelGutter: 150, rowHeight: 26, barHeight: 16, axisHeight: 30, rightPadding: 20 };
+    // One color per context row, cycled in row order
+    this.palette = [
+      '#e74c3c', '#3498db', '#27ae60', '#f39c12', '#9b59b6',
+      '#e67e22', '#1abc9c', '#34495e', '#e91e63', '#ff5722'
+    ];
+    this.layout = { labelGutter: 150, rowHeight: 44, barHeight: 26, axisHeight: 30, rightPadding: 20 };
 
     this.renderLegend();
     this.render(chartModel);
@@ -1164,16 +1204,23 @@ class ContextCacheTimeline {
     legendContainer.innerHTML = `
       <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-load"></span>Context load</span>
       <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-alive"></span>Alive in cache</span>
-      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-removed"></span>Removed (@DirtiesContext / eviction)</span>
-      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-open"></span>Still cached at end of run</span>`;
+      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-test"></span>Test execution</span>
+      <span class="timeline-legend-item"><span class="timeline-legend-swatch timeline-legend-removed"></span>Removed (@DirtiesContext / eviction)</span>`;
   }
 
   render(chartModel) {
     const { rows, totalDurationMs, t0 } = chartModel;
     const { labelGutter, rowHeight, barHeight, axisHeight, rightPadding } = this.layout;
 
+    rows.forEach((row, index) => {
+      row.color = this.palette[index % this.palette.length];
+    });
+
     const containerWidth = Math.max(this.container.getBoundingClientRect().width || 0, 700);
-    const chartHeight = axisHeight + rows.length * rowHeight + 8;
+    // Top padding keeps the first row's test class labels from being clipped
+    const topPadding = 16;
+    const rowsHeight = rows.length * rowHeight;
+    const chartHeight = topPadding + rowsHeight + axisHeight + 26;
 
     const xScale = d3
       .scaleLinear()
@@ -1189,9 +1236,24 @@ class ContextCacheTimeline {
       .attr('aria-label', 'Timeline of Spring application contexts in the test context cache');
 
     const tickFormatter = timelineTickFormat(totalDurationMs);
-    const xAxis = d3.axisTop(xScale).ticks(8).tickFormat(tickFormatter).tickSizeOuter(0);
+    const xAxis = d3.axisBottom(xScale).ticks(8).tickFormat(tickFormatter).tickSizeOuter(0);
 
-    // Gridlines behind the bars
+    // Alternating lane backgrounds behind everything
+    svg
+      .append('g')
+      .attr('class', 'timeline-lanes')
+      .selectAll('rect')
+      .data(rows)
+      .enter()
+      .append('rect')
+      .attr('class', 'timeline-lane-bg')
+      .attr('x', labelGutter)
+      .attr('y', (row, index) => topPadding + index * rowHeight)
+      .attr('width', containerWidth - labelGutter - rightPadding)
+      .attr('height', rowHeight)
+      .attr('fill', (row, index) => (index % 2 === 0 ? '#f8f9fa' : '#ffffff'));
+
+    // Gridlines above the lane backgrounds, below the bars
     svg
       .append('g')
       .attr('class', 'timeline-grid')
@@ -1201,18 +1263,10 @@ class ContextCacheTimeline {
       .append('line')
       .attr('x1', tick => xScale(tick))
       .attr('x2', tick => xScale(tick))
-      .attr('y1', axisHeight)
-      .attr('y2', chartHeight - 4)
+      .attr('y1', topPadding)
+      .attr('y2', topPadding + rowsHeight)
       .attr('stroke', this.colors.grid)
       .attr('stroke-width', 1);
-
-    svg
-      .append('g')
-      .attr('class', 'timeline-axis')
-      .attr('transform', `translate(0, ${axisHeight})`)
-      .call(xAxis);
-
-    const tooltip = this.createTooltip();
 
     const rowGroups = svg
       .selectAll('.timeline-row')
@@ -1220,50 +1274,88 @@ class ContextCacheTimeline {
       .enter()
       .append('g')
       .attr('class', 'timeline-row')
-      .attr('transform', (row, index) => `translate(0, ${axisHeight + index * rowHeight})`);
+      .attr('transform', (row, index) => `translate(0, ${topPadding + index * rowHeight})`);
 
+    // Bottom axis with caption, matching "Time (relative to test suite start)"
+    svg
+      .append('g')
+      .attr('class', 'timeline-axis')
+      .attr('transform', `translate(0, ${topPadding + rowsHeight})`)
+      .call(xAxis);
+    svg
+      .append('text')
+      .attr('class', 'timeline-axis-caption')
+      .attr('x', labelGutter + (containerWidth - labelGutter - rightPadding) / 2)
+      .attr('y', topPadding + rowsHeight + axisHeight + 12)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#7f8c8d')
+      .style('font-size', '12px')
+      .text('Time (relative to test suite start)');
+
+    const tooltip = this.createTooltip();
     const barY = (rowHeight - barHeight) / 2;
 
-    // Alive-in-cache span (from cache entry until removal or run end, outlined so
-    // the extent stays crisp even with the light fill)
-    rowGroups
+    // One load + alive pair per lifespan segment, in the row's own color
+    const segmentGroups = rowGroups
+      .selectAll('.timeline-segment')
+      .data(row => row.segments.map(segment => ({ ...segment, color: row.color })))
+      .enter()
+      .append('g')
+      .attr('class', 'timeline-segment');
+
+    // Alive-in-cache span: light translucent version of the row color
+    segmentGroups
       .append('rect')
       .attr('class', 'timeline-bar-alive')
-      .attr('x', row => xScale(row.relStartMs))
+      .attr('x', segment => xScale(segment.relStartMs))
       .attr('y', barY)
-      .attr('width', row => Math.max(xScale(row.relEndMs) - xScale(row.relStartMs), 2))
+      .attr('width', segment => Math.max(xScale(segment.relEndMs) - xScale(segment.relStartMs), 2))
       .attr('height', barHeight)
-      .attr('rx', 2)
-      .attr('fill', this.colors.aliveFill)
-      .attr('stroke', this.colors.aliveStroke)
-      .attr('stroke-width', 1);
+      .attr('rx', 4)
+      .attr('fill', segment => segment.color)
+      .attr('fill-opacity', 0.35);
 
-    // Load phase (dark segment leading up to the cache entry)
-    rowGroups
+    // Load phase: saturated segment leading up to the cache entry
+    segmentGroups
       .append('rect')
       .attr('class', 'timeline-bar-load')
-      .attr('x', row => xScale(row.relLoadStartMs))
+      .attr('x', segment => xScale(segment.relLoadStartMs))
       .attr('y', barY)
-      .attr('width', row =>
-        row.loadMs > 0
-          ? Math.max(xScale(row.relStartMs) - xScale(row.relLoadStartMs), 2)
+      .attr('width', segment =>
+        segment.loadMs > 0
+          ? Math.max(xScale(segment.relStartMs) - xScale(segment.relLoadStartMs), 2)
           : 0
       )
       .attr('height', barHeight)
-      .attr('rx', 2)
-      .attr('fill', this.colors.load);
+      .attr('rx', 4)
+      .attr('fill', segment => segment.color);
 
-    // Bar end: solid red cap when removed, dashed edge when still cached at run end
-    rowGroups
+    // Load duration label inside the load segment when it is wide enough
+    segmentGroups
+      .filter(function (segment) {
+        return segment.loadMs > 0 && xScale(segment.relStartMs) - xScale(segment.relLoadStartMs) > 38;
+      })
+      .append('text')
+      .attr('class', 'timeline-load-label')
+      .attr('x', segment => xScale(segment.relLoadStartMs) + 6)
+      .attr('y', barY + barHeight / 2 + 4)
+      .attr('fill', '#ffffff')
+      .attr('font-size', '11px')
+      .attr('font-weight', 'bold')
+      .style('pointer-events', 'none')
+      .text(segment => formatTimelineDuration(segment.loadMs));
+
+    // Red cap where a lifespan was removed from the cache
+    segmentGroups
+      .filter(segment => segment.removed)
       .append('line')
       .attr('class', 'timeline-bar-end')
-      .attr('x1', row => xScale(row.relEndMs))
-      .attr('x2', row => xScale(row.relEndMs))
+      .attr('x1', segment => xScale(segment.relEndMs))
+      .attr('x2', segment => xScale(segment.relEndMs))
       .attr('y1', barY - 2)
       .attr('y2', barY + barHeight + 2)
-      .attr('stroke', row => (row.removed ? this.colors.removed : this.colors.aliveStroke))
-      .attr('stroke-width', row => (row.removed ? 3 : 1.5))
-      .attr('stroke-dasharray', row => (row.removed ? null : '3,3'));
+      .attr('stroke', this.colors.removed)
+      .attr('stroke-width', 3);
 
     // Row labels (clickable, scrolls to the context details)
     rowGroups
@@ -1299,23 +1391,99 @@ class ContextCacheTimeline {
       .on('mouseleave', function () {
         tooltip.style.display = 'none';
       });
+
+    // Test execution markers, drawn after the row hover target so they receive
+    // mouse events and can show their own per-test tooltip
+    const markerHeight = barHeight - 8;
+    const markerY = barY + (barHeight - markerHeight) / 2;
+    rowGroups
+      .selectAll('.timeline-test-marker')
+      .data(row => row.testExecutions || [])
+      .enter()
+      .append('rect')
+      .attr('class', 'timeline-test-marker')
+      .attr('x', execution => xScale(execution.relStartMs))
+      .attr('y', markerY)
+      .attr('width', execution =>
+        Math.max(xScale(execution.relEndMs) - xScale(execution.relStartMs), 4)
+      )
+      .attr('height', markerHeight)
+      .attr('rx', 2)
+      .attr('fill', this.colors.testExecution)
+      .attr('stroke', '#ffffff')
+      .attr('stroke-width', 1)
+      .style('cursor', 'pointer')
+      .on('mousemove', function (event, execution) {
+        tooltip.innerHTML = self.buildTestTooltipHtml(execution, tickFormatter);
+        tooltip.style.display = 'block';
+        self.positionTooltip(tooltip, event);
+      })
+      .on('mouseleave', function () {
+        tooltip.style.display = 'none';
+      });
+
+    // Duration label inside wide test execution markers
+    rowGroups
+      .selectAll('.timeline-test-marker-duration')
+      .data(row =>
+        (row.testExecutions || []).filter(
+          execution => xScale(execution.relEndMs) - xScale(execution.relStartMs) > 38
+        )
+      )
+      .enter()
+      .append('text')
+      .attr('class', 'timeline-test-marker-duration')
+      .attr('x', execution => xScale(execution.relStartMs) + 6)
+      .attr('y', markerY + markerHeight / 2 + 4)
+      .attr('fill', '#ffffff')
+      .attr('font-size', '10px')
+      .attr('font-weight', 'bold')
+      .style('pointer-events', 'none')
+      .text(execution => formatTimelineDuration(execution.durationMs));
+
+    // Test class name above the first execution of each class
+    rowGroups
+      .selectAll('.timeline-test-class-label')
+      .data(row => (row.testExecutions || []).filter(execution => execution.showLabel))
+      .enter()
+      .append('text')
+      .attr('class', 'timeline-test-class-label')
+      .attr('x', execution => xScale(execution.relStartMs))
+      .attr('y', barY - 4)
+      .attr('fill', this.colors.label)
+      .attr('font-size', '11px')
+      .attr('font-weight', '500')
+      .style('pointer-events', 'none')
+      .text(execution => execution.testClass.split('.').pop());
   }
 
   createTooltip() {
-    let tooltip = this.container.parentElement.querySelector('.timeline-tooltip');
+    // Attach to the section (position: relative) rather than the inner scroll
+    // container, so the tooltip is neither clipped nor mispositioned
+    const host = this.container.closest('.context-timeline-section') || this.container.parentElement;
+    let tooltip = host.querySelector('.timeline-tooltip');
     if (!tooltip) {
       tooltip = document.createElement('div');
       tooltip.className = 'timeline-tooltip';
       tooltip.style.display = 'none';
-      this.container.parentElement.appendChild(tooltip);
+      host.appendChild(tooltip);
     }
     return tooltip;
   }
 
   positionTooltip(tooltip, event) {
-    const sectionRect = this.container.parentElement.getBoundingClientRect();
-    const offsetX = event.clientX - sectionRect.left + 14;
-    const offsetY = event.clientY - sectionRect.top + 14;
+    // The tooltip is position: absolute, so measure against its offset parent -
+    // the element its left/top coordinates actually resolve against
+    const parentRect = (tooltip.offsetParent || document.body).getBoundingClientRect();
+    let offsetX = event.clientX - parentRect.left + 14;
+    const offsetY = event.clientY - parentRect.top + 14;
+
+    // Flip to the left of the cursor when the tooltip would overflow the section
+    const tooltipWidth = tooltip.offsetWidth;
+    if (offsetX + tooltipWidth > parentRect.width - 10) {
+      offsetX = Math.max(10, event.clientX - parentRect.left - tooltipWidth - 14);
+    }
+
     tooltip.style.left = `${offsetX}px`;
     tooltip.style.top = `${offsetY}px`;
   }
@@ -1323,17 +1491,38 @@ class ContextCacheTimeline {
   buildTooltipHtml(row, t0, tickFormatter) {
     const cachedWallClock = new Date(row.startWallMs).toLocaleTimeString();
     let removalLine;
-    if (row.removed) {
-      removalLine = `Removed at ${tickFormatter(row.relEndMs)} - ${ContextCacheTimeline.removalReasonLabel(row.removalReason)}`;
-    } else {
+    if (row.removedCount === 0) {
       removalLine = 'Alive until end of run';
+    } else {
+      const reasons = [
+        ...new Set(
+          row.segments
+            .filter(segment => segment.removed)
+            .map(segment => ContextCacheTimeline.removalReasonLabel(segment.removalReason))
+        )
+      ];
+      removalLine = `Removed ${row.removedCount}x from cache (${reasons.join(', ')})`;
     }
+    const loadLine =
+      row.segments.length > 1
+        ? `Load duration: ${formatTimelineDuration(row.totalLoadMs)} across ${row.segments.length} loads`
+        : `Load duration: ${formatTimelineDuration(row.totalLoadMs)}`;
+    const testCount = Array.isArray(row.testExecutions) ? row.testExecutions.length : 0;
     return `
       <strong>${row.rowLabel}</strong><br>
-      Load duration: ${formatTimelineDuration(row.loadMs)}<br>
-      Added to cache at ${tickFormatter(row.relStartMs)} (${cachedWallClock})<br>
+      ${loadLine}<br>
+      Added to cache at ${tickFormatter(row.segments[0].relStartMs)} (${cachedWallClock})<br>
       ${removalLine}<br>
-      Test classes: ${row.testClassCount} | Beans: ${row.beanCount}`;
+      Test classes: ${row.testClassCount} | Tests run: ${testCount} | Beans: ${row.beanCount}`;
+  }
+
+  buildTestTooltipHtml(execution, tickFormatter) {
+    const simpleClassName = execution.testClass.split('.').pop();
+    const statusLine = execution.status ? `<br>Status: ${execution.status}` : '';
+    return `
+      <strong>${simpleClassName}</strong><br>
+      Started at ${tickFormatter(execution.relStartMs)}<br>
+      Duration: ${formatTimelineDuration(execution.durationMs)}${statusLine}`;
   }
 
   static removalReasonLabel(removalReason) {

@@ -304,9 +304,9 @@ describe('Context Cache Timeline', () => {
       expect(result.rows).toHaveLength(1);
       // startMs is the cache-entry moment; the load is drawn leading up to it
       expect(result.rows[0].relLoadStartMs).toBe(3000);
-      expect(result.rows[0].relStartMs).toBe(5000);
+      expect(result.rows[0].segments[0].relStartMs).toBe(5000);
       expect(result.rows[0].relEndMs).toBe(60000);
-      expect(result.rows[0].removed).toBe(false);
+      expect(result.rows[0].removedCount).toBe(0);
       expect(result.totalDurationMs).toBe(60000);
     });
 
@@ -325,11 +325,12 @@ describe('Context Cache Timeline', () => {
       });
 
       expect(result.rows[0].relEndMs).toBe(10000);
-      expect(result.rows[0].removed).toBe(true);
-      expect(result.rows[0].removalReason).toBe('DIRTIES_CONTEXT');
+      expect(result.rows[0].removedCount).toBe(1);
+      expect(result.rows[0].segments[0].removed).toBe(true);
+      expect(result.rows[0].segments[0].removalReason).toBe('DIRTIES_CONTEXT');
     });
 
-    test('should produce one labeled row per lifespan for re-created contexts', () => {
+    test('should merge the lifespans of a re-created context into one row', () => {
       const result = buildTimelineRows({
         testRunStartMs: baseTimeMs,
         testRunEndMs: baseTimeMs + 60000,
@@ -337,16 +338,19 @@ describe('Context Cache Timeline', () => {
           {
             contextKey: 'context-0',
             segments: [
-              { startMs: baseTimeMs, loadMs: 500, removedMs: baseTimeMs + 10000, removalReason: 'DIRTIES_CONTEXT' },
+              { startMs: baseTimeMs + 1000, loadMs: 500, removedMs: baseTimeMs + 10000, removalReason: 'DIRTIES_CONTEXT' },
               { startMs: baseTimeMs + 11000, loadMs: 400, removedMs: null, removalReason: null }
             ]
           }
         ]
       });
 
-      expect(result.rows).toHaveLength(2);
+      expect(result.rows).toHaveLength(1);
       expect(result.rows[0].rowLabel).toBe('context-0');
-      expect(result.rows[1].rowLabel).toBe('context-0 (2)');
+      expect(result.rows[0].segments).toHaveLength(2);
+      expect(result.rows[0].totalLoadMs).toBe(900);
+      expect(result.rows[0].removedCount).toBe(1);
+      expect(result.rows[0].relEndMs).toBe(60000);
     });
 
     test('should extend the axis when a load started before the recorded run start', () => {
@@ -366,8 +370,8 @@ describe('Context Cache Timeline', () => {
       // Load started 7s before testRunStartMs, so t0 moves back to keep the full load visible
       expect(result.t0).toBe(baseTimeMs - 7000);
       expect(result.rows[0].relLoadStartMs).toBe(0);
-      expect(result.rows[0].relStartMs).toBe(8000);
-      expect(result.rows[0].loadMs).toBe(8000);
+      expect(result.rows[0].segments[0].relStartMs).toBe(8000);
+      expect(result.rows[0].segments[0].loadMs).toBe(8000);
     });
 
     test('should sort rows by relative start time', () => {
@@ -389,6 +393,56 @@ describe('Context Cache Timeline', () => {
       expect(result.rows.map(row => row.contextKey)).toEqual(['context-0', 'context-1']);
     });
 
+    test('should attach test executions to their context row with relative times', () => {
+      const result = buildTimelineRows({
+        testRunStartMs: baseTimeMs,
+        testRunEndMs: baseTimeMs + 60000,
+        contexts: [
+          {
+            contextKey: 'context-0',
+            segments: [
+              { startMs: baseTimeMs + 1000, loadMs: 500, removedMs: baseTimeMs + 10000, removalReason: 'DIRTIES_CONTEXT' },
+              { startMs: baseTimeMs + 11000, loadMs: 400, removedMs: null, removalReason: null }
+            ],
+            testExecutions: [
+              { testClass: 'com.example.TestA', testMethod: 'first', startMs: baseTimeMs + 2000, endMs: baseTimeMs + 2500, status: 'PASSED' },
+              { testClass: 'com.example.TestA', testMethod: 'second', startMs: baseTimeMs + 12000, endMs: baseTimeMs + 12100, status: 'FAILED' }
+            ]
+          }
+        ]
+      });
+
+      expect(result.rows[0].testExecutions).toHaveLength(2);
+      expect(result.rows[0].testExecutions[0]).toMatchObject({
+        testClass: 'com.example.TestA',
+        relStartMs: 2000,
+        relEndMs: 2500,
+        durationMs: 500,
+        status: 'PASSED'
+      });
+    });
+
+    test('should label only the first execution of each test class', () => {
+      const result = buildTimelineRows({
+        testRunStartMs: baseTimeMs,
+        testRunEndMs: baseTimeMs + 60000,
+        contexts: [
+          {
+            contextKey: 'context-0',
+            segments: [{ startMs: baseTimeMs + 1000, loadMs: 500, removedMs: null, removalReason: null }],
+            testExecutions: [
+              { testClass: 'com.example.TestA', testMethod: 'first', startMs: baseTimeMs + 2000, endMs: baseTimeMs + 2100, status: 'PASSED' },
+              { testClass: 'com.example.TestA', testMethod: 'second', startMs: baseTimeMs + 2200, endMs: baseTimeMs + 2300, status: 'PASSED' },
+              { testClass: 'com.example.TestB', testMethod: 'other', startMs: baseTimeMs + 3000, endMs: baseTimeMs + 3100, status: 'PASSED' }
+            ]
+          }
+        ]
+      });
+
+      const labels = result.rows[0].testExecutions.map(execution => execution.showLabel);
+      expect(labels).toEqual([true, false, true]);
+    });
+
     test('should fall back to segment bounds when run bounds are missing', () => {
       const result = buildTimelineRows({
         contexts: [
@@ -402,7 +456,7 @@ describe('Context Cache Timeline', () => {
       // t0 falls back to the earliest load start (cache entry minus load duration)
       expect(result.t0).toBe(baseTimeMs - 500);
       expect(result.rows[0].relLoadStartMs).toBe(0);
-      expect(result.rows[0].relStartMs).toBe(1000);
+      expect(result.rows[0].segments[0].relStartMs).toBe(1000);
       expect(result.totalDurationMs).toBe(4500);
     });
   });
