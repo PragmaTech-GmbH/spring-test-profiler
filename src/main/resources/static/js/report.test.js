@@ -338,7 +338,7 @@ describe('Context Cache Timeline', () => {
           {
             contextKey: 'context-0',
             segments: [
-              { startMs: baseTimeMs, loadMs: 500, removedMs: baseTimeMs + 10000, removalReason: 'DIRTIES_CONTEXT' },
+              { startMs: baseTimeMs + 1000, loadMs: 500, removedMs: baseTimeMs + 10000, removalReason: 'DIRTIES_CONTEXT' },
               { startMs: baseTimeMs + 11000, loadMs: 400, removedMs: null, removalReason: null }
             ]
           }
@@ -456,7 +456,7 @@ describe('Context Cache Timeline', () => {
       // t0 falls back to the earliest load start (cache entry minus load duration)
       expect(result.t0).toBe(baseTimeMs - 500);
       expect(result.rows[0].relLoadStartMs).toBe(0);
-      expect(result.rows[0].relStartMs).toBe(1000);
+      expect(result.rows[0].segments[0].relStartMs).toBe(1000);
       expect(result.totalDurationMs).toBe(4500);
     });
   });
