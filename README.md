@@ -129,6 +129,21 @@ After test execution, find the HTML report at:
 - Maven: `target/spring-test-profiler/latest.html`
 - Gradle: `build/spring-test-profiler/latest.html`
 
+Next to the HTML report, a flat JSON summary is written for machine consumption (CI checks,
+dashboards, trend tracking):
+
+- Maven: `target/spring-test-profiler/results.json` (latest run) plus a timestamped
+  `test-profiler-report-<timestamp>.json` per run
+- Gradle: `build/spring-test-profiler/results.json` plus the timestamped file per run
+
+The JSON contains a single flat object with metrics like `contextsCreated`, `totalDurationMs`,
+`testsPassed`, `contextCacheHitRatio`, and `totalContextCreationTimeMs`, so it can be consumed
+with simple tooling:
+
+```bash
+jq '.contextsCreated' target/spring-test-profiler/results.json
+```
+
 ### 5. Add Custom Context Customizer Descriptions
 
 Spring Test Profiler can show richer context customizer details when your project exposes a

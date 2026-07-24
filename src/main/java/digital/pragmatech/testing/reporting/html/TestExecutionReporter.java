@@ -16,6 +16,7 @@ import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TimelineData;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
 import digital.pragmatech.testing.reporting.json.JsonReportGenerator;
+import digital.pragmatech.testing.reporting.json.JsonSummaryReportGenerator;
 import digital.pragmatech.testing.util.BuildToolDetection;
 import digital.pragmatech.testing.util.VersionInfo;
 import org.slf4j.Logger;
@@ -36,10 +37,12 @@ public class TestExecutionReporter {
 
   private final TemplateEngine templateEngine;
   private final JsonReportGenerator jsonReportGenerator;
+  private final JsonSummaryReportGenerator jsonSummaryReportGenerator;
 
   public TestExecutionReporter() {
     this.templateEngine = createTemplateEngine();
     this.jsonReportGenerator = new JsonReportGenerator();
+    this.jsonSummaryReportGenerator = new JsonSummaryReportGenerator();
   }
 
   public void generateReport(
@@ -56,30 +59,39 @@ public class TestExecutionReporter {
       Path reportDir = determineReportDirectory(buildTool);
       Files.createDirectories(reportDir);
 
+      // HTML reporting logic; CSS and JS are inlined into the report for a
+      // self-contained, portable file (see generateHtmlWithThymeleaf)
+      String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+      String reportFileName = "test-profiler-report-" + timestamp + ".html";
+      Path reportFile = reportDir.resolve(reportFileName);
+
+      String htmlContent =
+          generateHtmlWithThymeleaf(
+              buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
+      Files.write(reportFile, htmlContent.getBytes());
+
+      logger.info(
+          "Spring Test Profiler report generated for {} build tool: {}",
+          buildTool.name(),
+          reportFile.toAbsolutePath());
+
+      // Also create a latest.html symlink for easy access
+      Path latestLink = reportDir.resolve("latest.html");
+      Files.deleteIfExists(latestLink);
+      Files.write(latestLink, htmlContent.getBytes());
+
+      // Flat JSON summary next to the HTML report: timestamped file plus results.json
+      jsonSummaryReportGenerator.generateSummaryReport(
+          reportDir,
+          timestamp,
+          buildTool.name(),
+          executionTracker,
+          cacheStats,
+          contextCacheTracker);
+
       if (jsonReportingEnabled) {
         jsonReportGenerator.generateJsonReport(
             reportDir, executionTracker, cacheStats, contextCacheTracker);
-      } else {
-        // HTML reporting logic; CSS and JS are inlined into the report for a
-        // self-contained, portable file (see generateHtmlWithThymeleaf)
-        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-        String reportFileName = "test-profiler-report-" + timestamp + ".html";
-        Path reportFile = reportDir.resolve(reportFileName);
-
-        String htmlContent =
-            generateHtmlWithThymeleaf(
-                buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
-        Files.write(reportFile, htmlContent.getBytes());
-
-        logger.info(
-            "Spring Test Profiler report generated for {} build tool: {}",
-            buildTool.name(),
-            reportFile.toAbsolutePath());
-
-        // Also create a latest.html symlink for easy access
-        Path latestLink = reportDir.resolve("latest.html");
-        Files.deleteIfExists(latestLink);
-        Files.write(latestLink, htmlContent.getBytes());
       }
 
     } catch (Exception e) {
