@@ -68,6 +68,7 @@ buildNumber.properties
 .settings
 .springBeans
 .sts4-cache
+demo/**/bin/
 
 ### NetBeans ###
 /nbproject/private/
