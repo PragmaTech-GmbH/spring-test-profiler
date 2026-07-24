@@ -192,7 +192,7 @@ jobs:
                 if (assetsSha) {
                   const rawBase = `https://raw.githubusercontent.com/${context.repo.owner}/${context.repo.repo}/${assetsSha}`;
                   imageSection = [
-                    '<details open>',
+                    '<details>',
                     '<summary><strong>Visual diff</strong> (changed pixels highlighted)</summary>',
                     '',
                     `![Visual diff](${rawBase}/diff.png)`,
