@@ -25,6 +25,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Deploy key with write access - listed in the main-branch ruleset
+          # bypass list so the version bump commit can be pushed to main
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Validate input versions
         run: |
