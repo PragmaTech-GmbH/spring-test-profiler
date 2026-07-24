@@ -13,7 +13,6 @@ import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.OptimizationStatistics;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
-import digital.pragmatech.testing.TimelineData;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
 import digital.pragmatech.testing.reporting.json.JsonSummaryReportGenerator;
 import digital.pragmatech.testing.util.BuildToolDetection;
@@ -181,10 +180,6 @@ public class TestExecutionReporter {
         OptimizationStatistics optimizationStats =
             contextCacheTracker.calculateOptimizationStatistics();
         context.setVariable("optimizationStats", optimizationStats);
-
-        // Add timeline data for visualization
-        TimelineData timelineData = contextCacheTracker.getTimelineData();
-        context.setVariable("timelineData", timelineData);
       }
 
       // Inline CSS and JS so the generated report is a single self-contained file
@@ -194,13 +189,18 @@ public class TestExecutionReporter {
       // Register helper beans for templates
       registerHelperBeans(context, contextCacheTracker);
 
-      // Add context statistics JSON for JavaScript consumption
+      // Add context statistics and timeline JSON for JavaScript consumption
       if (contextCacheTracker != null) {
         TemplateHelpers.JsonHelper jsonHelper = new TemplateHelpers.JsonHelper();
         String contextStatisticsJson = jsonHelper.contextStatisticsToJson(contextCacheTracker);
         context.setVariable("contextStatisticsJson", contextStatisticsJson);
+        context.setVariable(
+            "contextTimelineJson",
+            jsonHelper.contextTimelineToJson(
+                contextCacheTracker, executionTracker, cacheStats.maxSize()));
       } else {
         context.setVariable("contextStatisticsJson", "[]");
+        context.setVariable("contextTimelineJson", "{}");
       }
 
       String result = templateEngine.process("report", context);
