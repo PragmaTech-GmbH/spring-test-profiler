@@ -8,7 +8,6 @@ import java.util.List;
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
-import digital.pragmatech.testing.TestStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -52,36 +51,16 @@ class JsonSummaryReportGeneratorTest {
     generator.generateSummaryReport(
         reportDir, "2026-07-23_10-00-00", "MAVEN", executionTracker, null, contextCacheTracker);
 
-    recordTestMethod("com.example.CheckoutTest", "shouldCheckout", TestStatus.PASSED);
+    MergedContextConfiguration config = createConfig(Object.class);
+    contextCacheTracker.recordTestClassForContext(config, "com.example.CheckoutTest");
+    contextCacheTracker.recordContextCreation(config, 500);
     generator.generateSummaryReport(
         reportDir, "2026-07-23_11-00-00", "MAVEN", executionTracker, null, contextCacheTracker);
 
     String latestContent = Files.readString(reportDir.resolve("results.json"));
-    assertThat(latestContent).contains("\"totalTestMethods\": 1");
+    assertThat(latestContent).contains("\"contextsCreated\": 1");
     assertThat(reportDir.resolve("test-profiler-report-2026-07-23_10-00-00.json")).exists();
     assertThat(reportDir.resolve("test-profiler-report-2026-07-23_11-00-00.json")).exists();
-  }
-
-  @Test
-  void shouldReportTestCountsPerStatus() {
-    executionTracker.startTracking();
-    recordTestMethod("com.example.CheckoutTest", "shouldCheckout", TestStatus.PASSED);
-    recordTestMethod("com.example.CheckoutTest", "shouldApplyDiscount", TestStatus.PASSED);
-    recordTestMethod("com.example.PaymentTest", "shouldFailOnInvalidCard", TestStatus.FAILED);
-    recordTestMethod("com.example.PaymentTest", "shouldSkipLegacyFlow", TestStatus.DISABLED);
-    recordTestMethod("com.example.PaymentTest", "shouldAbortWithoutBroker", TestStatus.ABORTED);
-    executionTracker.stopTracking();
-
-    JsonSummaryReport summary =
-        generator.buildSummary("MAVEN", executionTracker, null, contextCacheTracker);
-
-    assertThat(summary.totalTestClasses()).isEqualTo(2);
-    assertThat(summary.totalTestMethods()).isEqualTo(5);
-    assertThat(summary.testsPassed()).isEqualTo(2);
-    assertThat(summary.testsFailed()).isEqualTo(1);
-    assertThat(summary.testsDisabled()).isEqualTo(1);
-    assertThat(summary.testsAborted()).isEqualTo(1);
-    assertThat(summary.totalDurationMs()).isGreaterThanOrEqualTo(0);
   }
 
   @Test
@@ -137,7 +116,6 @@ class JsonSummaryReportGeneratorTest {
   @Test
   void shouldWriteFlatSchemaWithStableKeys() throws IOException {
     executionTracker.startTracking();
-    recordTestMethod("com.example.CheckoutTest", "shouldCheckout", TestStatus.PASSED);
     executionTracker.stopTracking();
 
     generator.generateSummaryReport(
@@ -150,22 +128,13 @@ class JsonSummaryReportGeneratorTest {
         .contains("\"generatedAt\"")
         .contains("\"buildTool\": \"MAVEN\"")
         .contains("\"totalDurationMs\"")
-        .contains("\"totalTestClasses\": 1")
-        .contains("\"totalTestMethods\": 1")
-        .contains("\"testsPassed\": 1")
-        .contains("\"testsFailed\": 0")
         .contains("\"contextsCreated\": 0")
         .contains("\"totalContextCreationTimeMs\": 0");
+    // Test-level counts are intentionally absent, they are covered by other tools
+    assertThat(content).doesNotContain("totalTestClasses").doesNotContain("testsPassed");
     // Flat schema: no nested objects or arrays
     assertThat(content).doesNotContain("[");
     assertThat(content.substring(1)).doesNotContain("{");
-  }
-
-  private void recordTestMethod(String className, String methodName, TestStatus status) {
-    executionTracker.recordTestClassStart(className);
-    executionTracker.recordTestMethodStart(className, methodName);
-    executionTracker.recordTestMethodEnd(className, methodName, status);
-    executionTracker.recordTestClassEnd(className);
   }
 
   private MergedContextConfiguration createConfig(Class<?>... classes) {

@@ -137,8 +137,8 @@ dashboards, trend tracking):
 - Gradle: `build/spring-test-profiler/results.json` plus the timestamped file per run
 
 The JSON contains a single flat object with metrics like `contextsCreated`, `totalDurationMs`,
-`testsPassed`, `contextCacheHitRatio`, and `totalContextCreationTimeMs`, so it can be consumed
-with simple tooling:
+`contextCacheHitRatio`, and `totalContextCreationTimeMs`, so it can be consumed with simple
+tooling:
 
 ```bash
 jq '.contextsCreated' target/spring-test-profiler/results.json

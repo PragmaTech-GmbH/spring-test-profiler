@@ -57,8 +57,8 @@ class TestExecutionReporterTest {
 
     String jsonContent = Files.readString(reportDir.resolve("results.json"));
     assertThat(jsonContent)
-        .contains("\"totalTestClasses\": 1")
-        .contains("\"testsPassed\": 1")
+        .contains("\"schemaVersion\": 1")
+        .contains("\"totalDurationMs\"")
         .contains("\"springContextCacheMaxSize\": 32");
   }
 }

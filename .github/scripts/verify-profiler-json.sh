@@ -43,17 +43,10 @@ if [ "$actualContexts" != "$expectedContexts" ]; then
 fi
 
 schemaVersion=$(jq -r '.schemaVersion' "$resultsFile")
-totalTestMethods=$(jq -r '.totalTestMethods' "$resultsFile")
 totalDurationMs=$(jq -r '.totalDurationMs' "$resultsFile")
-testsFailed=$(jq -r '.testsFailed' "$resultsFile")
 
 if [ "$schemaVersion" != "1" ]; then
   echo "ERROR: unexpected schemaVersion: $schemaVersion"
-  exit 1
-fi
-
-if [ "$totalTestMethods" -le 0 ]; then
-  echo "ERROR: totalTestMethods must be greater than 0 but was $totalTestMethods"
   exit 1
 fi
 
@@ -62,9 +55,4 @@ if [ "$totalDurationMs" -le 0 ]; then
   exit 1
 fi
 
-if [ "$testsFailed" != "0" ]; then
-  echo "ERROR: testsFailed must be 0 but was $testsFailed"
-  exit 1
-fi
-
-echo "JSON summary verification passed: contextsCreated=$actualContexts, totalTestMethods=$totalTestMethods, totalDurationMs=${totalDurationMs}ms"
+echo "JSON summary verification passed: contextsCreated=$actualContexts, totalDurationMs=${totalDurationMs}ms"

@@ -7,6 +7,9 @@ package digital.pragmatech.testing.reporting.json;
  *
  * <p>All duration values are in milliseconds. The schemaVersion field allows evolving this format
  * without breaking consumers.
+ *
+ * <p>Test-level counts (classes, methods, pass/fail) are intentionally not included - build tools
+ * like Surefire, Failsafe, and Gradle already report them.
  */
 public record JsonSummaryReport(
     int schemaVersion,
@@ -14,12 +17,6 @@ public record JsonSummaryReport(
     String generatedAt,
     String buildTool,
     long totalDurationMs,
-    int totalTestClasses,
-    int totalTestMethods,
-    long testsPassed,
-    long testsFailed,
-    long testsDisabled,
-    long testsAborted,
     int contextsCreated,
     int contextCacheHits,
     int contextCacheMisses,

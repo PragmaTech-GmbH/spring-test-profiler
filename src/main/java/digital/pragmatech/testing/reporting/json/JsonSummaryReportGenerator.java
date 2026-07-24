@@ -11,7 +11,6 @@ import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.OptimizationStatistics;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
-import digital.pragmatech.testing.TestStatus;
 import digital.pragmatech.testing.util.SimpleJsonWriter;
 import digital.pragmatech.testing.util.VersionInfo;
 import org.slf4j.Logger;
@@ -63,11 +62,6 @@ public class JsonSummaryReportGenerator {
       SpringContextCacheAccessor.CacheStatistics cacheStats,
       ContextCacheTracker contextCacheTracker) {
 
-    long testsPassed = countMethodsWithStatus(executionTracker, TestStatus.PASSED);
-    long testsFailed = countMethodsWithStatus(executionTracker, TestStatus.FAILED);
-    long testsDisabled = countMethodsWithStatus(executionTracker, TestStatus.DISABLED);
-    long testsAborted = countMethodsWithStatus(executionTracker, TestStatus.ABORTED);
-
     int contextsCreated = 0;
     int contextCacheHits = 0;
     int contextCacheMisses = 0;
@@ -99,12 +93,6 @@ public class JsonSummaryReportGenerator {
         Instant.now().truncatedTo(ChronoUnit.SECONDS).toString(),
         buildTool,
         executionTracker.getOverallDuration().toMillis(),
-        executionTracker.getTotalTestClasses(),
-        executionTracker.getTotalTestMethods(),
-        testsPassed,
-        testsFailed,
-        testsDisabled,
-        testsAborted,
         contextsCreated,
         contextCacheHits,
         contextCacheMisses,
@@ -118,13 +106,6 @@ public class JsonSummaryReportGenerator {
             ? roundTo2Decimals(optimizationStats.getPotentialTimeSavingsPercentage())
             : 0.0,
         availableProcessors);
-  }
-
-  private long countMethodsWithStatus(TestExecutionTracker executionTracker, TestStatus status) {
-    return executionTracker.getClassMetrics().values().stream()
-        .flatMap(classMetrics -> classMetrics.getMethodMetrics().values().stream())
-        .filter(methodMetrics -> methodMetrics.getStatus() == status)
-        .count();
   }
 
   private double roundTo4Decimals(double value) {
