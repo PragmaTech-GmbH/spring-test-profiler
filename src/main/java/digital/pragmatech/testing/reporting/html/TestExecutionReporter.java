@@ -15,7 +15,6 @@ import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.TimelineData;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
-import digital.pragmatech.testing.reporting.json.JsonReportGenerator;
 import digital.pragmatech.testing.reporting.json.JsonSummaryReportGenerator;
 import digital.pragmatech.testing.util.BuildToolDetection;
 import digital.pragmatech.testing.util.VersionInfo;
@@ -36,12 +35,10 @@ public class TestExecutionReporter {
   private static final String BUILD_DIRECTORY = "build";
 
   private final TemplateEngine templateEngine;
-  private final JsonReportGenerator jsonReportGenerator;
   private final JsonSummaryReportGenerator jsonSummaryReportGenerator;
 
   public TestExecutionReporter() {
     this.templateEngine = createTemplateEngine();
-    this.jsonReportGenerator = new JsonReportGenerator();
     this.jsonSummaryReportGenerator = new JsonSummaryReportGenerator();
   }
 
@@ -49,10 +46,6 @@ public class TestExecutionReporter {
       TestExecutionTracker executionTracker,
       SpringContextCacheAccessor.CacheStatistics cacheStats,
       ContextCacheTracker contextCacheTracker) {
-
-    // Beta feature flag for JSON reporting
-    boolean jsonReportingEnabled =
-        Boolean.parseBoolean(System.getProperty("spring.test.insight.json.beta", "false"));
 
     try {
       BuildToolDetection.BuildTool buildTool = BuildToolDetection.getDetectedBuildTool();
@@ -88,11 +81,6 @@ public class TestExecutionReporter {
           executionTracker,
           cacheStats,
           contextCacheTracker);
-
-      if (jsonReportingEnabled) {
-        jsonReportGenerator.generateJsonReport(
-            reportDir, executionTracker, cacheStats, contextCacheTracker);
-      }
 
     } catch (Exception e) {
       logger.error("Failed to generate Spring Test Profiler report", e);
