@@ -4,6 +4,7 @@
     <div th:fragment="summary-section(executionTracker, cacheStats, contextCacheTracker, optimizationStats)" th:with="
         totalDurationMs=${executionTracker.getOverallDuration().toMillis()},
         cacheSize=${cacheStats != null ? cacheStats.size() : 0},
+        totalContextsCreated=${contextCacheTracker != null ? contextCacheTracker.getTotalContextsCreated() : 0},
         cacheHits=${contextCacheTracker != null ? contextCacheTracker.getCacheHits() : 0},
         cacheMisses=${contextCacheTracker != null ? contextCacheTracker.getCacheMisses() : 0},
         totalCacheAccess=${cacheHits + cacheMisses},
@@ -25,6 +26,10 @@
             <div class="summary-card">
                 <h3>Cache Size <span class="info-icon" data-tooltip="Number of Spring ApplicationContexts currently held in the test context cache.">&#9432;</span></h3>
                 <div class="value" th:text="${cacheSize}">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Total Contexts Created <span class="info-icon" data-tooltip="Total number of Spring ApplicationContexts created during the test run. This can be higher than the cache size because contexts may have been removed during the run, e.g. due to @DirtiesContext or cache eviction.">&#9432;</span></h3>
+                <div class="value" th:text="${totalContextsCreated}">0</div>
             </div>
             <div class="summary-card">
                 <h3>Cache Hits <span class="info-icon" data-tooltip="Number of times a test reused an existing cached context instead of creating a new one.">&#9432;</span></h3>
