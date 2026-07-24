@@ -1,0 +1,4 @@
+{
+  "description": "Expected Spring Test Profiler metrics for this demo. Verified in CI against build/spring-test-profiler/results.json after the test suite ran. The integrationTest task runs after test, so results.json reflects the integration test JVM.",
+  "expectedContextsCreated": 6
+}

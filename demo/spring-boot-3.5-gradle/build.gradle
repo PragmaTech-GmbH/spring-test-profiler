@@ -46,6 +46,9 @@ tasks.register('integrationTest', Test) {
   useJUnitPlatform()
   include '**/*IT.class'
 
+  // Deterministic order so the profiler's results.json always reflects this task
+  mustRunAfter tasks.named('test')
+
   testLogging {
     events "passed"
   }

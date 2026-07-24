@@ -14,7 +14,7 @@ import digital.pragmatech.testing.OptimizationStatistics;
 import digital.pragmatech.testing.SpringContextCacheAccessor;
 import digital.pragmatech.testing.TestExecutionTracker;
 import digital.pragmatech.testing.reporting.TemplateHelpers;
-import digital.pragmatech.testing.reporting.json.JsonReportGenerator;
+import digital.pragmatech.testing.reporting.json.JsonSummaryReportGenerator;
 import digital.pragmatech.testing.util.BuildToolDetection;
 import digital.pragmatech.testing.util.VersionInfo;
 import org.slf4j.Logger;
@@ -34,11 +34,11 @@ public class TestExecutionReporter {
   private static final String BUILD_DIRECTORY = "build";
 
   private final TemplateEngine templateEngine;
-  private final JsonReportGenerator jsonReportGenerator;
+  private final JsonSummaryReportGenerator jsonSummaryReportGenerator;
 
   public TestExecutionReporter() {
     this.templateEngine = createTemplateEngine();
-    this.jsonReportGenerator = new JsonReportGenerator();
+    this.jsonSummaryReportGenerator = new JsonSummaryReportGenerator();
   }
 
   public void generateReport(
@@ -46,40 +46,40 @@ public class TestExecutionReporter {
       SpringContextCacheAccessor.CacheStatistics cacheStats,
       ContextCacheTracker contextCacheTracker) {
 
-    // Beta feature flag for JSON reporting
-    boolean jsonReportingEnabled =
-        Boolean.parseBoolean(System.getProperty("spring.test.insight.json.beta", "false"));
-
     try {
       BuildToolDetection.BuildTool buildTool = BuildToolDetection.getDetectedBuildTool();
       Path reportDir = determineReportDirectory(buildTool);
       Files.createDirectories(reportDir);
 
-      if (jsonReportingEnabled) {
-        jsonReportGenerator.generateJsonReport(
-            reportDir, executionTracker, cacheStats, contextCacheTracker);
-      } else {
-        // HTML reporting logic; CSS and JS are inlined into the report for a
-        // self-contained, portable file (see generateHtmlWithThymeleaf)
-        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-        String reportFileName = "test-profiler-report-" + timestamp + ".html";
-        Path reportFile = reportDir.resolve(reportFileName);
+      // HTML reporting logic; CSS and JS are inlined into the report for a
+      // self-contained, portable file (see generateHtmlWithThymeleaf)
+      String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+      String reportFileName = "test-profiler-report-" + timestamp + ".html";
+      Path reportFile = reportDir.resolve(reportFileName);
 
-        String htmlContent =
-            generateHtmlWithThymeleaf(
-                buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
-        Files.write(reportFile, htmlContent.getBytes());
+      String htmlContent =
+          generateHtmlWithThymeleaf(
+              buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
+      Files.write(reportFile, htmlContent.getBytes());
 
-        logger.info(
-            "Spring Test Profiler report generated for {} build tool: {}",
-            buildTool.name(),
-            reportFile.toAbsolutePath());
+      logger.info(
+          "Spring Test Profiler report generated for {} build tool: {}",
+          buildTool.name(),
+          reportFile.toAbsolutePath());
 
-        // Also create a latest.html symlink for easy access
-        Path latestLink = reportDir.resolve("latest.html");
-        Files.deleteIfExists(latestLink);
-        Files.write(latestLink, htmlContent.getBytes());
-      }
+      // Also create a latest.html symlink for easy access
+      Path latestLink = reportDir.resolve("latest.html");
+      Files.deleteIfExists(latestLink);
+      Files.write(latestLink, htmlContent.getBytes());
+
+      // Flat JSON summary next to the HTML report: timestamped file plus results.json
+      jsonSummaryReportGenerator.generateSummaryReport(
+          reportDir,
+          timestamp,
+          buildTool.name(),
+          executionTracker,
+          cacheStats,
+          contextCacheTracker);
 
     } catch (Exception e) {
       logger.error("Failed to generate Spring Test Profiler report", e);

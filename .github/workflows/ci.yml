@@ -80,6 +80,9 @@ jobs:
         working-directory: demo/${{ matrix.demo }}
         run: ./mvnw verify
 
+      - name: Verify JSON summary report
+        run: .github/scripts/verify-profiler-json.sh demo/${{ matrix.demo }} target
+
       - name: Log test output on failure
         if: failure() || cancelled()
         working-directory: demo/${{ matrix.demo }}
@@ -123,6 +126,9 @@ jobs:
         id: build-demo
         working-directory: demo/${{ matrix.demo }}
         run: ./gradlew build
+
+      - name: Verify JSON summary report
+        run: .github/scripts/verify-profiler-json.sh demo/${{ matrix.demo }} build
 
       - name: Upload demo test results
         uses: actions/upload-artifact@v4

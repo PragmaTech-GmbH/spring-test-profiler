@@ -11,7 +11,7 @@ Spring Test Profiler is a Spring Test utility that provides visualization and in
 - **Core Utility** (`SpringTestProfilerListener`): Spring Test TestExecutionListener with HIGHEST_PRECEDENCE
 - **Context Profiling** (`ContextDiagnosticApplicationContextInitializer`): Deep integration into Spring context loading with timing and bean creation metrics
 - **Statistics Collection**: Multi-layered tracking including Spring's internal cache and custom metrics beyond the 32-context limit
-- **Report Generation** (`TestExecutionReporter`): Self-contained HTML reports with embedded CSS/JS and optional JSON output
+- **Report Generation** (`TestExecutionReporter`): Self-contained HTML reports with embedded CSS/JS plus a flat JSON summary (results.json)
 - **Service Loader Integration**: Automatic activation via META-INF/spring.factories
 
 ### Key Design Decisions
@@ -77,9 +77,6 @@ The same comparison runs on pull requests via `.github/workflows/visual-regressi
 ### Development Testing
 
 ```bash
-# Test with JSON output enabled
-./mvnw test -Dspring.test.insight.json.beta=true
-
 # Test with custom report directory
 ./mvnw test -Dspring.test.insight.report.dir=/custom/path
 ```
@@ -99,7 +96,7 @@ src/main/java/digital/pragmatech/testing/
 │   └── BeanCreationProfiler.java           # Bean creation timing metrics
 ├── reporting/
 │   ├── html/TestExecutionReporter.java     # HTML report generation
-│   └── json/JsonReportGenerator.java       # JSON report output (beta)
+│   └── json/JsonSummaryReportGenerator.java # Flat JSON summary (results.json)
 └── util/
     ├── BuildToolDetection.java             # Maven/Gradle detection
     └── VersionInfo.java                     # Extension version information
@@ -133,7 +130,7 @@ demo/                                        # Multiple demo projects
 
 ### Report Generation
 - **HTML Reports**: Self-contained with embedded CSS, timeline visualizations, optimization recommendations
-- **JSON Reports**: Structured data output (beta feature, enabled via system property)
+- **JSON Reports**: Flat JSON summary written on every run as results.json plus a timestamped file per run
 - **Build Integration**: Automatic placement in target/build directories with latest.html symlink
 
 ## Testing Approach
