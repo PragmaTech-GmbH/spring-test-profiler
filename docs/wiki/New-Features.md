@@ -2,6 +2,30 @@
 
 Curated highlights of what landed in recent releases. For the complete changelog, see the [GitHub releases](https://github.com/PragmaTech-GmbH/spring-test-profiler/releases).
 
+## 0.2.1
+
+### Flat JSON Summary Report with CI Verification ([#53](https://github.com/PragmaTech-GmbH/spring-test-profiler/pull/53))
+
+Every run now writes a machine-readable `results.json` next to the HTML report - a single flat object with metrics like `contextsCreated`, `contextCacheHitRatio`, and `totalContextCreationTimeMs`. Pin your expected context count in CI and fail the build when it regresses:
+
+```bash
+jq '.contextsCreated' target/spring-test-profiler/results.json
+```
+
+This replaces the previous beta JSON report and its `spring.test.insight.json.beta` flag. See [Advanced Usage](Advanced-Usage.md#json-summary-report) for the full metric reference and ready-to-use CI snippets.
+
+### Context Caching Timeline Visualization ([#34](https://github.com/PragmaTech-GmbH/spring-test-profiler/pull/34), [#50](https://github.com/PragmaTech-GmbH/spring-test-profiler/pull/50))
+
+The report now renders a first visualization of the context cache over time, including tracking of context removals from the cache.
+
+### Context Caching Explained with an Animation ([#49](https://github.com/PragmaTech-GmbH/spring-test-profiler/pull/49))
+
+The report's theory section explains Spring's context caching mechanism with an animation: configuration scan, `MergedContextConfiguration` cache key, hit or miss. The same animation is embedded in [Spring Context Caching](Spring-Context-Caching.md).
+
+### Total Contexts Created Tile ([#54](https://github.com/PragmaTech-GmbH/spring-test-profiler/pull/54))
+
+The summary section gained a "Total Contexts Created" tile, surfacing the most important optimization number at first glance.
+
 ## 0.1.2
 
 ### Self-Contained Reports ([#46](https://github.com/PragmaTech-GmbH/spring-test-profiler/pull/46))

@@ -49,17 +49,62 @@ By default, reports land in `target/spring-test-profiler/` (Maven) or `build/spr
 
 See the [Configuration Reference](Configuration-Reference.md) for details.
 
-## JSON Report (Beta)
+## JSON Summary Report
 
-Next to the HTML report, the profiler can emit a structured JSON report for programmatic consumption - for example to track cache hit rates across CI builds or feed dashboards.
+Next to the HTML report, a flat JSON summary is written for machine consumption (CI checks, dashboards, trend tracking):
 
-Enable it with:
+- Maven: `target/spring-test-profiler/results.json` (latest run) plus a timestamped `test-profiler-report-<timestamp>.json` per run
+- Gradle: `build/spring-test-profiler/results.json` plus the timestamped file per run
+
+The JSON contains a single flat object, so it can be consumed with simple tooling:
 
 ```bash
-./mvnw verify -Dspring.test.insight.json.beta=true
+jq '.contextsCreated' target/spring-test-profiler/results.json
 ```
 
-The JSON file is written to the same report directory as the HTML report.
+### Available Metrics
 
-> [!NOTE]
-> The JSON format is in beta: its structure may change between releases without notice. Pin the profiler version if you build tooling on top of it, and share feedback via the [issue tracker](https://github.com/PragmaTech-GmbH/spring-test-profiler/issues).
+All duration values are in milliseconds. The `schemaVersion` field allows the format to evolve without breaking consumers (currently `1`). Test-level counts (classes, methods, pass/fail) are intentionally not included - build tools like Surefire, Failsafe, and Gradle already report them.
+
+| Field | Description |
+|---|---|
+| `schemaVersion` | Version of the JSON format |
+| `profilerVersion` | Spring Test Profiler version that produced the file |
+| `generatedAt` | Timestamp of report generation |
+| `buildTool` | Detected build tool (Maven/Gradle) |
+| `totalDurationMs` | Total duration of the profiled test run |
+| `contextsCreated` | Number of application contexts created |
+| `contextCacheHits` / `contextCacheMisses` | Context cache hit and miss counts |
+| `contextCacheHitRatio` | Cache hit ratio |
+| `springContextCacheSize` / `springContextCacheMaxSize` | Spring's internal cache usage and limit |
+| `totalContextCreationTimeMs` | Total time spent creating contexts |
+| `wastedContextTimeMs` | Time spent creating contexts that could have been reused |
+| `potentialTimeSavingsMs` / `potentialTimeSavingsPercent` | Estimated savings from full context reuse |
+| `availableProcessors` | Processor count of the machine running the tests |
+
+### Guard Your Context Count in CI
+
+Once you have optimized your test suite, you can pin the expected number of created contexts and fail the build when it regresses (for example when someone introduces a new `@DirtiesContext` or an accidental context configuration difference). Run this after your test suite, e.g. as a CI step:
+
+```bash
+expectedContexts=3
+actualContexts=$(jq -r '.contextsCreated' target/spring-test-profiler/results.json)
+
+if [ "$actualContexts" != "$expectedContexts" ]; then
+  echo "Expected $expectedContexts Spring contexts but $actualContexts were created"
+  exit 1
+fi
+```
+
+Other metrics work the same way, for example alerting when context creation time exceeds a budget:
+
+```bash
+totalContextCreationTimeMs=$(jq -r '.totalContextCreationTimeMs' target/spring-test-profiler/results.json)
+
+if [ "$totalContextCreationTimeMs" -gt 60000 ]; then
+  echo "Context creation took ${totalContextCreationTimeMs}ms, exceeding the 60s budget"
+  exit 1
+fi
+```
+
+The profiler repository uses the same approach for its own demo projects: each demo pins its expected context count in a `context-info.json` file, and the CI pipeline verifies the generated `results.json` against it with [`.github/scripts/verify-profiler-json.sh`](https://github.com/PragmaTech-GmbH/spring-test-profiler/blob/main/.github/scripts/verify-profiler-json.sh) - see [Demo Projects](Demo-Projects.md).

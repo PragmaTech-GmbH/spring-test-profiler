@@ -9,23 +9,12 @@ Pass these as JVM system properties to your test execution, for example via `-D`
 | Property | Default | Description |
 |---|---|---|
 | `pragmatech.spring.test.insight.report.dir` | _(unset)_ | Overrides the report output directory. When unset, the directory is derived from the detected build tool (see below). |
-| `spring.test.insight.json.beta` | `false` | When `true`, additionally generates a JSON report next to the HTML report. This feature is in beta - see [Advanced Usage](Advanced-Usage.md#json-report-beta). |
 
-### Examples
+### Example
 
 ```bash
 # Maven: custom report directory
 ./mvnw verify -Dpragmatech.spring.test.insight.report.dir=/tmp/profiler-reports
-
-# Maven: enable the beta JSON report
-./mvnw verify -Dspring.test.insight.json.beta=true
-```
-
-```groovy
-// Gradle: build.gradle
-test {
-  systemProperty 'spring.test.insight.json.beta', 'true'
-}
 ```
 
 ## Report Output
@@ -46,10 +35,12 @@ The build tool is detected automatically at runtime.
 
 Each test run produces:
 
-- `test-profiler-report-<timestamp>.html` - the timestamped report for this run
-- `latest.html` - always points to the most recent report, so you can bookmark one stable path
+- `test-profiler-report-<timestamp>.html` - the timestamped HTML report for this run
+- `latest.html` - always holds the most recent report, so you can bookmark one stable path
+- `test-profiler-report-<timestamp>.json` - the timestamped flat JSON summary for this run
+- `results.json` - always holds the most recent JSON summary, ideal for CI tooling
 
-Reports are self-contained HTML files with all CSS and JavaScript inlined - no external assets needed to view or archive them.
+Reports are self-contained HTML files with all CSS and JavaScript inlined - no external assets needed to view or archive them. The JSON summary and its metrics are documented in [Advanced Usage](Advanced-Usage.md#json-summary-report).
 
 ## Activation
 

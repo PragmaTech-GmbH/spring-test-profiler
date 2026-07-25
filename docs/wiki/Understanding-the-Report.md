@@ -10,7 +10,11 @@ You can also explore a hosted [demo report](https://pragmatech.digital/products/
 
 ## Test Execution Summary
 
-The top of the report shows the overall picture of your test run: how many test classes and methods ran, their outcomes, and the total execution time. Use this as a baseline - the goal of every optimization is to bring the total time down without losing coverage.
+The top of the report shows the overall picture of your test run: how many test classes and methods ran, their outcomes, the total execution time, and the total number of Spring contexts created. Use this as a baseline - the goal of every optimization is to bring the total time and the context count down without losing coverage.
+
+## How Context Caching Works (Theory Section)
+
+The report includes a theory section that explains Spring's context caching mechanism with an animation: Spring scans the test configuration, builds a cache key from the `MergedContextConfiguration` hashCode, and reuses matching application contexts. For the full background, see [Spring Context Caching](Spring-Context-Caching.md).
 
 ## Spring Context Caching Statistics
 
@@ -34,9 +38,9 @@ If a context customizer's default description is too generic to explain a differ
 
 ## Context Lifecycle Timeline
 
-The timeline visualizes when each context was created and how test execution proceeded around it. This helps you see context creation bursts, for example at the start of an integration test phase.
+The timeline visualizes the context cache over time: when each context was created, when contexts were removed from the cache, and how test execution proceeded around them. This helps you see context creation bursts, for example at the start of an integration test phase, and cache evictions caused by the cache size limit.
 
-Note: the timeline visualization is still under development - see [Troubleshooting and Limitations](Troubleshooting-and-Limitations.md).
+Note: the timeline visualization is still evolving - see [Troubleshooting and Limitations](Troubleshooting-and-Limitations.md).
 
 ## Optimization Recommendations
 

@@ -18,7 +18,7 @@ The profiler is only needed at test runtime, so add it with test scope.
 <dependency>
   <groupId>digital.pragmatech.testing</groupId>
   <artifactId>spring-test-profiler</artifactId>
-  <version>0.1.2</version>
+  <version>0.2.1</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -26,7 +26,7 @@ The profiler is only needed at test runtime, so add it with test scope.
 ### Gradle
 
 ```groovy
-testRuntimeOnly("digital.pragmatech.testing:spring-test-profiler:0.1.2")
+testRuntimeOnly("digital.pragmatech.testing:spring-test-profiler:0.2.1")
 ```
 
 ## 2. Activate the Profiler
@@ -78,6 +78,8 @@ After test execution, find the HTML report at:
 - Gradle: `build/spring-test-profiler/latest.html`
 
 The report is fully self-contained (CSS and JavaScript are inlined), so you can open it directly in a browser, archive it as a CI artifact, or share it with your team.
+
+Next to the HTML report, a flat JSON summary (`results.json`) is written for machine consumption - see [Advanced Usage](Advanced-Usage.md#json-summary-report) for the available metrics and how to guard your context count in CI.
 
 ## Next Steps
 

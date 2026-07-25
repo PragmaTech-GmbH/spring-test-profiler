@@ -36,3 +36,7 @@ cd demo/spring-boot-3.5-gradle
 ./gradlew build
 # Report: build/spring-test-profiler/latest.html
 ```
+
+## Pinned Context Counts
+
+Each CI-verified demo pins its expected number of created Spring contexts in a `context-info.json` file. The CI pipeline compares it against the `results.json` written by the profiler using [`.github/scripts/verify-profiler-json.sh`](https://github.com/PragmaTech-GmbH/spring-test-profiler/blob/main/.github/scripts/verify-profiler-json.sh), so a regression in context caching fails the build. You can use the same pattern in your own project - see [Advanced Usage](Advanced-Usage.md#guard-your-context-count-in-ci).
