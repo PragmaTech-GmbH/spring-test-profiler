@@ -18,7 +18,7 @@ The profiler is only needed at test runtime, so add it with test scope.
 <dependency>
   <groupId>digital.pragmatech.testing</groupId>
   <artifactId>spring-test-profiler</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -26,7 +26,7 @@ The profiler is only needed at test runtime, so add it with test scope.
 ### Gradle
 
 ```groovy
-testRuntimeOnly("digital.pragmatech.testing:spring-test-profiler:0.2.1")
+testRuntimeOnly("digital.pragmatech.testing:spring-test-profiler:0.2.2")
 ```
 
 ## 2. Activate the Profiler
