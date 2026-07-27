@@ -34,7 +34,7 @@
       <dependency>
         <groupId>digital.pragmatech.testing</groupId>
         <artifactId>spring-test-profiler</artifactId>
-        <version>0.2.3-SNAPSHOT</version>
+        <version>0.2.4-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
