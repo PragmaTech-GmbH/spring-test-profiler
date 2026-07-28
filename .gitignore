@@ -147,3 +147,6 @@ venv/
 vendor/
 .cache/
 tmp/
+
+# Media recording working directory
+/media/output/
