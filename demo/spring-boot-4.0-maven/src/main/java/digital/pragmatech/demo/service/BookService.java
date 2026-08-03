@@ -7,6 +7,7 @@ import java.util.Optional;
 import digital.pragmatech.demo.entity.Book;
 import digital.pragmatech.demo.entity.BookCategory;
 import digital.pragmatech.demo.repository.BookRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,16 +16,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookService {
 
   private final BookRepository bookRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
-  public BookService(BookRepository bookRepository) {
+  public BookService(BookRepository bookRepository, ApplicationEventPublisher eventPublisher) {
     this.bookRepository = bookRepository;
+    this.eventPublisher = eventPublisher;
   }
 
   public Book createBook(Book book) {
     if (bookRepository.existsByIsbn(book.getIsbn())) {
       throw new IllegalArgumentException("Book with ISBN " + book.getIsbn() + " already exists");
     }
-    return bookRepository.save(book);
+    Book savedBook = bookRepository.save(book);
+    eventPublisher.publishEvent(
+      new BookCreatedEvent(savedBook.getId(), savedBook.getIsbn(), savedBook.getTitle()));
+    return savedBook;
   }
 
   @Transactional(readOnly = true)
