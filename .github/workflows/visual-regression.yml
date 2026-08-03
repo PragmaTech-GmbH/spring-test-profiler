@@ -10,7 +10,7 @@ on:
     types: [opened, synchronize, reopened, closed]
     paths:
       - 'src/main/**'
-      - 'demo/spring-boot-3.5-maven/**'
+      - 'demo/spring-boot-4.0-maven/**'
       - 'visual-regression/**'
       - '.github/workflows/visual-regression.yml'
   workflow_dispatch:
@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DEMO_DIR: demo/spring-boot-3.5-maven
+  DEMO_DIR: demo/spring-boot-4.0-maven
 
 jobs:
   visual-regression:
@@ -74,7 +74,8 @@ jobs:
             -Dincludes=digital.pragmatech.testing:spring-test-profiler \
             -DdepVersion="${{ steps.baseline.outputs.version }}" \
             -DforceVersion=true -DgenerateBackupPoms=false
-          ./mvnw -q clean verify
+
+          ./mvnw -q clean verify -Dmaven.test.failure.ignore=true
           mkdir -p "$GITHUB_WORKSPACE/visual-regression/work"
           cp target/spring-test-profiler/latest.html "$GITHUB_WORKSPACE/visual-regression/work/baseline.html"
           git checkout -- pom.xml

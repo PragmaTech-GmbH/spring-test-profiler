@@ -9,7 +9,7 @@ set -euo pipefail
 
 scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repoRoot="$(cd "$scriptDir/.." && pwd)"
-demoDir="$repoRoot/demo/spring-boot-3.5-maven"
+demoDir="$repoRoot/demo/spring-boot-4.0-maven"
 workDir="$scriptDir/work"
 
 restoreDemoPom() {

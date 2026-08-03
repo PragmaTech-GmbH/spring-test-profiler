@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEMO_DIR="$SCRIPT_DIR/demo/spring-boot-3.5-maven"
+DEMO_DIR="$SCRIPT_DIR/demo/spring-boot-4.0-maven"
 REPORT_PATH="$DEMO_DIR/target/spring-test-profiler/latest.html"
 
 echo -e "${BLUE}🚀 Spring Test Profiler Report Generator${NC}"
