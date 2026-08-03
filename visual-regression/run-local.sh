@@ -9,7 +9,7 @@ set -euo pipefail
 
 scriptDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repoRoot="$(cd "$scriptDir/.." && pwd)"
-demoDir="$repoRoot/demo/spring-boot-3.5-maven"
+demoDir="$repoRoot/demo/spring-boot-4.0-maven"
 workDir="$scriptDir/work"
 
 restoreDemoPom() {
@@ -38,7 +38,9 @@ echo "==> Running demo with released profiler $baselineVersion"
   ./mvnw -q versions:use-dep-version \
     -Dincludes=digital.pragmatech.testing:spring-test-profiler \
     -DdepVersion="$baselineVersion" -DforceVersion=true -DgenerateBackupPoms=false
-  ./mvnw -q clean verify
+  # The released profiler may fail the demo's tests (e.g. 0.2.3 with the Modulith demo,
+  # issue #58); the report is still generated, so keep the baseline leg alive.
+  ./mvnw -q clean verify -Dmaven.test.failure.ignore=true
 )
 cp "$demoDir/target/spring-test-profiler/latest.html" "$workDir/baseline.html"
 restoreDemoPom
