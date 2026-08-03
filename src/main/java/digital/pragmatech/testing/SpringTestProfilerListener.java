@@ -270,20 +270,44 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     ContextCache contextCache = SpringContextCacheAccessor.getContextCache(testContext);
 
     configurableContext.addApplicationListener(
-        (ApplicationListener<ContextClosedEvent>)
-            event -> {
-              try {
-                closeListenerRegistered.remove(event.getApplicationContext());
-                if (reportGenerationStarted || isJvmShutdownInProgress()) {
-                  return;
-                }
-                ContextRemovalReason reason =
-                    ContextRemovalDetector.inferRemovalReason(contextCache);
-                contextCacheTracker.recordContextRemoval(mergedConfig, Instant.now(), reason);
-              } catch (Exception e) {
-                logger.debug("Failed to record context removal", e);
-              }
-            });
+        new ContextClosedRemovalListener(mergedConfig, contextCache));
+  }
+
+  /**
+   * Records the removal of a context from Spring's context cache when it is closed.
+   *
+   * <p>Deliberately a concrete class rather than a lambda: Spring resolves the declared generic
+   * event type (via GenericApplicationListenerAdapter), so this listener is only ever invoked for
+   * ContextClosedEvent. A lambda's generic event type cannot be resolved, causing it to be invoked
+   * for ALL events; event multicasters without a defensive ClassCastException catch (e.g. Spring
+   * Modulith's PersistentApplicationEventMulticaster) then fail when the test framework publishes
+   * other events such as AfterTestClassEvent (GitHub issue #58).
+   */
+  static final class ContextClosedRemovalListener
+      implements ApplicationListener<ContextClosedEvent> {
+
+    private final MergedContextConfiguration mergedConfig;
+    private final ContextCache contextCache;
+
+    ContextClosedRemovalListener(
+        MergedContextConfiguration mergedConfig, ContextCache contextCache) {
+      this.mergedConfig = mergedConfig;
+      this.contextCache = contextCache;
+    }
+
+    @Override
+    public void onApplicationEvent(@NonNull ContextClosedEvent event) {
+      try {
+        closeListenerRegistered.remove(event.getApplicationContext());
+        if (reportGenerationStarted || isJvmShutdownInProgress()) {
+          return;
+        }
+        ContextRemovalReason reason = ContextRemovalDetector.inferRemovalReason(contextCache);
+        contextCacheTracker.recordContextRemoval(mergedConfig, Instant.now(), reason);
+      } catch (Exception e) {
+        logger.debug("Failed to record context removal", e);
+      }
+    }
   }
 
   /**

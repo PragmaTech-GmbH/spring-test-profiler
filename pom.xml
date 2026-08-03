@@ -37,6 +37,9 @@
     <junit-jupiter.version>6.0.2</junit-jupiter.version>
     <assertj.version>3.27.6</assertj.version>
     <awaitility.version>4.3.0</awaitility.version>
+    <!-- Modulith 2.0.x matches the Spring Framework 7.0.x / Boot 4.0.x line used above -->
+    <spring-modulith.version>2.0.7</spring-modulith.version>
+    <h2.version>2.4.240</h2.version>
 
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
@@ -123,6 +126,27 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Regression coverage for GitHub issue #58: Spring Modulith's
+         PersistentApplicationEventMulticaster must tolerate the profiler's listeners -->
+    <dependency>
+      <groupId>org.springframework.modulith</groupId>
+      <artifactId>spring-modulith-starter-jdbc</artifactId>
+      <version>${spring-modulith.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+      <version>${spring-boot.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
