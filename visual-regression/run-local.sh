@@ -38,9 +38,7 @@ echo "==> Running demo with released profiler $baselineVersion"
   ./mvnw -q versions:use-dep-version \
     -Dincludes=digital.pragmatech.testing:spring-test-profiler \
     -DdepVersion="$baselineVersion" -DforceVersion=true -DgenerateBackupPoms=false
-  # The released profiler may fail the demo's tests (e.g. 0.2.3 with the Modulith demo,
-  # issue #58); the report is still generated, so keep the baseline leg alive.
-  ./mvnw -q clean verify -Dmaven.test.failure.ignore=true
+  ./mvnw -q clean verify
 )
 cp "$demoDir/target/spring-test-profiler/latest.html" "$workDir/baseline.html"
 restoreDemoPom

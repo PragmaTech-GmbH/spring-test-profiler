@@ -74,8 +74,7 @@ jobs:
             -Dincludes=digital.pragmatech.testing:spring-test-profiler \
             -DdepVersion="${{ steps.baseline.outputs.version }}" \
             -DforceVersion=true -DgenerateBackupPoms=false
-          # The released profiler may fail the demo's tests (e.g. 0.2.3 with the Modulith
-          # demo, issue #58); the report is still generated, so keep the baseline leg alive.
+
           ./mvnw -q clean verify -Dmaven.test.failure.ignore=true
           mkdir -p "$GITHUB_WORKSPACE/visual-regression/work"
           cp target/spring-test-profiler/latest.html "$GITHUB_WORKSPACE/visual-regression/work/baseline.html"
