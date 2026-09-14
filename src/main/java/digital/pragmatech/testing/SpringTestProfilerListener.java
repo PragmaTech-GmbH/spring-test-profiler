@@ -73,8 +73,8 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
 
     logger.debug("Starting Spring Test Profiler for test class: {}", className);
 
-    // Detect while the build tool is still on the test execution stack.
-    BuildToolDetection.getDetectedBuildTool();
+    // Detect and cache the build tool while its frames are still on the test execution stack.
+    logger.debug("Detected build tool: {}", BuildToolDetection.getDetectedBuildTool());
 
     // Register shutdown hook once to generate report when JVM exits
     registerShutdownHook();
