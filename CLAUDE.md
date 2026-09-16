@@ -53,7 +53,7 @@ Spring Test Profiler is a Spring Test utility that provides visualization and in
 ./mvnw clean install
 
 # Run different demo scenarios
-cd demo/spring-boot-3.5-maven
+cd demo/spring-boot-4.0-maven
 mvn clean test
 
 cd ../spring-boot-3.5-maven-junit-parallel
@@ -107,9 +107,10 @@ src/main/resources/
 
 demo/                                        # Multiple demo projects
 ├── spring-boot-3.4-maven/                  # Basic Maven setup
-├── spring-boot-3.5-maven/                  # Latest Spring Boot
+├── spring-boot-3.5-maven/                  # Spring Boot 3.5
 ├── spring-boot-3.5-maven-junit-parallel/   # JUnit parallel execution
 ├── spring-boot-3.5-maven-failsafe-parallel/ # Failsafe parallel execution
+├── spring-boot-4.0-maven/                  # Latest Spring Boot incl. Spring Modulith
 └── spring-boot-3.5-gradle/                 # Gradle build
 ```
 
