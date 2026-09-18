@@ -12,6 +12,7 @@ import digital.pragmatech.testing.diagnostic.ContextDiagnostic;
 import digital.pragmatech.testing.extensions.ContextCustomizerExtension;
 import digital.pragmatech.testing.extensions.ContextCustomizerExtensionRegistry;
 import digital.pragmatech.testing.reporting.html.TestExecutionReporter;
+import digital.pragmatech.testing.util.BuildToolDetection;
 import digital.pragmatech.testing.util.TestAnnotationDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,9 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     String className = testClass.getName();
 
     logger.debug("Starting Spring Test Profiler for test class: {}", className);
+
+    // Detect and cache the build tool while its frames are still on the test execution stack.
+    logger.debug("Detected build tool: {}", BuildToolDetection.getDetectedBuildTool());
 
     // Register shutdown hook once to generate report when JVM exits
     registerShutdownHook();
