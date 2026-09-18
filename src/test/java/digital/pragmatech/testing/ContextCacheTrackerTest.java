@@ -175,6 +175,26 @@ class ContextCacheTrackerTest {
     assertNull(entry.getLifespans().get(0).getRemovalTime());
   }
 
+  @Test
+  void shouldCountDistinctContextsOnceWhenContextIsRecreated() {
+    MergedContextConfiguration firstConfig = createConfig(Object.class);
+    MergedContextConfiguration secondConfig = createConfig(String.class);
+    MergedContextConfiguration notCreatedConfig = createConfig(Integer.class);
+
+    tracker.recordTestClassForContext(firstConfig, "com.example.TestA");
+    tracker.recordContextCreation(firstConfig, 500);
+    tracker.recordContextRemoval(firstConfig, Instant.now(), ContextRemovalReason.DIRTIES_CONTEXT);
+    tracker.recordTestClassForContext(firstConfig, "com.example.TestB");
+    tracker.recordContextCreation(firstConfig, 500);
+    tracker.recordTestClassForContext(secondConfig, "com.example.TestC");
+    tracker.recordContextCreation(secondConfig, 500);
+    tracker.recordTestClassForContext(notCreatedConfig, "com.example.TestD");
+
+    assertEquals(3, tracker.getTotalContextsCreated());
+    assertEquals(2, tracker.getDistinctContextsCreated());
+    assertEquals(2, tracker.getCreatedContextEntries().size());
+  }
+
   private MergedContextConfiguration createConfig(Class<?>... classes) {
     return new MergedContextConfiguration(
         classes[0],
