@@ -14,6 +14,17 @@ Fast build times = fast feedback and accelerated feature delivery!
 
 Find [more information](https://pragmatech.digital/products/spring-test-profiler/) about the profiler on our website.
 
+## Documentation
+
+The full documentation lives in the [GitHub wiki](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki) - this README only covers the quick start. Key pages:
+
+- [Getting Started](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Getting-Started)
+- [Understanding the Report](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Understanding-the-Report)
+- [Spring Context Caching](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Spring-Context-Caching)
+- [Configuration Reference](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Configuration-Reference)
+- [Advanced Usage](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Advanced-Usage)
+- [New Features](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/New-Features)
+
 ## How Context Caching Works
 
 Spring caches ApplicationContexts across tests: it X-rays each test's configuration, merges all customization points into a `MergedContextConfiguration`, and uses its hashCode as the cache key.
@@ -22,6 +33,7 @@ Same key means instant reuse - one tiny difference means a slow, brand-new conte
 
 ![Animation explaining Spring test context caching: Spring scans the test configuration, builds a cache key from the MergedContextConfiguration hashCode, and reuses matching ApplicationContexts](docs/context-caching-animation.gif)
 
+For a detailed explanation of the caching mechanics, see [Spring Context Caching](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Spring-Context-Caching) in the wiki.
 
 ## Features
 
@@ -59,12 +71,7 @@ This profiler works with Java 17+ and is compatible with:
 > [!WARNING]
 > This project is highly work-in-progress and should be considered a prototype to gather feedback and ideas for future development.
 
-What's currently not working or missing:
-
-- Support for parallel test execution
-- Fully-fledged visualization of the contexts on a timeline
-- For each Gradle test task, a separate HTML report is generated
-- For Surefire and Failsafe, a separate HTML report is generated
+The main current limitations are missing support for parallel test execution and separate reports per Gradle test task and per Surefire/Failsafe run. See [Troubleshooting and Limitations](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Troubleshooting-and-Limitations) in the wiki for the full list.
 
 ## Usage
 
@@ -142,93 +149,11 @@ After test execution, find the HTML report at:
 - Maven: `target/spring-test-profiler/latest.html`
 - Gradle: `build/spring-test-profiler/latest.html`
 
-Next to the HTML report, a flat JSON summary is written for machine consumption (CI checks,
-dashboards, trend tracking):
+Next to the HTML report, a flat JSON summary (`results.json`) is written for machine consumption - use it to track metrics like `contextsCreated` in CI and fail the build when your context count regresses. See [JSON Summary and CI Integration](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Advanced-Usage#json-summary-report) in the wiki for the metrics and ready-to-use CI snippets.
 
-- Maven: `target/spring-test-profiler/results.json` (latest run) plus a timestamped
-  `test-profiler-report-<timestamp>.json` per run
-- Gradle: `build/spring-test-profiler/results.json` plus the timestamped file per run
+### 5. Go Further
 
-The JSON contains a single flat object with metrics like `contextsCreated`, `totalDurationMs`,
-`contextCacheHitRatio`, and `totalContextCreationTimeMs`, so it can be consumed with simple
-tooling:
-
-```bash
-jq '.contextsCreated' target/spring-test-profiler/results.json
-```
-
-#### Guard Your Context Count in CI
-
-Once you have optimized your test suite, you can pin the expected number of created contexts and
-fail the build when it regresses (for example when someone introduces a new `@DirtiesContext` or
-an accidental context configuration difference). Run this after your test suite, e.g. as a CI
-step:
-
-```bash
-expectedContexts=3
-actualContexts=$(jq -r '.contextsCreated' target/spring-test-profiler/results.json)
-
-if [ "$actualContexts" != "$expectedContexts" ]; then
-  echo "Expected $expectedContexts Spring contexts but $actualContexts were created"
-  exit 1
-fi
-```
-
-Other metrics work the same way, for example alerting when context creation time exceeds a budget:
-
-```bash
-totalContextCreationTimeMs=$(jq -r '.totalContextCreationTimeMs' target/spring-test-profiler/results.json)
-
-if [ "$totalContextCreationTimeMs" -gt 60000 ]; then
-  echo "Context creation took ${totalContextCreationTimeMs}ms, exceeding the 60s budget"
-  exit 1
-fi
-```
-
-This repository uses the same approach for its demo projects: each demo pins its expected context
-count in a `context-info.json` file, and the CI pipeline verifies the generated `results.json`
-against it with [`.github/scripts/verify-profiler-json.sh`](.github/scripts/verify-profiler-json.sh).
-
-### 5. Add Custom Context Customizer Descriptions
-
-Spring Test Profiler can show richer context customizer details when your project exposes a
-`ContextCustomizerExtension` bean. This is useful when a customizer class is the same across test
-contexts, but its internal configuration is different. A common example is a WireMock
-`WireMockContextCustomizer`: two tests can both use the same customizer class, while each test
-configures different mock names, ports, files, or properties.
-
-Create a Spring bean in your test application context, for example with `@Component` or a test
-`@Bean` method:
-
-```java
-package com.example.testing;
-
-import digital.pragmatech.testing.extensions.ContextCustomizerExtension;
-import org.springframework.stereotype.Component;
-
-@Component
-class ExampleContextCustomizerExtension implements ContextCustomizerExtension {
-
-  @Override
-  public boolean supports(Object contextCustomizer) {
-    // Return true only for the customizer type this extension knows how to describe.
-    return contextCustomizer.getClass().getName().contains("ExampleContextCustomizer");
-  }
-
-  @Override
-  public String describe(Object contextCustomizer) {
-    // Return a stable, human-readable summary of the fields that make contexts differ.
-    return contextCustomizer.getClass().getSimpleName() + "[configuration=custom]";
-  }
-}
-```
-
-The `supports(...)` method should be narrow: check the exact customizer class or a known interface.
-The `describe(...)` method should include only deterministic configuration values that help explain why Spring created
-a separate context. Avoid identity hashes, timestamps, random ports, or other values that change between runs unless
-they are the actual configuration you want to compare.
-
-If no extension supports a customizer, the report falls back to the customizer class simple name.
+For custom context customizer descriptions, CI integration with the JSON summary, custom report directories, and a walkthrough of every report section, head over to the [wiki](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki) - in particular [Advanced Usage](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Advanced-Usage) and [Understanding the Report](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Understanding-the-Report).
 
 ## Demo Report
 
@@ -236,34 +161,8 @@ Access a demo Spring Test Profiler report [here](https://pragmatech.digital/prod
 
 ## Bug Reports
 
-Found a bug? Please help us improve by reporting it:
-
-1. **Search existing issues** at https://github.com/PragmaTech-GmbH/spring-test-profiler/issues
-2. **Create a new issue** with:
-   - Clear description of the problem
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Java/Spring/JUnit versions
-   - Relevant log output or screenshots
+Found a bug? Please report it via the [issue tracker](https://github.com/PragmaTech-GmbH/spring-test-profiler/issues) - the wiki's [Troubleshooting and Limitations](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Troubleshooting-and-Limitations) page explains what a helpful report looks like.
 
 ## Contributing
 
-We welcome contributions! Here's how to get started:
-
-### Development Setup
-
-1. **Fork and clone** the repository
-2. **Activate pre-commit hooks** (this ensures compliant code formatting): `pre-commit install` ([pre-commit download](https://pre-commit.com/))
-3. **Build the project**:
-
-```bash
-./mvnw install
-```
-
-3. **Run tests**:
-
-```bash
-./mvnw test
-```
-
-4. Use conventional commit messages for your changes (e.g., `feat: add new feature`, `fix: resolve issue #123`)
+We welcome contributions! See the [Contributing](https://github.com/PragmaTech-GmbH/spring-test-profiler/wiki/Contributing) page in the wiki for the development setup and guidelines.

@@ -1,0 +1,1 @@
+This wiki is generated from the [`docs/wiki`](https://github.com/PragmaTech-GmbH/spring-test-profiler/tree/main/docs/wiki) directory - please edit via pull request. Changes made through the wiki UI are overwritten on the next sync.

@@ -1,0 +1,23 @@
+name: Publish Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/wiki/**
+      - .github/workflows/publish-wiki.yml
+
+permissions:
+  contents: write
+
+jobs:
+  publish-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Andrew-Chen-Wang/github-wiki-action@v5
+        with:
+          path: docs/wiki
+          # init force-pushes a fresh history: docs/wiki in the repo is the
+          # single source of truth, edits made via the wiki UI are discarded
+          strategy: init
