@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.OptimizationStatistics;
@@ -149,7 +150,7 @@ public class TestExecutionReporter {
       context.setVariable("contextCacheTracker", contextCacheTracker);
 
       // Execution environment info
-      context.setVariable("executionEnvironment", "maven");
+      context.setVariable("executionEnvironment", buildTool.toLowerCase(Locale.ROOT));
       context.setVariable("executionTimestamp", LocalDateTime.now());
       context.setVariable("timeZone", ZoneId.systemDefault().getId());
 
