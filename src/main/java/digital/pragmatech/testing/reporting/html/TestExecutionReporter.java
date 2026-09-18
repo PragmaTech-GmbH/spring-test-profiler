@@ -60,7 +60,7 @@ public class TestExecutionReporter {
       String htmlContent =
           generateHtmlWithThymeleaf(
               buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
-      Files.write(reportFile, htmlContent.getBytes());
+      Files.writeString(reportFile, htmlContent, StandardCharsets.UTF_8);
 
       logger.info(
           "Spring Test Profiler report generated for {} build tool: {}",
@@ -70,7 +70,7 @@ public class TestExecutionReporter {
       // Also create a latest.html symlink for easy access
       Path latestLink = reportDir.resolve("latest.html");
       Files.deleteIfExists(latestLink);
-      Files.write(latestLink, htmlContent.getBytes());
+      Files.writeString(latestLink, htmlContent, StandardCharsets.UTF_8);
 
       // Flat JSON summary next to the HTML report: timestamped file plus results.json
       jsonSummaryReportGenerator.generateSummaryReport(
