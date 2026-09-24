@@ -18,21 +18,23 @@ echo "🔄 Updating versions..."
 echo "Release version: $RELEASE_VERSION"
 echo "Next dev version: $NEXT_DEV_VERSION"
 
-# Update README.md with release version
-echo "📝 Updating README.md with release version..."
+# Update README.md and wiki docs with release version
+echo "📝 Updating README.md and docs/wiki with release version..."
 # Use cross-platform sed approach
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  # macOS
-  sed -i "" "s/Latest%20Version-[0-9]*\.[0-9]*\.[0-9]*/Latest%20Version-$RELEASE_VERSION/" README.md
-  sed -i "" "s/<version>[0-9]*\.[0-9]*\.[0-9]*<\/version>/<version>$RELEASE_VERSION<\/version>/" README.md
-  sed -i "" "s/spring-test-profiler:[0-9]*\.[0-9]*\.[0-9]*/spring-test-profiler:$RELEASE_VERSION/" README.md
-else
-  # Linux
-  sed -i "s/Latest%20Version-[0-9]*\.[0-9]*\.[0-9]*/Latest%20Version-$RELEASE_VERSION/" README.md
-  sed -i "s/<version>[0-9]*\.[0-9]*\.[0-9]*<\/version>/<version>$RELEASE_VERSION<\/version>/" README.md
-  sed -i "s/spring-test-profiler:[0-9]*\.[0-9]*\.[0-9]*/spring-test-profiler:$RELEASE_VERSION/" README.md
-fi
-echo "✅ Updated README.md with release version $RELEASE_VERSION"
+for docFile in README.md docs/wiki/Getting-Started.md; do
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i "" "s/Latest%20Version-[0-9]*\.[0-9]*\.[0-9]*/Latest%20Version-$RELEASE_VERSION/" "$docFile"
+    sed -i "" "s/<version>[0-9]*\.[0-9]*\.[0-9]*<\/version>/<version>$RELEASE_VERSION<\/version>/" "$docFile"
+    sed -i "" "s/spring-test-profiler:[0-9]*\.[0-9]*\.[0-9]*/spring-test-profiler:$RELEASE_VERSION/" "$docFile"
+  else
+    # Linux
+    sed -i "s/Latest%20Version-[0-9]*\.[0-9]*\.[0-9]*/Latest%20Version-$RELEASE_VERSION/" "$docFile"
+    sed -i "s/<version>[0-9]*\.[0-9]*\.[0-9]*<\/version>/<version>$RELEASE_VERSION<\/version>/" "$docFile"
+    sed -i "s/spring-test-profiler:[0-9]*\.[0-9]*\.[0-9]*/spring-test-profiler:$RELEASE_VERSION/" "$docFile"
+  fi
+  echo "✅ Updated $docFile with release version $RELEASE_VERSION"
+done
 
 # Set next development version in main pom.xml
 echo "📝 Updating main pom.xml to next development version..."
