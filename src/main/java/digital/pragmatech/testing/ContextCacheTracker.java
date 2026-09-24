@@ -411,6 +411,20 @@ public class ContextCacheTracker {
   }
 
   /**
+   * Gets the number of distinct context configurations that were created at least once. Unlike
+   * {@link #getTotalContextsCreated()}, a re-creation of the same configuration (e.g. after
+   * {@code @DirtiesContext}) does not count again.
+   */
+  public int getDistinctContextsCreated() {
+    return (int) cacheEntries.values().stream().filter(ContextCacheEntry::isCreated).count();
+  }
+
+  /** Gets all context cache entries whose context was created at least once. */
+  public List<ContextCacheEntry> getCreatedContextEntries() {
+    return cacheEntries.values().stream().filter(ContextCacheEntry::isCreated).toList();
+  }
+
+  /**
    * Calculates the context reuse rate as a percentage. This represents how often a context was
    * reused from cache vs created fresh.
    *

@@ -2,6 +2,7 @@ package digital.pragmatech.testing;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -426,6 +427,22 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
         reportGenerated = true;
       }
     }
+  }
+
+  /**
+   * Gets the number of distinct Spring test context configurations created so far in this JVM.
+   *
+   * <p>The value is only final after all tests in the JVM have run. To fail the build when the
+   * number grows, set the {@code spring.test.profiler.max-contexts} configuration parameter instead
+   * of asserting on this value in a regular test.
+   */
+  public static int getDistinctContextCount() {
+    return contextCacheTracker.getDistinctContextsCreated();
+  }
+
+  /** Gets the created context entries of the shared tracker for the context budget check. */
+  public static List<ContextCacheEntry> getCreatedContextEntries() {
+    return contextCacheTracker.getCreatedContextEntries();
   }
 
   /** Exposes the shared tracker for integration tests. */
