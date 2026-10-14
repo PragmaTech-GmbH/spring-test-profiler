@@ -428,6 +428,24 @@ public class SpringTestProfilerListener extends AbstractTestExecutionListener {
     }
   }
 
+  /**
+   * Gets the number of distinct Spring test context configurations created so far in this JVM.
+   *
+   * <p>The value is only final after all tests in the JVM have run.
+   */
+  public static int getDistinctContextCount() {
+    return contextCacheTracker.getDistinctContextsCreated();
+  }
+
+  /**
+   * Gets a snapshot of the context cache statistics of this JVM, with the same numbers as {@code
+   * results.json}. Works with every test framework. The values are only final after all tests in
+   * the JVM have run, so call this from a hook that runs after the last test.
+   */
+  public static ContextCacheStatistics getContextCacheStatistics() {
+    return contextCacheTracker.getStatistics();
+  }
+
   /** Exposes the shared tracker for integration tests. */
   static ContextCacheTracker getContextCacheTracker() {
     return contextCacheTracker;
