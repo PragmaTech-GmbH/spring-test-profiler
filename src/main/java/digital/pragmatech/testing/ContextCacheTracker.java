@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -419,9 +420,35 @@ public class ContextCacheTracker {
     return (int) cacheEntries.values().stream().filter(ContextCacheEntry::isCreated).count();
   }
 
-  /** Gets all context cache entries whose context was created at least once. */
-  public List<ContextCacheEntry> getCreatedContextEntries() {
-    return cacheEntries.values().stream().filter(ContextCacheEntry::isCreated).toList();
+  /** Gets an immutable snapshot of the context statistics. */
+  public ContextCacheStatistics getStatistics() {
+    List<ContextCacheStatistics.ContextStatistics> contexts =
+        cacheEntries.values().stream()
+            .filter(ContextCacheEntry::isCreated)
+            .sorted(
+                Comparator.comparing(
+                    ContextCacheEntry::getCreationTime,
+                    Comparator.nullsLast(Comparator.naturalOrder())))
+            .map(
+                entry ->
+                    new ContextCacheStatistics.ContextStatistics(
+                        entry.getTestClasses().stream().sorted().toList(),
+                        entry.getContextLoadTimeMs(),
+                        entry.getBeanDefinitionCount()))
+            .toList();
+    OptimizationStatistics optimizationStats = calculateOptimizationStatistics();
+    int hits = cacheHits.get();
+    int misses = cacheMisses.get();
+    int accesses = hits + misses;
+    return new ContextCacheStatistics(
+        totalContextsCreated.get(),
+        contexts.size(),
+        hits,
+        misses,
+        accesses > 0 ? (double) hits / accesses : 0.0,
+        optimizationStats.getTotalContextCreationTimeMs(),
+        optimizationStats.getWastedTimeMs(),
+        contexts);
   }
 
   /**
