@@ -68,7 +68,7 @@ What's currently not working or missing:
 
 ## Usage
 
-[![](https://img.shields.io/badge/Latest%20Version-0.3.0-orange)](/spring-test-profiler-extension/pom.xml)
+[![](https://img.shields.io/badge/Latest%20Version-0.3.1-orange)](/spring-test-profiler-extension/pom.xml)
 
 ### 1. Add the Dependency
 
@@ -80,7 +80,7 @@ Add the dependency to your project:
 <dependency>
   <groupId>digital.pragmatech.testing</groupId>
   <artifactId>spring-test-profiler</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.1</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -90,26 +90,15 @@ Add the dependency to your project:
 Add the dependency to your project:
 
 ```groovy
-testRuntimeOnly("digital.pragmatech.testing:spring-test-profiler:0.3.0")
+testRuntimeOnly("digital.pragmatech.testing:spring-test-profiler:0.3.1")
 ```
 
 
 ### 2. Activate the Profiler
 
-Pick **either one** of the following methods to activate the profiler in your tests.
+The profiler activates itself. The library jar contains its own `META-INF/spring.factories`, so the dependency from step 1 is all you need. No extra configuration is required.
 
-#### Automatically for all Your Tests (Recommended)
-
-Add a file named `META-INF/spring.factories` to your resources directory with the following content:
-
-```text
-org.springframework.test.context.TestExecutionListener=\
-digital.pragmatech.testing.SpringTestProfilerListener
-org.springframework.context.ApplicationContextInitializer=\
-digital.pragmatech.testing.diagnostic.ContextDiagnosticApplicationInitializer
-```
-
-#### Manually for Specific Tests
+#### Manually for Specific Tests (optional)
 
 Add the `@TestExecutionListeners` and `@ContextConfiguration` annotations to your test classes:
 

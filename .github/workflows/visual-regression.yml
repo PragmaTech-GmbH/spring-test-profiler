@@ -75,10 +75,23 @@ jobs:
             -DdepVersion="${{ steps.baseline.outputs.version }}" \
             -DforceVersion=true -DgenerateBackupPoms=false
 
+          # Releases before the self-registering profiler need the demo to register the
+          # listener and initializer itself. Newer releases ignore the duplicate entries.
+          factoriesFile=src/test/resources/META-INF/spring.factories
+          mkdir -p "$(dirname "$factoriesFile")"
+          printf '%s\n' \
+            'org.springframework.test.context.TestExecutionListener=\' \
+            'digital.pragmatech.testing.SpringTestProfilerListener' \
+            'org.springframework.context.ApplicationContextInitializer=\' \
+            'digital.pragmatech.testing.diagnostic.ContextDiagnosticApplicationInitializer' \
+            > "$factoriesFile"
+
           ./mvnw -q clean verify -Dmaven.test.failure.ignore=true
           mkdir -p "$GITHUB_WORKSPACE/visual-regression/work"
           cp target/spring-test-profiler/latest.html "$GITHUB_WORKSPACE/visual-regression/work/baseline.html"
           git checkout -- pom.xml
+          rm -f "$factoriesFile"
+          rmdir -p "$(dirname "$factoriesFile")" 2>/dev/null || true
 
       - name: Build PR profiler
         if: steps.baseline.outputs.skip != 'true'

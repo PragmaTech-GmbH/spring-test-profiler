@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 import digital.pragmatech.testing.ContextCacheTracker;
 import digital.pragmatech.testing.OptimizationStatistics;
@@ -60,7 +61,7 @@ public class TestExecutionReporter {
       String htmlContent =
           generateHtmlWithThymeleaf(
               buildTool.name(), executionTracker, cacheStats, contextCacheTracker);
-      Files.write(reportFile, htmlContent.getBytes());
+      Files.writeString(reportFile, htmlContent, StandardCharsets.UTF_8);
 
       logger.info(
           "Spring Test Profiler report generated for {} build tool: {}",
@@ -70,7 +71,7 @@ public class TestExecutionReporter {
       // Also create a latest.html symlink for easy access
       Path latestLink = reportDir.resolve("latest.html");
       Files.deleteIfExists(latestLink);
-      Files.write(latestLink, htmlContent.getBytes());
+      Files.writeString(latestLink, htmlContent, StandardCharsets.UTF_8);
 
       // Flat JSON summary next to the HTML report: timestamped file plus results.json
       jsonSummaryReportGenerator.generateSummaryReport(
@@ -149,7 +150,7 @@ public class TestExecutionReporter {
       context.setVariable("contextCacheTracker", contextCacheTracker);
 
       // Execution environment info
-      context.setVariable("executionEnvironment", "maven");
+      context.setVariable("executionEnvironment", buildTool.toLowerCase(Locale.ROOT));
       context.setVariable("executionTimestamp", LocalDateTime.now());
       context.setVariable("timeZone", ZoneId.systemDefault().getId());
 
