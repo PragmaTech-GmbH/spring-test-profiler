@@ -15,7 +15,12 @@ workDir="$scriptDir/work"
 restoreDemoPom() {
   git -C "$repoRoot" checkout -- "$demoDir/pom.xml" 2>/dev/null || true
 }
-trap restoreDemoPom EXIT
+factoriesDir="$demoDir/src/test/resources/META-INF"
+removeBaselineFactories() {
+  rm -f "$factoriesDir/spring.factories"
+  rmdir -p "$factoriesDir" 2>/dev/null || true
+}
+trap 'restoreDemoPom; removeBaselineFactories' EXIT
 
 baselineVersion="${1:-}"
 if [ -z "$baselineVersion" ]; then
@@ -38,10 +43,19 @@ echo "==> Running demo with released profiler $baselineVersion"
   ./mvnw -q versions:use-dep-version \
     -Dincludes=digital.pragmatech.testing:spring-test-profiler \
     -DdepVersion="$baselineVersion" -DforceVersion=true -DgenerateBackupPoms=false
+  # Releases before the self-registering profiler need the demo to register it itself.
+  mkdir -p "$factoriesDir"
+  printf '%s\n' \
+    'org.springframework.test.context.TestExecutionListener=\' \
+    'digital.pragmatech.testing.SpringTestProfilerListener' \
+    'org.springframework.context.ApplicationContextInitializer=\' \
+    'digital.pragmatech.testing.diagnostic.ContextDiagnosticApplicationInitializer' \
+    > "$factoriesDir/spring.factories"
   ./mvnw -q clean verify
 )
 cp "$demoDir/target/spring-test-profiler/latest.html" "$workDir/baseline.html"
 restoreDemoPom
+removeBaselineFactories
 
 echo "==> Building local profiler $currentVersion"
 (cd "$repoRoot" && ./mvnw -q clean install -DskipTests)

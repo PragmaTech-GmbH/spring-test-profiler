@@ -12,7 +12,7 @@ Spring Test Profiler is a Spring Test utility that provides visualization and in
 - **Context Profiling** (`ContextDiagnosticApplicationContextInitializer`): Deep integration into Spring context loading with timing and bean creation metrics
 - **Statistics Collection**: Multi-layered tracking including Spring's internal cache and custom metrics beyond the 32-context limit
 - **Report Generation** (`TestExecutionReporter`): Self-contained HTML reports with embedded CSS/JS plus a flat JSON summary (results.json)
-- **Service Loader Integration**: Automatic activation via META-INF/spring.factories
+- **Service Loader Integration**: Automatic activation via the library's own META-INF/spring.factories (TestExecutionListener + ContextCustomizerFactory)
 
 ### Key Design Decisions
 

@@ -1,0 +1,4 @@
+org.springframework.test.context.TestExecutionListener=\
+digital.pragmatech.testing.SpringTestProfilerListener
+org.springframework.test.context.ContextCustomizerFactory=\
+digital.pragmatech.testing.diagnostic.ContextDiagnosticCustomizerFactory
