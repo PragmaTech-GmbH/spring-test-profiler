@@ -18,6 +18,7 @@ public record JsonSummaryReport(
     String buildTool,
     long totalDurationMs,
     int contextsCreated,
+    int distinctContextsCreated,
     int contextCacheHits,
     int contextCacheMisses,
     double contextCacheHitRatio,

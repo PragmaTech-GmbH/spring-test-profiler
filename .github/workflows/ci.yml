@@ -6,14 +6,14 @@ on:
 jobs:
   javascript-tests:
     name: JavaScript Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '21'
           cache: 'npm'
@@ -29,14 +29,14 @@ jobs:
 
   test-extension:
     name: Test Extension
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -47,7 +47,7 @@ jobs:
 
   test-maven-demos:
     name: Test Maven Demo Projects
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test-extension
     strategy:
       fail-fast: false
@@ -62,10 +62,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -91,7 +91,7 @@ jobs:
           find . -type f -path "*test-reports/*-output.txt" -exec tail -n +1 {} +
 
       - name: Upload demo test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always() && hashFiles('demo/${{ matrix.demo }}/target/spring-test-profiler/latest.html') != ''
         with:
           name: demo-test-results-${{ matrix.demo }}
@@ -99,7 +99,7 @@ jobs:
 
   test-gradle-demos:
     name: Test Gradle Demo Projects
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test-extension
     strategy:
       fail-fast: false
@@ -109,10 +109,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -131,7 +131,7 @@ jobs:
         run: .github/scripts/verify-profiler-json.sh demo/${{ matrix.demo }} build
 
       - name: Upload demo test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always() && hashFiles('demo/${{ matrix.demo }}/build/spring-test-profiler/latest.html') != ''
         with:
           name: demo-test-results-${{ matrix.demo }}
@@ -139,7 +139,7 @@ jobs:
 
   summary:
     name: Test Summary
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [javascript-tests, test-extension, test-maven-demos, test-gradle-demos]
     if: always()
 

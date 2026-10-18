@@ -178,6 +178,70 @@ This repository uses the same approach for its demo projects: each demo pins its
 count in a `context-info.json` file, and the CI pipeline verifies the generated `results.json`
 against it with [`.github/scripts/verify-profiler-json.sh`](.github/scripts/verify-profiler-json.sh).
 
+#### Fail the Build from Inside the Test Run
+
+The same numbers as in `results.json` are available in your own code, for any test framework:
+
+```java
+ContextCacheStatistics statistics = SpringTestProfilerListener.getContextCacheStatistics();
+
+statistics.distinctContextsCreated();    // distinct context configurations
+statistics.contextsCreated();            // including re-creations after @DirtiesContext
+statistics.cacheHits();
+statistics.cacheMisses();
+statistics.totalContextCreationTimeMs();
+statistics.contexts();                   // per context: test classes, load time, bean definitions
+```
+
+The profiler does not decide what a good value is. You choose the rule and the hook that runs it.
+The values are only final after the last test of the JVM ran, so call the method from a hook that
+runs at the end of the test run, not from a regular test.
+
+##### JUnit 5 and JUnit 6 sample
+
+A `LauncherSessionListener` runs after all tests of all engines (also with parallel execution).
+An exception from it fails the build. Add `junit-platform-launcher` with `test` scope if it is not
+on your compile classpath yet (the version is managed by Spring Boot).
+
+```java
+public class ContextBudgetListener implements LauncherSessionListener {
+
+  private static final int MAX_CONTEXTS = 5;
+
+  @Override
+  public void launcherSessionClosed(LauncherSession session) {
+    ContextCacheStatistics statistics = SpringTestProfilerListener.getContextCacheStatistics();
+
+    if (statistics.distinctContextsCreated() > MAX_CONTEXTS) {
+      throw new AssertionError(
+          "Spring context budget exceeded: %d contexts created, limit is %d.%s"
+              .formatted(
+                  statistics.distinctContextsCreated(),
+                  MAX_CONTEXTS,
+                  statistics.describeContexts()));
+    }
+  }
+}
+```
+
+Register it in `src/test/resources/META-INF/services/org.junit.platform.launcher.LauncherSessionListener`:
+
+```
+com.example.ContextBudgetListener
+```
+
+Notes:
+
+- The limit applies per JVM: each Surefire/Failsafe fork and each Gradle test worker checks its own
+  contexts.
+- `distinctContextsCreated()` counts a context that is created again after `@DirtiesContext` only
+  once. Use `contextsCreated()` if you want to count re-creations too.
+- Maven Surefire and Failsafe report the failure as an error of the forked process with your
+  message in the log, not as a failed test.
+- For TestNG, JUnit 4 without the Vintage engine, or other frameworks, use a hook of your framework
+  that runs after the last test (for example a TestNG `ISuiteListener`), or check `results.json`
+  after the test phase as shown above.
+
 ### 5. Add Custom Context Customizer Descriptions
 
 Spring Test Profiler can show richer context customizer details when your project exposes a
