@@ -61,4 +61,27 @@ class TestExecutionReporterTest {
         .contains("\"totalDurationMs\"")
         .contains("\"springContextCacheMaxSize\": 32");
   }
+
+  @Test
+  void shouldGenerateSelfContainedHtmlWithoutExternalScripts() throws IOException {
+    System.setProperty(REPORT_DIR_PROPERTY, reportDir.toString());
+
+    TestExecutionTracker executionTracker = new TestExecutionTracker();
+    executionTracker.startTracking();
+    executionTracker.stopTracking();
+
+    SpringContextCacheAccessor.CacheStatistics cacheStats =
+        new SpringContextCacheAccessor.CacheStatistics(0, 0, 0, 32, List.of());
+
+    new TestExecutionReporter()
+        .generateReport(executionTracker, cacheStats, new ContextCacheTracker());
+
+    String html = Files.readString(reportDir.resolve("latest.html"));
+
+    assertThat(html)
+        .doesNotContainPattern("<script[^>]+src=")
+        .doesNotContainPattern("<link[^>]+rel=\"stylesheet\"")
+        .contains("https://d3js.org v7")
+        .contains("(e=e||self).Diff={}");
+  }
 }
