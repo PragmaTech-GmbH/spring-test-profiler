@@ -188,8 +188,8 @@ public class TestExecutionReporter {
       context.setVariable("inlineJs", readResourceAsString("static/js/report.js"));
       // Third-party libraries are bundled (not loaded from a CDN) so reports work offline
       // and cannot break when a CDN-hosted file changes
-      context.setVariable("inlineD3Js", readResourceAsString("static/js/vendor/d3.min.js"));
-      context.setVariable("inlineDiffJs", readResourceAsString("static/js/vendor/diff.min.js"));
+      context.setVariable("inlineD3Js", readResourceAsString("static/js/lib/d3.min.js"));
+      context.setVariable("inlineDiffJs", readResourceAsString("static/js/lib/diff.min.js"));
 
       // Register helper beans for templates
       registerHelperBeans(context, contextCacheTracker);
