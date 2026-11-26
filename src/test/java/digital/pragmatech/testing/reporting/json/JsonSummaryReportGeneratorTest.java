@@ -81,6 +81,7 @@ class JsonSummaryReportGeneratorTest {
         generator.buildSummary("GRADLE", executionTracker, null, contextCacheTracker);
 
     assertThat(summary.contextsCreated()).isEqualTo(2);
+    assertThat(summary.distinctContextsCreated()).isEqualTo(2);
     assertThat(summary.contextCacheHits()).isEqualTo(2);
     assertThat(summary.contextCacheMisses()).isEqualTo(2);
     assertThat(summary.contextCacheHitRatio()).isEqualTo(0.5);

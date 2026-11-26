@@ -12,7 +12,7 @@ on:
         required: true
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       packages: write
@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           # Deploy key with write access - listed in the main-branch ruleset
@@ -45,7 +45,7 @@ jobs:
         run: ./mvnw --batch-mode versions:set -DnewVersion="$RELEASE_VERSION"
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload JReleaser trace log on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jreleaser-trace-log
           path: out/jreleaser/trace.log

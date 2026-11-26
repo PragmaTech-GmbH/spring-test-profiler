@@ -1,6 +1,7 @@
 package digital.pragmatech.testing;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -173,6 +174,34 @@ class ContextCacheTrackerTest {
     ContextCacheEntry entry = tracker.getCacheEntry(config).orElseThrow();
     assertFalse(entry.isCurrentlyRemoved());
     assertNull(entry.getLifespans().get(0).getRemovalTime());
+  }
+
+  @Test
+  void shouldCountDistinctContextsOnceWhenContextIsRecreated() {
+    MergedContextConfiguration firstConfig = createConfig(Object.class);
+    MergedContextConfiguration secondConfig = createConfig(String.class);
+    MergedContextConfiguration notCreatedConfig = createConfig(Integer.class);
+
+    tracker.recordTestClassForContext(firstConfig, "com.example.TestA");
+    tracker.recordContextCreation(firstConfig, 500);
+    tracker.recordContextRemoval(firstConfig, Instant.now(), ContextRemovalReason.DIRTIES_CONTEXT);
+    tracker.recordTestClassForContext(firstConfig, "com.example.TestB");
+    tracker.recordContextCreation(firstConfig, 500);
+    tracker.recordTestClassForContext(secondConfig, "com.example.TestC");
+    tracker.recordContextCreation(secondConfig, 500);
+    tracker.recordTestClassForContext(notCreatedConfig, "com.example.TestD");
+
+    assertEquals(3, tracker.getTotalContextsCreated());
+    assertEquals(2, tracker.getDistinctContextsCreated());
+
+    ContextCacheStatistics statistics = tracker.getStatistics();
+    assertEquals(3, statistics.contextsCreated());
+    assertEquals(2, statistics.distinctContextsCreated());
+    assertEquals(2, statistics.contexts().size());
+    assertEquals(
+        List.of("com.example.TestA", "com.example.TestB"),
+        statistics.contexts().get(0).testClasses());
+    assertEquals(List.of("com.example.TestC"), statistics.contexts().get(1).testClasses());
   }
 
   private MergedContextConfiguration createConfig(Class<?>... classes) {

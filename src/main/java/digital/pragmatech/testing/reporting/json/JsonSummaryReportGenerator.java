@@ -63,6 +63,7 @@ public class JsonSummaryReportGenerator {
       ContextCacheTracker contextCacheTracker) {
 
     int contextsCreated = 0;
+    int distinctContextsCreated = 0;
     int contextCacheHits = 0;
     int contextCacheMisses = 0;
     Integer availableProcessors = null;
@@ -70,6 +71,7 @@ public class JsonSummaryReportGenerator {
 
     if (contextCacheTracker != null) {
       contextsCreated = contextCacheTracker.getTotalContextsCreated();
+      distinctContextsCreated = contextCacheTracker.getDistinctContextsCreated();
       contextCacheHits = contextCacheTracker.getCacheHits();
       contextCacheMisses = contextCacheTracker.getCacheMisses();
       optimizationStats = contextCacheTracker.calculateOptimizationStatistics();
@@ -94,6 +96,7 @@ public class JsonSummaryReportGenerator {
         buildTool,
         executionTracker.getOverallDuration().toMillis(),
         contextsCreated,
+        distinctContextsCreated,
         contextCacheHits,
         contextCacheMisses,
         contextCacheHitRatio,
