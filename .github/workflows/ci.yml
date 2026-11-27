@@ -2,6 +2,9 @@ name: CI
 
 on:
   push:
+    branches: [main]
+  # Required for PRs from forks - their pushes do not trigger workflows in this repository
+  pull_request:
 
 jobs:
   javascript-tests:
